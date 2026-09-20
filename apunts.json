@@ -1,5 +1,5 @@
 {
-  "versio": 5,
+  "versio": 6,
   "ajuda": "Els apunts publicats poden ser PDF o pàgines HTML. visible controla si la targeta es mostra a l’alumnat; el professor pot previsualitzar també apunts ocults. disponible controla si l’alumnat els pot obrir.",
   "arees": {
     "economia": {
@@ -17,7 +17,37 @@
           "codi": "Introducció",
           "titol": "Introducció",
           "descripcio": "Principis bàsics de l’economia: escassetat, decisions, cost d’oportunitat, incentius, mercats, Estat, productivitat, inflació, flux circular i frontera de possibilitats de producció.",
-          "fitxer": "https://drive.google.com/file/d/1Sd3n0kDncQ_MxItJVrt1ZigcfI25WlPP/view?usp=drivesdk"
+          "fitxer": "apunts/economia/introduccio.pdf"
+        },
+        {
+          "id": "tema-2-demanda-oferta",
+          "ordre": 2,
+          "visible": false,
+          "disponible": false,
+          "codi": "Tema 2",
+          "titol": "Demanda i oferta",
+          "descripcio": "Mercats i competència, demanda, oferta, equilibri de mercat i canvis en l’equilibri.",
+          "fitxer": "apunts/economia/tema-2-demanda-i-oferta.pdf"
+        },
+        {
+          "id": "tema-3-elasticitat",
+          "ordre": 3,
+          "visible": false,
+          "disponible": false,
+          "codi": "Tema 3",
+          "titol": "L’elasticitat i la seva aplicació",
+          "descripcio": "Elasticitat preu de la demanda, altres elasticitats, elasticitat de l’oferta i aplicacions.",
+          "fitxer": "apunts/economia/tema-3-elasticitat.pdf"
+        },
+        {
+          "id": "tema-4-produccio-costos",
+          "ordre": 4,
+          "visible": false,
+          "disponible": false,
+          "codi": "Tema 4",
+          "titol": "Producció i costos",
+          "descripcio": "Rendiments decreixents, funció de producció, producte marginal i mitjà, mesures del cost i costos a curt i llarg termini.",
+          "fitxer": "apunts/economia/tema-4-produccio-i-costos.pdf"
         }
       ]
     },
