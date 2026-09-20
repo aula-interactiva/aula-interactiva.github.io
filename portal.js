@@ -48,6 +48,7 @@
   let area = qs.get('area') === 'estadistica' ? 'estadistica' : 'economia';
   let mode = qs.get('mode') === 'apunts' ? 'apunts' : 'practiques';
   let serverTimeOffsetMs = 0;
+  let studentSubmissions = [];
 
   const $ = id => document.getElementById(id);
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({
@@ -193,15 +194,19 @@
         ? {open: p.disponible === true, state: p.disponible === true ? 'open' : 'upcoming', opensAt:null, closesAt:null}
         : practiceAvailability(p);
       const published = availability.open;
-      const canOpen = published || teacher;
+      const individuallySubmitted = !teacher && !isApunts &&
+        studentSubmissions.some(item => tracker.submissionMatchesPractice(item, p));
+      const canOpen = (published && !individuallySubmitted) || teacher;
       const preview = teacher && !published;
       const status = preview
         ? 'Professor'
         : availability.state === 'closed'
           ? 'Tancada'
-          : published
-            ? 'Disponible'
-            : 'Properament';
+          : individuallySubmitted
+            ? 'Entregada'
+            : published
+              ? 'Disponible'
+              : 'Properament';
       const timing = !isApunts
         ? availability.state === 'upcoming' && availability.opensAt
           ? ` · Obre ${formatAccessDate(availability.opensAt)}`
@@ -330,6 +335,12 @@
   if (session) {
     showPortal(session);
     if (session.role === 'student') {
+      tracker.getSubmissions().then(result => {
+        if (result.ok) {
+          studentSubmissions = result.submissions;
+          render();
+        }
+      });
       tracker.logActivity('OPEN_PORTAL', {practice: 'Portal', area: 'Sistema', title: 'Aula Interactiva'});
     }
   } else {
