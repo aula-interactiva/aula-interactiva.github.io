@@ -184,11 +184,42 @@
     }
   }
 
+  async function getSubmissions() {
+    const session = getSession();
+    if (!session || session.role !== 'student') return {ok: true, submissions: []};
+
+    try {
+      const result = await jsonp({action: 'submissions', id: session.id});
+      if (!result || result.ok !== true || !Array.isArray(result.submissions)) {
+        return {ok: false, submissions: []};
+      }
+      return {ok: true, submissions: result.submissions};
+    } catch (error) {
+      return {ok: false, submissions: [], error};
+    }
+  }
+
+  function submissionMatchesPractice(item, practice) {
+    const path = normalizeRepoPath(practice?.fitxer || location.pathname);
+    const slug = path.split('/').pop()?.replace(/\.html?$/i, '') || '';
+    const id = String(practice?.id || '').trim();
+    const key = normalizeRepoPath(item?.practiceKey || '');
+    const itemSlug = String(item?.key || '').trim();
+
+    if (key && (key === path || key.endsWith('/' + path))) return true;
+    if (itemSlug && (itemSlug === id || itemSlug === slug)) return true;
+    return false;
+  }
+
   async function submit(payload) {
     const session = getSession();
     if (session?.role === 'teacher') {
       return {ok: true, skipped: true, teacher: true};
     }
+
+    const practiceKey = normalizeRepoPath(location.pathname);
+    payload.practiceKey = practiceKey;
+    payload.detail = {...(payload.detail || {}), _practiceKey: practiceKey};
 
     const body = new URLSearchParams({payload: JSON.stringify(payload)});
     try {
@@ -355,6 +386,8 @@
       ? 'Aquesta pràctica encara no està oberta'
       : reason === 'closed'
         ? 'Aquesta pràctica està tancada'
+        : reason === 'submitted'
+          ? 'Aquesta pràctica ja està entregada'
         : reason === 'verification'
           ? 'No s’ha pogut verificar l’accés'
           : 'Aquesta pràctica no està disponible';
@@ -363,6 +396,8 @@
       ? `S’obrirà el ${formatAccessDate(whenMs)}.`
       : reason === 'closed' && whenMs
         ? `L’accés es va tancar el ${formatAccessDate(whenMs)}.`
+        : reason === 'submitted'
+          ? 'Ja has entregat aquesta pràctica. No es pot tornar a modificar ni tornar a entregar.'
         : reason === 'verification'
           ? 'Torna al portal i prova-ho de nou.'
           : 'Consulta el portal de l’assignatura per veure les pràctiques disponibles.';
@@ -484,6 +519,12 @@
       return;
     }
 
+    const submissions = await getSubmissions();
+    if (submissions.ok && submissions.submissions.some(item => submissionMatchesPractice(item, practice))) {
+      showBlockedPractice('submitted');
+      return;
+    }
+
     practiceClosesAt = state.closesAt;
     startPractice(session);
   }
@@ -505,6 +546,8 @@
     isTeacher,
     makeSubmissionId,
     submit,
+    getSubmissions,
+    submissionMatchesPractice,
     logActivity
   });
 })();
