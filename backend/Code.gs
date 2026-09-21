@@ -8,7 +8,12 @@ const CONFIG = Object.freeze({
   },
   UPLOAD_FOLDERS: {
     'practiques/estadistica/probabilitat-4b.html': '1zZXpuuhFubCGX5WpcZb80pJzWH3hN6Z7',
-    'practiques/estadistica/probabilitat-4c.html': '1M9gta8J11mOgU6oEEjYW15xlbfFPlYud'
+    'practiques/estadistica/probabilitat-4c.html': '1M9gta8J11mOgU6oEEjYW15xlbfFPlYud',
+    'practiques/estadistica/mostreig-5b.html': '1YVOQSDbppxOK-62La30W5oZBn3s-zK1h',
+    'practiques/estadistica/mostreig-5c.html': '12Uv2lu82YeTYEzqj5ZsXlLsYC-QceqJa',
+    'practiques/estadistica/inferencia-6b.html': '1xCjH3GVr6-ljWkYa3XCy2q3oKa7VCS7h',
+    'practiques/estadistica/inferencia-6c.html': '10afaNefv1PW-cSrYh7-nbtwiVjvgkwYy',
+    'practiques/estadistica/aplicacions-7b.html': '1_zL_2-EWz7m_6oJ_FlrTdvi_fAEyrMxy'
   },
   MAX_FILES: 5,
   MAX_FILE_BYTES: 8 * 1024 * 1024
