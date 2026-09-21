@@ -369,24 +369,7 @@
       }
     } catch (_) {}
 
-    let restored = applyDraftValues(draft, document);
-
-    let restored = 0;
-    for (const item of draft.values) {
-      const el = byKey.get(item.key);
-      if (!el) continue;
-      const type = String(el.type || '').toLowerCase();
-
-      if (type === 'checkbox' || type === 'radio') {
-        el.checked = !!item.checked;
-      } else {
-        el.value = item.value ?? '';
-      }
-
-      el.dispatchEvent(new Event('input', {bubbles: true}));
-      el.dispatchEvent(new Event('change', {bubbles: true}));
-      restored++;
-    }
+    const restored = applyDraftValues(draft, document);
 
     if (restored) {
       document.dispatchEvent(new CustomEvent('aula:draft-restored', {detail: {savedAt: draft.savedAt || null}}));
