@@ -1,10 +1,14 @@
 (() => {
   'use strict';
 
-  if (window.PracticeTracker?.version === 'v4') return;
+  if (window.PracticeTracker?.version === 'v5') return;
 
-  const ENDPOINT = 'https://script.google.com/macros/s/AKfycbzwnq5YjykYa80K1RtK6aTWyc5iLqQJD0KEAcPvhHEKOE-pHxGKj_be-bXfCqs7R8R_/exec';
-  const SESSION_KEY = 'aula-interactiva-session-v3';
+  const ENDPOINT = 'https://script.google.com/a/*/macros/s/AKfycbzwnq5YjykYa80K1RtK6aTWyc5iLqQJD0KEAcPvhHEKOE-pHxGKj_be-bXfCqs7R8R_/exec';
+  const SESSION_KEY = 'aula-interactiva-session-v4';
+  const LEGACY_SESSION_KEYS = ['aula-interactiva-session-v3', 'aula-interactiva-session-v2'];
+  const AUTH_URL = '/student-auth.json?v=1';
+  const LOCAL_SUBMISSION_PREFIX = 'aula-interactiva-submitted-v1:';
+  let authConfigPromise = null;
   let jsonpSeq = 0;
   let practiceStartedAt = Date.now();
   let leaveLogged = false;
@@ -29,6 +33,74 @@
     return fnv1a('aula-teacher-v3:' + String(id)) === 2813788514;
   }
 
+  function bytesFromBase64(value) {
+    const raw = atob(String(value || ''));
+    return Uint8Array.from(raw, ch => ch.charCodeAt(0));
+  }
+
+  function textFromBytes(bytes) {
+    return new TextDecoder().decode(bytes);
+  }
+
+  function equalBytes(a, b) {
+    if (!a || !b || a.length !== b.length) return false;
+    let diff = 0;
+    for (let i = 0; i < a.length; i++) diff |= a[i] ^ b[i];
+    return diff === 0;
+  }
+
+  async function loadAuthConfig() {
+    if (!authConfigPromise) {
+      authConfigPromise = fetch(AUTH_URL, {cache: 'no-store'})
+        .then(response => {
+          if (!response.ok) throw new Error('No s’ha pogut carregar el registre local');
+          return response.json();
+        })
+        .then(config => {
+          if (!config?.kdf?.salt || !Array.isArray(config.entries)) throw new Error('Registre local no vàlid');
+          return config;
+        })
+        .catch(error => {
+          authConfigPromise = null;
+          throw error;
+        });
+    }
+    return authConfigPromise;
+  }
+
+  async function localStudentIdentity(id) {
+    if (!window.crypto?.subtle) return null;
+
+    const config = await loadAuthConfig();
+    const keyMaterial = await crypto.subtle.importKey(
+      'raw',
+      new TextEncoder().encode(String(id)),
+      'PBKDF2',
+      false,
+      ['deriveBits']
+    );
+    const bits = new Uint8Array(await crypto.subtle.deriveBits({
+      name: 'PBKDF2',
+      hash: config.kdf.hash || 'SHA-256',
+      salt: bytesFromBase64(config.kdf.salt),
+      iterations: Number(config.kdf.iterations) || 450000
+    }, keyMaterial, 512));
+
+    const verifier = bits.slice(0, 32);
+    const aesBytes = bits.slice(32);
+    const entry = config.entries.find(item => equalBytes(verifier, bytesFromBase64(item.v)));
+    if (!entry) return null;
+
+    const aesKey = await crypto.subtle.importKey('raw', aesBytes, 'AES-GCM', false, ['decrypt']);
+    const clear = await crypto.subtle.decrypt(
+      {name: 'AES-GCM', iv: bytesFromBase64(entry.iv)},
+      aesKey,
+      bytesFromBase64(entry.n)
+    );
+    const firstName = textFromBytes(new Uint8Array(clear)).trim();
+    return firstName ? {id, role: 'student', firstName} : null;
+  }
+
   function getSession() {
     try {
       const raw = sessionStorage.getItem(SESSION_KEY);
@@ -36,20 +108,28 @@
       const session = JSON.parse(raw);
       if (!session || !/^\d{6}$/.test(String(session.id || ''))) return null;
       if (!['student', 'teacher'].includes(session.role)) return null;
+      if (session.role === 'student' && !String(session.firstName || '').trim()) return null;
       return session;
     } catch (_) {
       return null;
     }
   }
 
-  function saveSession(id, role) {
-    const session = {id: normalizeId(id), role, loggedAt: Date.now()};
+  function saveSession(id, role, firstName = '') {
+    const session = {
+      id: normalizeId(id),
+      role,
+      firstName: role === 'student' ? String(firstName || '').trim() : '',
+      loggedAt: Date.now()
+    };
     sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    LEGACY_SESSION_KEYS.forEach(key => sessionStorage.removeItem(key));
     return session;
   }
 
   function clearSession() {
     sessionStorage.removeItem(SESSION_KEY);
+    LEGACY_SESSION_KEYS.forEach(key => sessionStorage.removeItem(key));
   }
 
   function jsonp(params, timeoutMs = 8000) {
@@ -79,15 +159,25 @@
     if (!/^\d{6}$/.test(id)) return {ok: false, id, reason: 'format'};
 
     if (isTeacherCode(id)) {
-      return {ok: true, id, role: 'teacher', reason: ''};
+      return {ok: true, id, role: 'teacher', firstName: '', reason: ''};
     }
 
+    let localIdentity = null;
     try {
-      const result = await jsonp({action: 'validate', id});
+      localIdentity = await localStudentIdentity(id);
+    } catch (_) {}
+
+    try {
+      const result = await jsonp({action: 'validate', id}, 5000);
       const ok = result && result.ok === true;
       if (!ok) return {ok: false, id, role: '', reason: 'not-found'};
-      return {ok: true, id, role: 'student', reason: ''};
+      const firstName = String(result.firstName || localIdentity?.firstName || '').trim();
+      if (!firstName) return {ok: false, id, role: '', reason: 'identity'};
+      return {ok: true, id, role: 'student', firstName, reason: ''};
     } catch (error) {
+      if (localIdentity) {
+        return {ok: true, id, role: 'student', firstName: localIdentity.firstName, reason: 'local-fallback'};
+      }
       return {ok: false, id, reason: 'network', error};
     }
   }
@@ -95,7 +185,7 @@
   async function login(value) {
     const result = await validateId(value);
     if (!result.ok) return result;
-    const session = saveSession(result.id, result.role || 'student');
+    const session = saveSession(result.id, result.role || 'student', result.firstName || '');
     if (session.role === 'student') {
       logActivity('LOGIN', {practice: 'Portal', area: 'Sistema', title: 'Aula Interactiva'});
     }
@@ -161,6 +251,7 @@
       await fetch(ENDPOINT, {
         method: 'POST',
         mode: 'no-cors',
+        credentials: 'omit',
         cache: 'no-store',
         body: new URLSearchParams({payload: JSON.stringify(payload)})
       });
@@ -172,13 +263,17 @@
 
   function logActivityBeacon(event, detail = {}) {
     const payload = activityPayload(event, detail);
-    if (!payload || !navigator.sendBeacon) return false;
+    if (!payload) return false;
     try {
-      const data = new URLSearchParams({payload: JSON.stringify(payload)}).toString();
-      return navigator.sendBeacon(
-        ENDPOINT,
-        new Blob([data], {type: 'application/x-www-form-urlencoded;charset=UTF-8'})
-      );
+      fetch(ENDPOINT, {
+        method: 'POST',
+        mode: 'no-cors',
+        credentials: 'omit',
+        cache: 'no-store',
+        keepalive: true,
+        body: new URLSearchParams({payload: JSON.stringify(payload)})
+      }).catch(() => {});
+      return true;
     } catch (_) {
       return false;
     }
@@ -197,16 +292,43 @@
     return `final-${normalizeId(id)}-${safe}`;
   }
 
+  function localSubmissionKey(practicePath, id) {
+    return LOCAL_SUBMISSION_PREFIX + normalizeId(id) + ':' +
+      normalizeRepoPath(practicePath || location.pathname).toLowerCase();
+  }
+
+  function hasLocalSubmission(practicePath, id) {
+    try {
+      return localStorage.getItem(localSubmissionKey(practicePath, id)) === '1';
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function rememberLocalSubmission(practicePath, id) {
+    try {
+      localStorage.setItem(localSubmissionKey(practicePath, id), '1');
+    } catch (_) {}
+  }
+
   async function checkPracticeSubmitted(practice) {
     const session = getSession();
     if (!session || session.role !== 'student') {
       return {ok: true, submitted: false, submissionId: ''};
     }
 
-    const submissionId = stablePracticeSubmissionId(practice?.fitxer || location.pathname, session.id);
+    const practicePath = practice?.fitxer || location.pathname;
+    const submissionId = stablePracticeSubmissionId(practicePath, session.id);
+
+    if (hasLocalSubmission(practicePath, session.id)) {
+      return {ok: true, submitted: true, submissionId, source: 'local'};
+    }
+
     try {
       const result = await jsonp({action: 'confirm', submissionId}, 8000);
-      return {ok: true, submitted: result?.ok === true, submissionId};
+      const submitted = result?.ok === true;
+      if (submitted) rememberLocalSubmission(practicePath, session.id);
+      return {ok: true, submitted, submissionId, source: 'server'};
     } catch (error) {
       return {ok: false, submitted: false, submissionId, error};
     }
@@ -228,14 +350,16 @@
       await fetch(ENDPOINT, {
         method: 'POST',
         mode: 'no-cors',
+        credentials: 'omit',
         cache: 'no-store',
         body
       });
     } catch (error) {
       return {ok: false, error};
     }
-    const confirmed = await confirmSubmission(payload.submissionId);
-    return {ok: confirmed};
+    const confirmed = await confirmSubmission(payload.submissionId, 4);
+    rememberLocalSubmission(practiceKey, session.id);
+    return {ok: true, confirmed};
   }
 
   function practiceMeta() {
@@ -305,31 +429,26 @@
     if (!controls) return;
     const {input, button} = controls;
     const teacher = session.role === 'teacher';
+    const displayName = teacher ? 'Professor' : (String(session.firstName || '').trim() || 'Alumne');
+    const wrap = input.closest('label');
+
     input.value = session.id;
     input.readOnly = true;
-
-    if (teacher) {
-      input.style.visibility = 'hidden';
-      input.setAttribute('aria-hidden', 'true');
-      document.querySelectorAll('#id-status,.idstatus').forEach(el => { el.hidden = true; });
-    }
+    input.style.visibility = 'hidden';
+    input.setAttribute('aria-hidden', 'true');
+    button.style.visibility = 'hidden';
+    document.querySelectorAll('#id-status,.idstatus').forEach(el => { el.hidden = true; });
+    if (wrap?.firstChild) wrap.firstChild.textContent = displayName + ' ';
 
     setTimeout(() => {
       button.click();
       setTimeout(() => {
         input.readOnly = true;
+        input.hidden = true;
+        input.style.visibility = '';
         button.hidden = true;
-        const wrap = input.closest('label');
-        if (teacher) {
-          input.hidden = true;
-          input.style.visibility = '';
-          if (wrap?.firstChild) wrap.firstChild.textContent = 'Professor ';
-          document.querySelectorAll('#id-status,.idstatus').forEach(el => {
-            el.textContent = String(el.textContent || '').replaceAll(session.id, 'Professor');
-          });
-        } else if (wrap?.firstChild) {
-          wrap.firstChild.textContent = 'ID alumne ';
-        }
+        button.style.visibility = '';
+        document.querySelectorAll('#id-status,.idstatus').forEach(el => { el.hidden = true; });
       }, 120);
     }, 40);
   }
@@ -538,7 +657,7 @@
   }
 
   window.PracticeTracker = Object.freeze({
-    version: 'v4',
+    version: 'v5',
     endpoint: ENDPOINT,
     normalizeId,
     validateId,
