@@ -3,6 +3,15 @@
 
   if (window.PracticeTracker?.version === 'v5') return;
 
+  if (!document.querySelector('link[data-aula-theme]')) {
+    const theme = document.createElement('link');
+    theme.rel = 'stylesheet';
+    theme.dataset.aulaTheme = '1';
+    theme.href = new URL('theme.css?v=1', document.currentScript?.src || window.location.href).href;
+    document.head.appendChild(theme);
+  }
+
+
   const ENDPOINT = 'https://script.google.com/macros/s/AKfycbxq88klu15RnDmp39XjfwuVhtZ36KrQWm-nbLh_v1aaFL-2tfxwl9HK5H5sKFqXyBzw/exec';
   const SESSION_KEY = 'aula-interactiva-session-v3';
   const STUDENT_CODE_HASHES = new Set([
