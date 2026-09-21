@@ -15,6 +15,10 @@
   const ENDPOINT = 'https://script.google.com/macros/s/AKfycbxq88klu15RnDmp39XjfwuVhtZ36KrQWm-nbLh_v1aaFL-2tfxwl9HK5H5sKFqXyBzw/exec';
   const SESSION_KEY = 'aula-interactiva-session-v3';
   const STUDENT_CODE_HASHES = new Set([
+    "a2347a0cfe5252a3a4b7b7bcd0b935e4cf88a19a8742fd8bd392af1c11861af6",
+    "ce43354133f69b0b09f98a400be012af8b4ede68b4167d11853d3a0c7982c7fc",
+    "effca28a4e4fe9d4b56dfe4441c8ecb715eaf5c37e5be3985da816d23a5d597a",
+    "a0a368e6703e44cdabec439470dc363e34bdf196b58ff1b6cae14806565bc9c1",
     "3750ed2a7a82f760c10ec07482f512870967de3711a949fc90906201d950412a",
     "e4715c4e7730ae01e959862c2fb75ba141f711004c11e392fc8c8d025629ed76",
     "806326232c8129066b24c2e2e8d3bbd9e5ae09badd3d95a23db93f1d0c0f1678",
