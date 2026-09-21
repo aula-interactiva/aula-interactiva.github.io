@@ -85,7 +85,7 @@ function createSession_(user) {
   CacheService.getScriptCache().put(
     'session:' + token,
     JSON.stringify({id: user.id, role: user.role, name: user.name}),
-    43200
+    21600
   );
   return token;
 }
