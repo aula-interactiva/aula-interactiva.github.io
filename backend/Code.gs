@@ -69,75 +69,27 @@ function activeStudent_(id) {
   return activeUser_(id)?.role === 'student';
 }
 
-function loginRateLimited_() {
-  const cache = CacheService.getScriptCache();
-  return Number(cache.get('login-failures') || 0) >= 120;
-}
-
-function recordLoginFailure_() {
-  const cache = CacheService.getScriptCache();
-  const next = Number(cache.get('login-failures') || 0) + 1;
-  cache.put('login-failures', String(next), 600);
-}
-
-function createSession_(user) {
-  const token = Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, '');
-  CacheService.getScriptCache().put(
-    'session:' + token,
-    JSON.stringify({id: user.id, role: user.role, name: user.name}),
-    21600
-  );
-  return token;
-}
-
-function sessionFromToken_(token) {
-  const raw = CacheService.getScriptCache().get('session:' + text_(token));
-  if (!raw) return null;
-  try {
-    const session = JSON.parse(raw);
-    if (!session || !/^\d{6}$/.test(text_(session.id))) return null;
-    if (!['student', 'teacher'].includes(text_(session.role))) return null;
-    return session;
-  } catch (_) {
-    return null;
-  }
-}
-
-function loginResponse_(code) {
-  if (loginRateLimited_()) return {ok: false, error: 'rate-limited'};
+function notesResponse_(code) {
   const user = activeUser_(normalizeId_(code));
-  if (!user) {
-    recordLoginFailure_();
-    return {ok: false, error: 'invalid-code'};
-  }
-  return {
-    ok: true,
-    id: user.id,
-    role: user.role,
-    token: createSession_(user)
-  };
-}
-
-function notesResponse_(session) {
-  if (!session) return {ok: false, error: 'unauthorized'};
+  if (!user) return {ok: false, error: 'unauthorized'};
 
   const sh = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID).getSheetByName(CONFIG.SHEETS.notes);
-  if (!sh || sh.getLastRow() < 2) return {ok: true, role: session.role, notes: []};
+  if (!sh || sh.getLastRow() < 2) return {ok: true, role: user.role, notes: []};
 
   const values = sh.getRange(2, 1, sh.getLastRow() - 1, 6).getDisplayValues();
   const notes = values
     .filter(r => text_(r[5]).trim() !== '')
-    .filter(r => session.role === 'teacher' || normalizeId_(r[4]) === session.id)
+    .filter(r => user.role === 'teacher' || normalizeId_(r[4]) === user.id)
     .map(r => ({
       area: text_(r[0]),
       practiceId: text_(r[1]),
       practice: text_(r[2]),
-      student: session.role === 'teacher' ? text_(r[3]) : '',
-      studentId: session.role === 'teacher' ? normalizeId_(r[4]) : '',
+      student: user.role === 'teacher' ? text_(r[3]) : '',
+      studentId: user.role === 'teacher' ? normalizeId_(r[4]) : '',
       grade: text_(r[5])
     }));
 
-  return {ok: true, role: session.role, notes};
+  return {ok: true, role: user.role, notes};
 }
 
 function existingSubmission_(submissionId) {
@@ -300,12 +252,10 @@ function doGet(e) {
   const action = text_(params.action);
 
   let result;
-  if (action === 'login') {
-    result = loginResponse_(params.code);
-  } else if (action === 'notes') {
-    result = notesResponse_(sessionFromToken_(params.token));
+  if (action === 'notes') {
+    result = notesResponse_(params.code);
   } else {
-    result = {ok: true, service: 'Aula Interactiva backend', version: '3'};
+    result = {ok: true, service: 'Aula Interactiva backend', version: '4'};
   }
 
   return params.callback ? jsonp_(result, params.callback) : json_(result);
