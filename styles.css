@@ -252,26 +252,26 @@ a.back-btn{text-decoration:none;display:inline-block}
 /* Notes panel */
 .session-action{border:1px solid var(--line);background:var(--paper);color:var(--charcoal);border-radius:8px;padding:6px 10px;font-size:10.5px;font-weight:800}
 .session-action:hover{background:#ece8e1}
-.notes-panel{margin-top:18px;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:18px;box-shadow:var(--shadow)}
-.notes-head{display:flex;justify-content:space-between;align-items:center;gap:16px;padding-bottom:14px;border-bottom:1px solid var(--line)}
-.notes-head h2{margin:4px 0 0;font-size:24px;letter-spacing:-.02em}
+.notes-panel{margin-top:14px;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:14px;box-shadow:var(--shadow)}
+.notes-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.notes-head h2{margin:3px 0 0;font-size:21px;letter-spacing:-.02em}
 .notes-actions{display:flex;align-items:center;gap:10px}
 .notes-close{border:1px solid var(--line);background:#fff;color:var(--charcoal);border-radius:8px;padding:8px 11px;font-size:11px;font-weight:800}
 .notes-close:hover{background:#ece8e1}
-.notes-practices{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}
-.notes-practice-btn{border:1px solid var(--line);background:#fff;color:var(--charcoal);border-radius:8px;padding:8px 10px;font-size:11px;font-weight:800}
+.notes-practices{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+.notes-practice-btn{border:1px solid var(--line);background:#fff;color:var(--charcoal);border-radius:7px;padding:6px 8px;font-size:10px;font-weight:800}
 .notes-practice-btn.active{background:var(--charcoal);color:#fff;border-color:var(--charcoal)}
-.notes-content{min-height:80px}
+.notes-content{min-height:56px}
 .notes-empty{padding:18px;border:1px dashed var(--line);border-radius:10px;color:var(--muted);background:rgba(255,255,255,.35)}
 .student-notes{display:grid;gap:8px}
-.student-note-row,.teacher-note-row{display:grid;align-items:center;gap:12px;border-bottom:1px solid var(--line-2);padding:10px 2px}
+.student-note-row,.teacher-note-row{display:grid;align-items:center;gap:8px;border-bottom:1px solid var(--line-2);padding:6px 2px;font-size:12px}
 .student-note-row{grid-template-columns:minmax(0,1fr) auto}
 .teacher-note-row{grid-template-columns:minmax(0,1fr) 82px}
-.note-practice{font-weight:750}
+.note-practice{font-size:11px;font-weight:750}
 .note-area{font-size:10.5px;color:var(--muted);margin-top:2px}
-.note-grade{font-size:12px;font-weight:800;letter-spacing:-.01em;text-align:right}
-.teacher-note-name{font-weight:700}
-.teacher-note-id{font-size:10px;color:var(--muted);margin-top:2px}
+.note-grade{font-size:11px;font-weight:800;letter-spacing:-.01em;text-align:right}
+.teacher-note-name{font-size:11px;font-weight:700}
+.teacher-note-id{font-size:9px;color:var(--muted);margin-top:1px}
 @media(max-width:720px){
   .notes-panel{padding:14px}
   .notes-head{align-items:flex-start}
