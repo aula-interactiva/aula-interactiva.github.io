@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Aula Interactiva</title>
-<link rel="stylesheet" href="styles.css?v=6" />
+<link rel="stylesheet" href="styles.css?v=7" />
 <link rel="stylesheet" href="theme.css?v=5" />
 </head>
 <body>
@@ -27,8 +27,9 @@
     <div class="session-bar">
       <div id="teacher-tools" class="teacher-tools hidden">
         <a class="teacher-tool-link" href="https://docs.google.com/spreadsheets/d/1EEpkuCvVn-VBsLdfcz1L8QCs5pmxOhkDfGXyRyixhW4/edit#gid=310001" target="_blank" rel="noopener">Control</a>
-        <a class="teacher-tool-link" href="https://docs.google.com/spreadsheets/d/1EEpkuCvVn-VBsLdfcz1L8QCs5pmxOhkDfGXyRyixhW4/edit#gid=310002" target="_blank" rel="noopener">Notes</a>
+        <a class="teacher-tool-link" href="https://docs.google.com/spreadsheets/d/1EEpkuCvVn-VBsLdfcz1L8QCs5pmxOhkDfGXyRyixhW4/edit#gid=310002" target="_blank" rel="noopener">Full de notes</a>
       </div>
+      <button id="notes-button" class="session-action" type="button">Notes</button>
       <span id="session-role">Alumne</span>
       <strong id="session-id"></strong>
       <button id="logout-button" type="button">Sortir</button>
@@ -45,11 +46,26 @@
         <button class="hub-mark" id="content-mark" type="button" title="Canvia a Apunts" aria-label="Canvia a Apunts">P</button>
       </div>
     </div>
+    <section id="notes-panel" class="notes-panel hidden" aria-live="polite">
+      <div class="notes-head">
+        <div>
+          <div class="hub-eyebrow">QUALIFICACIONS</div>
+          <h2 id="notes-title">Les meves notes</h2>
+        </div>
+        <div class="notes-actions">
+          <button class="hub-mark hidden" id="notes-area-mark" type="button" title="Canvia a Estadística" aria-label="Canvia a Estadística">E</button>
+          <button id="notes-close" class="notes-close" type="button">Tancar</button>
+        </div>
+      </div>
+      <div id="notes-practices" class="notes-practices"></div>
+      <div id="notes-content" class="notes-content"></div>
+    </section>
     <div class="practice-grid" id="practice-grid"></div>
   </div>
 </section>
 
-<script src="tracking.js?v=20"></script>
-<script src="portal.js?v=7"></script>
+<script src="tracking.js?v=21"></script>
+<script src="portal.js?v=8"></script>
+<script src="notes.js?v=1"></script>
 </body>
 </html>
