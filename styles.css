@@ -269,7 +269,7 @@ a.back-btn{text-decoration:none;display:inline-block}
 .teacher-note-row{grid-template-columns:minmax(0,1fr) 82px}
 .note-practice{font-weight:750}
 .note-area{font-size:10.5px;color:var(--muted);margin-top:2px}
-.note-grade{font-size:14px;font-weight:800;letter-spacing:-.01em;text-align:right}
+.note-grade{font-size:12px;font-weight:800;letter-spacing:-.01em;text-align:right}
 .teacher-note-name{font-weight:700}
 .teacher-note-id{font-size:10px;color:var(--muted);margin-top:2px}
 @media(max-width:720px){
