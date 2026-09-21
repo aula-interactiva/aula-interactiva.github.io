@@ -1,5 +1,5 @@
 {
-  "versio": 7,
+  "versio": 8,
   "ajuda": "Els apunts publicats poden ser PDF o pàgines HTML. visible controla si la targeta es mostra a l’alumnat; el professor pot previsualitzar també apunts ocults. disponible controla si l’alumnat els pot obrir.",
   "arees": {
     "economia": {
@@ -12,8 +12,8 @@
         {
           "id": "introduccio-economia",
           "ordre": 0,
-          "visible": false,
-          "disponible": false,
+          "visible": true,
+          "disponible": true,
           "codi": "Introducció",
           "titol": "Introducció",
           "descripcio": "Principis bàsics de l’economia: escassetat, decisions, cost d’oportunitat, incentius, mercats, Estat, productivitat, inflació, flux circular i frontera de possibilitats de producció.",
@@ -22,8 +22,8 @@
         {
           "id": "tema-2-demanda-oferta",
           "ordre": 2,
-          "visible": false,
-          "disponible": false,
+          "visible": true,
+          "disponible": true,
           "codi": "Tema 2",
           "titol": "Demanda i oferta",
           "descripcio": "Mercats i competència, demanda, oferta, equilibri de mercat i canvis en l’equilibri.",
