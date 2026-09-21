@@ -145,6 +145,18 @@
     return `${practice}-${id}-${Date.now()}-${random}`;
   }
 
+  async function postPayload(payload, {keepalive = false} = {}) {
+    const body = new URLSearchParams({payload: JSON.stringify(payload)});
+    return fetch(ENDPOINT, {
+      method: 'POST',
+      mode: 'no-cors',
+      credentials: 'omit',
+      cache: 'no-store',
+      keepalive,
+      body
+    });
+  }
+
   function activityPayload(event, detail = {}) {
     const session = getSession();
     if (!session || session.role !== 'student') return null;
@@ -175,13 +187,7 @@
     const payload = activityPayload(event, detail);
     if (!payload) return {ok: false, skipped: true};
     try {
-      await fetch(ENDPOINT, {
-        method: 'POST',
-        mode: 'no-cors',
-        credentials: 'omit',
-        cache: 'no-store',
-        body: new URLSearchParams({payload: JSON.stringify(payload)})
-      });
+      await postPayload(payload);
       return {ok: true};
     } catch (error) {
       return {ok: false, error};
@@ -192,14 +198,7 @@
     const payload = activityPayload(event, detail);
     if (!payload) return false;
     try {
-      fetch(ENDPOINT, {
-        method: 'POST',
-        mode: 'no-cors',
-        credentials: 'omit',
-        cache: 'no-store',
-        keepalive: true,
-        body: new URLSearchParams({payload: JSON.stringify(payload)})
-      }).catch(() => {});
+      postPayload(payload, {keepalive: true}).catch(() => {});
       return true;
     } catch (_) {
       return false;
@@ -244,15 +243,16 @@
       normalizeRepoPath(practicePath || location.pathname).toLowerCase();
   }
 
+  function isDraftControl(el) {
+    const id = String(el.id || '');
+    const type = String(el.type || '').toLowerCase();
+    if (/student-id|login-id/.test(id)) return false;
+    return !['file', 'button', 'submit', 'reset'].includes(type);
+  }
+
   function draftControls() {
     return Array.from(document.querySelectorAll('input,select,textarea'))
-      .filter(el => {
-        const id = String(el.id || '');
-        const type = String(el.type || '').toLowerCase();
-        if (/student-id|login-id/.test(id)) return false;
-        if (type === 'file' || type === 'button' || type === 'submit' || type === 'reset') return false;
-        return true;
-      });
+      .filter(isDraftControl);
   }
 
   function controlKey(el, index) {
@@ -327,13 +327,7 @@
     const out = [];
     if (root && root.matches && root.matches('input,select,textarea')) out.push(root);
     if (root && root.querySelectorAll) out.push(...root.querySelectorAll('input,select,textarea'));
-    return out.filter(el => {
-      const id = String(el.id || '');
-      const type = String(el.type || '').toLowerCase();
-      if (/student-id|login-id/.test(id)) return false;
-      if (type === 'file' || type === 'button' || type === 'submit' || type === 'reset') return false;
-      return true;
-    });
+    return out.filter(isDraftControl);
   }
 
   function applyDraftValues(draft, root = document) {
@@ -501,15 +495,8 @@
     payload.submissionId = stablePracticeSubmissionId(practiceKey, session.id);
     payload.detail = {...(payload.detail || {}), _practiceKey: practiceKey};
 
-    const body = new URLSearchParams({payload: JSON.stringify(payload)});
     try {
-      await fetch(ENDPOINT, {
-        method: 'POST',
-        mode: 'no-cors',
-        credentials: 'omit',
-        cache: 'no-store',
-        body
-      });
+      await postPayload(payload);
     } catch (error) {
       return {ok: false, error};
     }
