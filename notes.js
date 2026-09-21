@@ -24,6 +24,7 @@
 
   function showPanel() {
     document.querySelector('.hub-hero')?.classList.add('hidden');
+    document.querySelector('.session-bar')?.classList.add('hidden');
     $('notes-panel').classList.remove('hidden');
     $('practice-grid').classList.add('hidden');
     loadNotes();
@@ -34,6 +35,7 @@
     $('notes-panel').classList.add('hidden');
     $('practice-grid').classList.remove('hidden');
     document.querySelector('.hub-hero')?.classList.remove('hidden');
+    document.querySelector('.session-bar')?.classList.remove('hidden');
   }
 
   function setLoading() {
