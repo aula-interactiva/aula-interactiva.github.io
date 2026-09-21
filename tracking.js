@@ -3,7 +3,7 @@
 
   if (window.PracticeTracker?.version === 'v5') return;
 
-  const ENDPOINT = 'https://script.google.com/a/*/macros/s/AKfycbzwnq5YjykYa80K1RtK6aTWyc5iLqQJD0KEAcPvhHEKOE-pHxGKj_be-bXfCqs7R8R_/exec';
+  const ENDPOINT = 'https://script.google.com/macros/s/AKfycbzwnq5YjykYa80K1RtK6aTWyc5iLqQJD0KEAcPvhHEKOE-pHxGKj_be-bXfCqs7R8R_/exec';
   const SESSION_KEY = 'aula-interactiva-session-v4';
   const LEGACY_SESSION_KEYS = ['aula-interactiva-session-v3', 'aula-interactiva-session-v2'];
   const AUTH_URL = '/student-auth.json?v=1';
@@ -162,22 +162,13 @@
       return {ok: true, id, role: 'teacher', firstName: '', reason: ''};
     }
 
-    let localIdentity = null;
     try {
-      localIdentity = await localStudentIdentity(id);
-    } catch (_) {}
-
-    try {
-      const result = await jsonp({action: 'validate', id}, 5000);
-      const ok = result && result.ok === true;
-      if (!ok) return {ok: false, id, role: '', reason: 'not-found'};
-      const firstName = String(result.firstName || localIdentity?.firstName || '').trim();
-      if (!firstName) return {ok: false, id, role: '', reason: 'identity'};
-      return {ok: true, id, role: 'student', firstName, reason: ''};
-    } catch (error) {
+      const localIdentity = await localStudentIdentity(id);
       if (localIdentity) {
-        return {ok: true, id, role: 'student', firstName: localIdentity.firstName, reason: 'local-fallback'};
+        return {ok: true, id, role: 'student', firstName: localIdentity.firstName, reason: ''};
       }
+      return {ok: false, id, role: '', reason: 'not-found'};
+    } catch (error) {
       return {ok: false, id, reason: 'network', error};
     }
   }
