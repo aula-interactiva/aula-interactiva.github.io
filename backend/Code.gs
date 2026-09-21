@@ -38,7 +38,7 @@ function activeStudent_(id) {
   const sh = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID).getSheetByName(CONFIG.SHEETS.students);
   const last = sh.getLastRow();
   if (last < 2) return false;
-  const values = sh.getRange(2, 2, last - 1, 4).getValues(); // ID, darrers4, Actiu, Rol
+  const values = sh.getRange(2, 2, last - 1, 4).getDisplayValues(); // ID, darrers4, Actiu, Rol
   return values.some(row =>
     normalizeId_(row[0]) === id &&
     String(row[2]).toUpperCase() === 'TRUE' &&
