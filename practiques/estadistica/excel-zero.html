@@ -14,12 +14,16 @@
 .practice{min-height:500px;display:flex;flex-direction:column}.practicebody{padding:10px 12px;display:flex;flex-direction:column;gap:8px;flex:1}.taskintro{font-size:10.5px;color:var(--muted);line-height:1.4;padding:2px 2px 7px}.task{padding:10px 9px;border-bottom:1px solid #eeeae3}.task:last-child{border-bottom:0}.tasktext{font-size:11.5px;line-height:1.4;margin-bottom:7px}.taskanswer{display:grid;grid-template-columns:minmax(0,1fr) 78px;gap:7px}.taskanswer input,.taskanswer select{width:100%;border:1px solid #dfca77;background:var(--input);border-radius:7px;padding:8px;outline:none;font-size:11px;font-weight:700}.status{border-radius:7px;display:grid;place-items:center;font-size:9.5px;font-weight:850;color:transparent;min-height:34px}.status.ok{background:var(--greenbg);color:var(--green)}.status.bad{background:var(--redbg);color:var(--red)}.actions{border-top:1px solid var(--line);padding:10px 12px;display:flex;justify-content:space-between;gap:8px}.secondary,.primary{border-radius:8px;padding:8px 11px;font-size:10.5px;font-weight:850}.secondary{background:white;border:1px solid var(--line);color:#50565a}.primary{background:var(--char);border:1px solid var(--char);color:white}.primary:disabled{opacity:.4;cursor:not-allowed}
 .checker{margin-top:0}.checkerbody{padding:14px 16px}.checkerbody p{font-size:11.5px;line-height:1.5;color:#4c5256}.uploadrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.upload{font-size:11px}.checkfile{border:0;border-radius:8px;background:var(--char);color:white;padding:8px 11px;font-size:10.5px;font-weight:850}.checkfile:disabled{opacity:.4}.filemsg{font-size:10px;color:var(--muted)}.checkresults{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:10px}.checkitem{border:1px solid var(--line);background:white;border-radius:7px;padding:7px 8px;font-size:10px}.checkitem.pass{border-color:#b8d1c0;background:#f3f9f5;color:#326a45}.checkitem.fail{border-color:#e2beb8;background:#fff7f5;color:#97483f}.checknote{font-size:9.5px;color:var(--muted);margin-top:9px;line-height:1.35}
 @media(max-width:1050px){.shell{grid-template-columns:1fr}.sidebar{position:static}.stage-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}.workspace{grid-template-columns:1fr}}@media(max-width:650px){.topbar{align-items:flex-start;flex-wrap:wrap}.apptitle{font-size:16px}.shell{padding:9px}.stage-list{grid-template-columns:1fr 1fr}.hero{display:block}.badge{display:inline-block;margin-top:10px}.lessonbody{min-height:0}.practice{min-height:0}.checkresults{grid-template-columns:1fr}.taskanswer{grid-template-columns:1fr 68px}}
+
+.solver-btn{background:#f1f1f1;color:#242424;border:1px solid #c9c9c9;border-radius:7px;padding:7px 9px;font-size:10.5px;font-weight:800;cursor:pointer}
+.solver-btn:hover{background:#fff}.solver-modal{position:fixed;inset:0;background:rgba(0,0,0,.28);display:none;align-items:center;justify-content:center;padding:18px;z-index:10000}.solver-modal.show{display:flex}.solver-box{width:min(480px,100%);background:#fff;border:1px solid #cfcfcf;border-radius:10px;box-shadow:0 18px 45px rgba(0,0,0,.18);overflow:hidden}.solver-head{background:#2a2a2a;color:#fff;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;font-size:12px;font-weight:850}.solver-close{border:0;background:transparent;color:#fff;font-size:18px;cursor:pointer}.solver-body{padding:13px}.solver-note{font-size:10px;line-height:1.4;color:#666;margin-bottom:10px}.solver-grid{display:grid;grid-template-columns:145px 1fr;gap:8px;align-items:center}.solver-grid label{font-size:10.5px;font-weight:800;color:#3d3d3d}.solver-grid input,.solver-grid select,.solver-grid textarea{width:100%;border:1px solid #cfcfcf;border-radius:6px;padding:7px 8px;background:#f5f5f5;font-size:11px;outline:none}.solver-grid textarea{min-height:52px;resize:vertical}.solver-eq{font-family:Consolas,monospace}.solver-radio{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:10.5px}.solver-radio label{font-weight:700;display:flex;gap:4px;align-items:center}.solver-actions{display:flex;justify-content:flex-end;gap:7px;margin-top:12px}.solver-result{margin-top:10px;padding:9px 10px;border-radius:7px;background:#f1f1f1;font-size:10.5px;line-height:1.4;color:#333}.solver-result.ok{background:#edf5ef;color:#2f6540}.solver-result.bad{background:#fff0ee;color:#97483f}
+
 </style>
 </head>
 <body>
 <header class="topbar">
   <div class="brand"><a class="back" href="../../index.html?area=estadistica">← Pràctiques</a><div class="brandmark">X</div><div><div class="apptitle">PRIMER CONTACTE AMB EXCEL</div><div class="appsub">Pràctica 0 · de les fórmules a les funcions</div></div></div>
-  <a class="download" href="../../assets/xlsx/practica_0_excel_inici.xlsx" download>↓ Descarrega l’Excel inicial</a>
+  <div style="display:flex;gap:7px;align-items:center"><button class="solver-btn" id="open-solver" type="button">Solver</button><a class="download" href="../../assets/xlsx/practica_0_excel_inici.xlsx" download>↓ Descarrega l’Excel inicial</a></div>
 </header>
 <div class="shell">
   <aside class="sidebar">
@@ -36,6 +40,36 @@
     <section class="checker hidden" id="checker"><div class="cardhead"><span>COMPROVACIÓ DEL FITXER EXCEL</span><span>Opcional però recomanada</span></div><div class="checkerbody"><p>Quan hagis acabat, desa el teu `.xlsx` i selecciona’l aquí. La web comprovarà si les cel·les clau contenen fórmules i si has utilitzat les eines que tocaven. No comprova el format estètic.</p><div class="uploadrow"><input class="upload" id="excel-upload" type="file" accept=".xlsx,.xlsm"><button class="checkfile" id="check-file" type="button" disabled>Comprova el fitxer</button><span class="filemsg" id="filemsg">Encara no has seleccionat cap fitxer.</span></div><div class="checkresults" id="checkresults"></div><div class="checknote">La comprovació llegeix el fitxer només dins del teu navegador. Si aquesta funció no es pot carregar, la resta de la pràctica continua funcionant.</div><div class="actions" style="margin:14px -16px -14px"><span class="filemsg" id="submit-status">Quan completis els 9 blocs podràs registrar la pràctica com a acabada.</span><button class="primary" id="submit-practice" type="button" disabled>Finalitza i entrega la pràctica</button></div></div></section>
   </main>
 </div>
+
+<div class="solver-modal" id="solver-modal" aria-hidden="true">
+  <section class="solver-box" role="dialog" aria-modal="true" aria-labelledby="solver-title">
+    <div class="solver-head"><span id="solver-title">Solver · versió simplificada</span><button class="solver-close" id="solver-close" type="button" aria-label="Tanca">×</button></div>
+    <div class="solver-body">
+      <div class="solver-note">Manté l’estructura bàsica del Solver d’Excel. Aquesta versió treballa amb <strong>una sola variable</strong> (x). Escriu l’expressió de la cel·la objectiu tal com dependria de x.</div>
+      <div class="solver-grid">
+        <label for="solver-objective">Definir objectiu</label>
+        <input class="solver-eq" id="solver-objective" placeholder="Ex.: 2*x+15">
+        <label>Igual a</label>
+        <div class="solver-radio">
+          <label><input type="radio" name="solver-mode" value="max"> Màx.</label>
+          <label><input type="radio" name="solver-mode" value="min"> Mín.</label>
+          <label><input type="radio" name="solver-mode" value="value" checked> Valor de</label>
+          <input id="solver-target" inputmode="decimal" placeholder="0" style="width:82px">
+        </div>
+        <label for="solver-changing">Canviant les cel·les</label>
+        <input id="solver-changing" value="x" readonly>
+        <label for="solver-constraints">Restriccions</label>
+        <textarea class="solver-eq" id="solver-constraints" placeholder="Ex.: x>=0; x<=100"></textarea>
+      </div>
+      <div class="solver-actions">
+        <button class="secondary" id="solver-cancel" type="button">Cancel·la</button>
+        <button class="primary" id="solver-run" type="button">Resoldre</button>
+      </div>
+      <div class="solver-result" id="solver-result">Introdueix l’objectiu i prem «Resoldre».</div>
+    </div>
+  </section>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="../../tracking.js?v=18"></script>
 <script>
@@ -45,6 +79,27 @@ const $=id=>document.getElementById(id);
 const fmt=n=>Number(n).toLocaleString('ca-ES',{maximumFractionDigits:2,minimumFractionDigits:0});
 const num=s=>{if(typeof s==='number')return s;let t=String(s??'').trim().replace(/\s/g,'').replace(/€/g,'');if(!t)return NaN;if(t.includes(',')&&t.includes('.'))t=t.lastIndexOf(',')>t.lastIndexOf('.')?t.replace(/\./g,'').replace(',','.'):t.replace(/,/g,'');else t=t.replace(',','.');return Number(t)};
 const answers={}; const completed=new Set(); let current=0, validationAttempts=0, submitted=false; const startedAt=Date.now();
+
+const solverModal=$('solver-modal'), solverResult=$('solver-result');
+function solverOpen(){solverModal.classList.add('show');solverModal.setAttribute('aria-hidden','false');$('solver-objective').focus()}
+function solverClose(){solverModal.classList.remove('show');solverModal.setAttribute('aria-hidden','true')}
+$('open-solver').addEventListener('click',solverOpen);$('solver-close').addEventListener('click',solverClose);$('solver-cancel').addEventListener('click',solverClose);
+solverModal.addEventListener('click',e=>{if(e.target===solverModal)solverClose()});
+function solverBounds(text){let lo=-1000,hi=1000;for(const raw of String(text||'').split(';')){const s=raw.replace(/\s/g,'');let m=s.match(/^x>=(-?\d+(?:[.,]\d+)?)$/i);if(m)lo=Math.max(lo,num(m[1]));m=s.match(/^x>(-?\d+(?:[.,]\d+)?)$/i);if(m)lo=Math.max(lo,num(m[1])+1e-9);m=s.match(/^x<=(-?\d+(?:[.,]\d+)?)$/i);if(m)hi=Math.min(hi,num(m[1]));m=s.match(/^x<(-?\d+(?:[.,]\d+)?)$/i);if(m)hi=Math.min(hi,num(m[1])-1e-9)}return {lo,hi}}
+function solverFn(expr){let s=String(expr||'').trim().replace(/,/g,'.').replace(/\^/g,'**');if(!s||!/^[0-9xX+\-*/().\s*]+$/.test(s))throw new Error('expressió');return new Function('x','"use strict"; return ('+s+');')}
+$('solver-run').addEventListener('click',()=>{
+  try{
+    const fn=solverFn($('solver-objective').value),mode=document.querySelector('input[name="solver-mode"]:checked')?.value||'value',b=solverBounds($('solver-constraints').value);
+    if(!Number.isFinite(b.lo)||!Number.isFinite(b.hi)||b.lo>=b.hi)throw new Error('restriccions');
+    let bestX=b.lo,bestY=fn(bestX),target=num($('solver-target').value||0);
+    const N=12000;
+    for(let i=1;i<=N;i++){const x=b.lo+(b.hi-b.lo)*i/N,y=fn(x);if(!Number.isFinite(y))continue;const better=mode==='max'?y>bestY:mode==='min'?y<bestY:Math.abs(y-target)<Math.abs(bestY-target);if(better){bestX=x;bestY=y}}
+    let span=(b.hi-b.lo)/N;
+    for(let k=0;k<8;k++){const l=Math.max(b.lo,bestX-span),h=Math.min(b.hi,bestX+span);let bx=bestX,by=bestY;for(let i=0;i<=200;i++){const x=l+(h-l)*i/200,y=fn(x);if(!Number.isFinite(y))continue;const better=mode==='max'?y>by:mode==='min'?y<by:Math.abs(y-target)<Math.abs(by-target);if(better){bx=x;by=y}}bestX=bx;bestY=by;span=(h-l)/20}
+    solverResult.className='solver-result ok';solverResult.innerHTML='<strong>Solució aproximada</strong><br>x = '+fmt(bestX)+' · objectiu = '+fmt(bestY)+(mode==='value'?' · valor demanat = '+fmt(target):'');
+  }catch(e){solverResult.className='solver-result bad';solverResult.textContent='Revisa l’expressió o les restriccions. Exemple: objectiu 2*x+15, restriccions x>=0; x<=100.'}
+});
+
 
 const stages=[
 {
