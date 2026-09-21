@@ -63,8 +63,6 @@
       return;
     }
 
-    if (!buttons.some(([id]) => id === state.practiceId)) state.practiceId = buttons[0][0];
-
     $('notes-practices').innerHTML = buttons.map(([id, label]) => `
       <button class="notes-practice-btn ${id === state.practiceId ? 'active' : ''}" type="button" data-practice-id="${esc(id)}">${esc(label)}</button>
     `).join('');
@@ -75,6 +73,11 @@
         studentView(state.notes);
       });
     });
+
+    if (!state.practiceId) {
+      $('notes-content').innerHTML = '';
+      return;
+    }
 
     const row = areaNotes.find(n => n.practiceId === state.practiceId);
     $('notes-content').innerHTML = row
@@ -100,8 +103,6 @@
       return;
     }
 
-    if (!buttons.some(([id]) => id === state.practiceId)) state.practiceId = buttons[0][0];
-
     $('notes-practices').innerHTML = buttons.map(([id, label]) => `
       <button class="notes-practice-btn ${id === state.practiceId ? 'active' : ''}" type="button" data-practice-id="${esc(id)}">${esc(label)}</button>
     `).join('');
@@ -112,6 +113,11 @@
         renderTeacher();
       });
     });
+
+    if (!state.practiceId) {
+      $('notes-content').innerHTML = '';
+      return;
+    }
 
     renderTeacherRows();
   }
