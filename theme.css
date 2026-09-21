@@ -252,3 +252,38 @@ input[type="file"]::file-selector-button{
 }
 #area-mark:hover{background:#333!important}
 #content-mark:hover{background:#eee!important}
+
+/* Pass 4: force neutral login field, including browser autofill */
+.login-row{
+  align-items:center!important;
+}
+#login-id{
+  height:38px!important;
+  min-height:38px!important;
+  background:#fff!important;
+  background-color:#fff!important;
+  border:1px solid #bdbdbd!important;
+  box-shadow:none!important;
+}
+#login-id:focus{
+  background:#fff!important;
+  background-color:#fff!important;
+  border-color:#555!important;
+  box-shadow:0 0 0 2px rgba(0,0,0,.08)!important;
+}
+#login-id:-webkit-autofill,
+#login-id:-webkit-autofill:hover,
+#login-id:-webkit-autofill:focus,
+#login-id:-webkit-autofill:active{
+  -webkit-box-shadow:0 0 0 1000px #fff inset!important;
+  box-shadow:0 0 0 1000px #fff inset!important;
+  -webkit-text-fill-color:#111!important;
+  caret-color:#111!important;
+}
+#login-button{
+  height:34px!important;
+  min-height:34px!important;
+  padding:0 10px!important;
+  align-self:center!important;
+  font-size:10.5px!important;
+}
