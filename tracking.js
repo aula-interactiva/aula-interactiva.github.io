@@ -338,7 +338,7 @@
     if (!controls) return;
     const {input, button} = controls;
     const teacher = session.role === 'teacher';
-    input.value = teacher ? session.id : `••••${String(session.id).slice(-2)}`;
+    input.value = session.id;
     input.dataset.studentId = session.id;
     input.readOnly = true;
 
@@ -352,6 +352,7 @@
       button.click();
       setTimeout(() => {
         input.readOnly = true;
+        if (!teacher) input.value = `••••${String(session.id).slice(-2)}`;
         button.hidden = true;
         const wrap = input.closest('label');
         if (teacher) {
