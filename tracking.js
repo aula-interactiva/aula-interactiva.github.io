@@ -124,15 +124,9 @@
       return {ok: true, id, role: 'student', reason: ''};
     }
 
-    // Fallback only for future roster changes not yet bundled into the portal.
-    try {
-      const result = await jsonp({action: 'validate', id}, 3500);
-      const ok = result && result.ok === true;
-      if (!ok) return {ok: false, id, role: '', reason: 'not-found'};
-      return {ok: true, id, role: 'student', reason: ''};
-    } catch (error) {
-      return {ok: false, id, reason: 'not-found', error};
-    }
+    // Student login is intentionally independent of Google Apps Script.
+    // Roster changes must be bundled into STUDENT_CODE_HASHES before they can log in.
+    return {ok: false, id, role: '', reason: 'not-found'};
   }
 
   async function login(value) {
