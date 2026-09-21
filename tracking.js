@@ -867,10 +867,17 @@
     logActivity,
     saveDraftNow,
     restoreDraft,
-    apiGet(action, params = {}) {
+    async apiGet(action, params = {}) {
       const session = getSession();
-      if (!session) return Promise.resolve({ok: false, error: 'no-session'});
-      return jsonp({action, code: session.id, ...params});
+      if (!session) return {ok: false, error: 'no-session'};
+
+      if (action === 'notes') {
+        const auth = await jsonp({action: 'login', code: session.id});
+        if (!auth?.ok || !auth.token) return {ok: false, error: auth?.error || 'unauthorized'};
+        return jsonp({action: 'notes', token: auth.token, ...params});
+      }
+
+      return jsonp({action, ...params});
     }
   });
 })();
