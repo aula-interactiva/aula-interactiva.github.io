@@ -215,6 +215,37 @@ function downloadExcel(){const {id,bytes}=buildXlsx(),blob=new Blob([bytes],{typ
 $('download-excel').onclick=downloadExcel;
 
 $('validate-stage').onclick=validate;$('reset-stage').onclick=()=>{Object.keys(answers).filter(k=>k.startsWith(current+'-')).forEach(k=>delete answers[k]);renderQuestions()};$('next-stage').onclick=()=>{if(current<stages.length-1){current++;renderAll()}};$('student-id').addEventListener('change',initialize);initialize();
+window.AulaDraftState = {
+  get() {
+    return {
+      current,
+      completed: Array.from(completed),
+      answers: {...answers},
+      bins,
+      extremeValue,
+      dataMode
+    };
+  },
+  restore(state) {
+    if (!state || typeof state !== 'object') return;
+    Object.keys(answers).forEach(k => delete answers[k]);
+    if (state.answers && typeof state.answers === 'object') Object.assign(answers, state.answers);
+    completed.clear();
+    if (Array.isArray(state.completed)) state.completed.forEach(i => {
+      const n=Number(i); if(Number.isInteger(n)&&n>=0&&n<stages.length) completed.add(n);
+    });
+    const wanted=Number(state.current);
+    current=Number.isInteger(wanted)?Math.max(0,Math.min(stages.length-1,wanted)):0;
+    bins=Number.isFinite(Number(state.bins))?Number(state.bins):bins;
+    extremeValue=Number.isFinite(Number(state.extremeValue))?Number(state.extremeValue):extremeValue;
+    if(['raw','sorted','freq'].includes(state.dataMode)) dataMode=state.dataMode;
+    renderAll(false);
+    if(completed.has(current)){
+      $('validate-stage').classList.add('hidden');
+      if(current<stages.length-1)$('next-stage').classList.remove('hidden');
+    }
+  }
+};
 })();
 </script>
 
