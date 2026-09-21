@@ -488,6 +488,32 @@ function buildXlsx(){const {D,T,I,id}=excelRows();const styles=`<?xml version="1
 function downloadExcel(){if(!validatedId)return;const {id,bytes}=buildXlsx(),blob=new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`estadistica_bidimensional_${id}.xlsx`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2500)}
 $('download-excel').onclick=downloadExcel;
 
+window.AulaDraftState = {
+  get(){
+    return {
+      current,
+      completed:Array.from(completed),
+      answers:{...answers},
+      attempts:{...attempts},
+      lastAttemptValue:{...lastAttemptValue},
+      showLine,showResidual,showOutlier
+    };
+  },
+  restore(state){
+    if(!state||typeof state!=='object') return true;
+    if(!validatedId||!dataset.length||!stages.length) return false;
+    answers=state.answers&&typeof state.answers==='object'?{...state.answers}:{};
+    attempts=state.attempts&&typeof state.attempts==='object'?{...state.attempts}:{};
+    lastAttemptValue=state.lastAttemptValue&&typeof state.lastAttemptValue==='object'?{...state.lastAttemptValue}:{};
+    completed.clear();
+    if(Array.isArray(state.completed)) state.completed.forEach(i=>{const n=Number(i);if(Number.isInteger(n)&&n>=0&&n<stages.length)completed.add(n)});
+    const wanted=Number(state.current);current=Number.isInteger(wanted)?Math.max(0,Math.min(stages.length-1,wanted)):0;
+    showLine=!!state.showLine;showResidual=!!state.showResidual;showOutlier=!!state.showOutlier;
+    renderAll();
+    if(completed.size===stages.length){$('submit-practice').disabled=false;$('submit-status').textContent='Tots els blocs estan completats. Ja pots entregar.'}
+    return true;
+  }
+};
 renderLocked();
 })();
 </script>
