@@ -15,10 +15,10 @@
   const ENDPOINT = 'https://script.google.com/macros/s/AKfycbxq88klu15RnDmp39XjfwuVhtZ36KrQWm-nbLh_v1aaFL-2tfxwl9HK5H5sKFqXyBzw/exec';
   const SESSION_KEY = 'aula-interactiva-session-v3';
   const STUDENT_CODE_HASHES = new Set([
-    "a2347a0cfe5252a3a4b7b7bcd0b935e4cf88a19a8742fd8bd392af1c11861af6",
-    "ce43354133f69b0b09f98a400be012af8b4ede68b4167d11853d3a0c7982c7fc",
-    "effca28a4e4fe9d4b56dfe4441c8ecb715eaf5c37e5be3985da816d23a5d597a",
-    "a0a368e6703e44cdabec439470dc363e34bdf196b58ff1b6cae14806565bc9c1",
+    "48db4bb79104a07f5f6b31b2108080b7a5f623bba1d31df7b4495ce3dbe8d831",
+    "158fe307495a73ba00d2948566bee085914a9186f4455fd14733d6bc9aaa652d",
+    "f14bec4b1fb9ec0f53c1afa59d5822dd9b3182c4981efbbc7967504fbc90a874",
+    "c860430562a0371a7edfd441c42ae8cff48bbd48640c5f52a650bf8f61e30feb",
     "3750ed2a7a82f760c10ec07482f512870967de3711a949fc90906201d950412a",
     "e4715c4e7730ae01e959862c2fb75ba141f711004c11e392fc8c8d025629ed76",
     "806326232c8129066b24c2e2e8d3bbd9e5ae09badd3d95a23db93f1d0c0f1678",
