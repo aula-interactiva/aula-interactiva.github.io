@@ -338,7 +338,8 @@
     if (!controls) return;
     const {input, button} = controls;
     const teacher = session.role === 'teacher';
-    input.value = session.id;
+    input.value = teacher ? session.id : `••••${String(session.id).slice(-2)}`;
+    input.dataset.studentId = session.id;
     input.readOnly = true;
 
     if (teacher) {
