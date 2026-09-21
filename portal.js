@@ -79,9 +79,9 @@
     $('login-view').classList.add('hidden');
     $('hub-view').classList.remove('hidden');
     const teacher = session.role === 'teacher';
-    $('session-role').textContent = teacher ? 'Professor' : 'ID';
-    $('session-id').textContent = teacher ? '' : session.id;
-    $('session-id').hidden = teacher;
+    $('session-role').textContent = teacher ? 'Professor' : (String(session.firstName || '').trim() || 'Alumne');
+    $('session-id').textContent = '';
+    $('session-id').hidden = true;
     $('teacher-tools').classList.toggle('hidden', !teacher);
     render();
   }
@@ -105,6 +105,7 @@
         'bad',
         result.reason === 'format' ? 'El codi ha de tenir 6 dígits.' :
         result.reason === 'not-found' ? 'Aquest codi no correspon a cap alumne.' :
+        result.reason === 'identity' ? 'No s’ha pogut recuperar el nom de l’alumne.' :
         'No s’ha pogut validar el codi. Torna-ho a provar.'
       );
       return;
