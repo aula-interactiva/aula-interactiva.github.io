@@ -4,7 +4,8 @@ const CONFIG = Object.freeze({
     students: 'Alumnes',
     submissions: 'Entregues',
     corrections: 'Correccions',
-    activity: 'Activitat'
+    activity: 'Activitat',
+    notes: 'Notes_Practiques'
   },
   UPLOAD_FOLDERS: {
     'practiques/estadistica/probabilitat-4b.html': '1zZXpuuhFubCGX5WpcZb80pJzWH3hN6Z7',
@@ -25,6 +26,14 @@ function json_(obj) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
+function jsonp_(obj, callback) {
+  const cb = text_(callback).trim();
+  if (!/^[A-Za-z_$][0-9A-Za-z_$]*$/.test(cb)) return json_(obj);
+  return ContentService
+    .createTextOutput(cb + '(' + JSON.stringify(obj) + ');')
+    .setMimeType(ContentService.MimeType.JAVASCRIPT);
+}
+
 function text_(v) {
   return v == null ? '' : String(v);
 }
@@ -38,17 +47,97 @@ function normalizeId_(v) {
   return text_(v).replace(/\D/g, '').slice(0, 6);
 }
 
-function activeStudent_(id) {
-  if (!/^\d{6}$/.test(id)) return false;
+function activeUser_(id) {
+  if (!/^\d{6}$/.test(id)) return null;
   const sh = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID).getSheetByName(CONFIG.SHEETS.students);
   const last = sh.getLastRow();
-  if (last < 2) return false;
-  const values = sh.getRange(2, 2, last - 1, 4).getDisplayValues(); // ID, darrers4, Actiu, Rol
-  return values.some(row =>
-    normalizeId_(row[0]) === id &&
-    String(row[2]).toUpperCase() === 'TRUE' &&
-    String(row[3]).toLowerCase() === 'student'
+  if (last < 2) return null;
+  const values = sh.getRange(2, 1, last - 1, 5).getDisplayValues(); // Nom, ID, darrers4, Actiu, Rol
+  const row = values.find(r =>
+    normalizeId_(r[1]) === id &&
+    String(r[3]).toUpperCase() === 'TRUE' &&
+    ['student', 'teacher'].includes(String(r[4]).toLowerCase())
   );
+  return row ? {
+    name: text_(row[0]),
+    id: normalizeId_(row[1]),
+    role: String(row[4]).toLowerCase()
+  } : null;
+}
+
+function activeStudent_(id) {
+  return activeUser_(id)?.role === 'student';
+}
+
+function loginRateLimited_() {
+  const cache = CacheService.getScriptCache();
+  return Number(cache.get('login-failures') || 0) >= 120;
+}
+
+function recordLoginFailure_() {
+  const cache = CacheService.getScriptCache();
+  const next = Number(cache.get('login-failures') || 0) + 1;
+  cache.put('login-failures', String(next), 600);
+}
+
+function createSession_(user) {
+  const token = Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, '');
+  CacheService.getScriptCache().put(
+    'session:' + token,
+    JSON.stringify({id: user.id, role: user.role, name: user.name}),
+    43200
+  );
+  return token;
+}
+
+function sessionFromToken_(token) {
+  const raw = CacheService.getScriptCache().get('session:' + text_(token));
+  if (!raw) return null;
+  try {
+    const session = JSON.parse(raw);
+    if (!session || !/^\d{6}$/.test(text_(session.id))) return null;
+    if (!['student', 'teacher'].includes(text_(session.role))) return null;
+    return session;
+  } catch (_) {
+    return null;
+  }
+}
+
+function loginResponse_(code) {
+  if (loginRateLimited_()) return {ok: false, error: 'rate-limited'};
+  const user = activeUser_(normalizeId_(code));
+  if (!user) {
+    recordLoginFailure_();
+    return {ok: false, error: 'invalid-code'};
+  }
+  return {
+    ok: true,
+    id: user.id,
+    role: user.role,
+    token: createSession_(user)
+  };
+}
+
+function notesResponse_(session) {
+  if (!session) return {ok: false, error: 'unauthorized'};
+
+  const sh = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID).getSheetByName(CONFIG.SHEETS.notes);
+  if (!sh || sh.getLastRow() < 2) return {ok: true, role: session.role, notes: []};
+
+  const values = sh.getRange(2, 1, sh.getLastRow() - 1, 6).getDisplayValues();
+  const notes = values
+    .filter(r => text_(r[5]).trim() !== '')
+    .filter(r => session.role === 'teacher' || normalizeId_(r[4]) === session.id)
+    .map(r => ({
+      area: text_(r[0]),
+      practiceId: text_(r[1]),
+      practice: text_(r[2]),
+      student: session.role === 'teacher' ? text_(r[3]) : '',
+      studentId: session.role === 'teacher' ? normalizeId_(r[4]) : '',
+      grade: text_(r[5])
+    }));
+
+  return {ok: true, role: session.role, notes};
 }
 
 function existingSubmission_(submissionId) {
@@ -207,5 +296,17 @@ function doPost(e) {
 }
 
 function doGet(e) {
-  return json_({ok: true, service: 'Aula Interactiva backend', version: '2'});
+  const params = e && e.parameter ? e.parameter : {};
+  const action = text_(params.action);
+
+  let result;
+  if (action === 'login') {
+    result = loginResponse_(params.code);
+  } else if (action === 'notes') {
+    result = notesResponse_(sessionFromToken_(params.token));
+  } else {
+    result = {ok: true, service: 'Aula Interactiva backend', version: '3'};
+  }
+
+  return params.callback ? jsonp_(result, params.callback) : json_(result);
 }
