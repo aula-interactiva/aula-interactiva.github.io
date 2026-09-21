@@ -81,6 +81,17 @@ async function submit(){if(submitted)return;const detail=allDetail(),comment=$('
  const payload={submissionId:tracker.makeSubmissionId('series-temporals-3b',id),id,practice:'Pràctica 3b · Sèries temporals',area:'Estadística',status:'Entregada',total:detail.length,correct:detail.filter(x=>x.correct).length,attempts:1,progress:100,minutes:Math.max(1,Math.round((Date.now()-startedAt)/60000)),version:'applied-1',detail:{questions:detail,workbook:wb},justifications:[{question:context,text:comment}]};$('submit').textContent='Enviant…';const res=await tracker.submit(payload);if(res.ok){submitted=true;document.querySelectorAll('input,select,textarea,.chk').forEach(x=>x.disabled=true);$('submit').disabled=true;$('submit').textContent='Pràctica entregada';setStatus('ok',res.teacher?'Mode professor: pràctica completada sense registrar entrega.':'Entrega registrada. El comentari s’ha enviat també a la primera correcció amb IA.')}else{$('submit').disabled=false;$('submit').textContent='Entrega la pràctica';setStatus('bad','No s’ha pogut confirmar l’entrega.')}}
 function setStatus(k,t){$('submit-status').className='status '+(k||'');$('submit-status').textContent=t}
 function init(){const s=tracker.getSession();if(!s)return;$('student-code').textContent=s.role==='teacher'?'Professor':'Alumne · ••••'+s.id.slice(-2);data=makeData(s.id);buildDefs();renderData();renderSteps();$('download').onclick=makeWorkbook;$('excel-upload').onchange=e=>{selectedFile=e.target.files?.[0]||null;$('filemsg').textContent=selectedFile?selectedFile.name:'Cap fitxer seleccionat.';$('excel-status').textContent=''};$('comment').oninput=()=>{$('count').textContent=`${$('comment').value.trim().length} caràcters · mínim 180`};$('submit').onclick=submit}
+window.AulaDraftState = {
+  get(){ return {done:Array.from(done)}; },
+  restore(state){
+    if(!state||typeof state!=='object') return true;
+    if(!defs.length||!data.length||!$('steps')?.children.length) return false;
+    done.clear();
+    if(Array.isArray(state.done)) state.done.forEach(i=>{const n=Number(i);if(Number.isInteger(n)&&n>=0&&n<defs.length)done.add(n)});
+    done.forEach(b=>{const s=$('s-'+b);if(s){s.className='status ok';s.textContent='Bloc completat.'}});
+    return true;
+  }
+};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init,120));else setTimeout(init,120);
 })();
 </script>
