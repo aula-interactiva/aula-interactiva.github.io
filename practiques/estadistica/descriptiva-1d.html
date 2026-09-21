@@ -227,7 +227,8 @@ window.AulaDraftState = {
     };
   },
   restore(state) {
-    if (!state || typeof state !== 'object') return;
+    if (!state || typeof state !== 'object') return true;
+    if (!baseData.length || !stages.length) return false;
     Object.keys(answers).forEach(k => delete answers[k]);
     if (state.answers && typeof state.answers === 'object') Object.assign(answers, state.answers);
     completed.clear();
@@ -244,6 +245,7 @@ window.AulaDraftState = {
       $('validate-stage').classList.add('hidden');
       if(current<stages.length-1)$('next-stage').classList.remove('hidden');
     }
+    return true;
   }
 };
 })();
