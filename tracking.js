@@ -7,7 +7,7 @@
     const theme = document.createElement('link');
     theme.rel = 'stylesheet';
     theme.dataset.aulaTheme = '1';
-    theme.href = new URL('theme.css?v=3', document.currentScript?.src || window.location.href).href;
+    theme.href = new URL('theme.css?v=4', document.currentScript?.src || window.location.href).href;
     document.head.appendChild(theme);
   }
 
