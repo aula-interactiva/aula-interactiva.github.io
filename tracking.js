@@ -261,20 +261,36 @@
       : 'idx:' + index;
   }
 
-  function snapshotDraft() {
+  function snapshotDraft(previous = null) {
     const controls = draftControls();
+    const currentValues = controls.map((el, index) => {
+      const type = String(el.type || '').toLowerCase();
+      return {
+        key: controlKey(el, index),
+        type,
+        value: (type === 'checkbox' || type === 'radio') ? '' : String(el.value ?? ''),
+        checked: (type === 'checkbox' || type === 'radio') ? !!el.checked : null
+      };
+    });
+
+    // Preserve controls that are temporarily not in the DOM (e.g. previous blocks).
+    const merged = new Map();
+    if (previous?.values && Array.isArray(previous.values)) {
+      previous.values.forEach(item => merged.set(item.key, item));
+    }
+    currentValues.forEach(item => merged.set(item.key, item));
+
+    let customState = previous?.customState ?? null;
+    try {
+      const adapter = window.AulaDraftState;
+      if (adapter && typeof adapter.get === 'function') customState = adapter.get();
+    } catch (_) {}
+
     return {
       savedAt: Date.now(),
       path: normalizeRepoPath(location.pathname),
-      values: controls.map((el, index) => {
-        const type = String(el.type || '').toLowerCase();
-        return {
-          key: controlKey(el, index),
-          type,
-          value: (type === 'checkbox' || type === 'radio') ? '' : String(el.value ?? ''),
-          checked: (type === 'checkbox' || type === 'radio') ? !!el.checked : null
-        };
-      })
+      values: Array.from(merged.values()),
+      customState
     };
   }
 
@@ -282,10 +298,13 @@
     const session = getSession();
     if (!session || session.role !== 'student' || !location.pathname.includes('/practiques/')) return false;
     try {
-      localStorage.setItem(
-        draftKey(location.pathname, session.id),
-        JSON.stringify(snapshotDraft())
-      );
+      const key = draftKey(location.pathname, session.id);
+      let previous = null;
+      try {
+        const raw = localStorage.getItem(key);
+        previous = raw ? JSON.parse(raw) : null;
+      } catch (_) {}
+      localStorage.setItem(key, JSON.stringify(snapshotDraft(previous)));
       document.dispatchEvent(new CustomEvent('aula:draft-saved', {detail: {savedAt: Date.now()}}));
       return true;
     } catch (_) {
@@ -304,13 +323,53 @@
     }
   }
 
+  function applyDraftValues(draft, root = document) {
+    if (!draft || !Array.isArray(draft.values)) return 0;
+    const controls = Array.from(root.querySelectorAll ? root.querySelectorAll('input,select,textarea') : [])
+      .filter(el => {
+        const id = String(el.id || '');
+        const type = String(el.type || '').toLowerCase();
+        if (/student-id|login-id/.test(id)) return false;
+        if (type === 'file' || type === 'button' || type === 'submit' || type === 'reset') return false;
+        return true;
+      });
+    const allControls = draftControls();
+    const allIndex = new Map(allControls.map((el, index) => [el, index]));
+    const byKey = new Map();
+    controls.forEach(el => byKey.set(controlKey(el, allIndex.get(el) ?? 0), el));
+
+    let restored = 0;
+    for (const item of draft.values) {
+      const el = byKey.get(item.key);
+      if (!el) continue;
+      const type = String(el.type || '').toLowerCase();
+      const same = (type === 'checkbox' || type === 'radio')
+        ? el.checked === !!item.checked
+        : String(el.value ?? '') === String(item.value ?? '');
+      if (same) continue;
+
+      if (type === 'checkbox' || type === 'radio') el.checked = !!item.checked;
+      else el.value = item.value ?? '';
+
+      el.dispatchEvent(new Event('input', {bubbles: true}));
+      el.dispatchEvent(new Event('change', {bubbles: true}));
+      restored++;
+    }
+    return restored;
+  }
+
   function restoreDraft() {
     const draft = loadDraft();
     if (!draft || !Array.isArray(draft.values)) return false;
 
-    const controls = draftControls();
-    const byKey = new Map();
-    controls.forEach((el, index) => byKey.set(controlKey(el, index), el));
+    try {
+      const adapter = window.AulaDraftState;
+      if (adapter && typeof adapter.restore === 'function' && draft.customState != null) {
+        adapter.restore(draft.customState);
+      }
+    } catch (_) {}
+
+    let restored = applyDraftValues(draft, document);
 
     let restored = 0;
     for (const item of draft.values) {
@@ -356,6 +415,18 @@
     window.addEventListener('pagehide', saveDraftNow);
 
     setTimeout(restoreDraft, 120);
+
+    // Dynamic practices often replace their fields when changing block.
+    // Re-apply saved values to newly rendered controls without discarding older blocks.
+    let applying = false;
+    const observer = new MutationObserver(() => {
+      if (applying) return;
+      const draft = loadDraft();
+      if (!draft) return;
+      applying = true;
+      try { applyDraftValues(draft, document); } finally { applying = false; }
+    });
+    observer.observe(document.body, {childList: true, subtree: true});
   }
 
 
