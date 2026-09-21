@@ -63,6 +63,12 @@
       const t=document.createElement('div');t.className='q-text';
       if(d.reset){const b=document.createElement('strong');b.textContent='Torna als valors inicials. ';t.appendChild(b);}
       t.appendChild(document.createTextNode(d.q));
+      if(i===10){
+        const sb=document.createElement('button');
+        sb.type='button';sb.className='fpp-solver-link';sb.textContent='Solver';
+        sb.addEventListener('click',openQuestion11Solver);
+        t.appendChild(sb);
+      }
       const a=document.createElement('div');a.className='q-answer';
       let c;
       if(d.options){c=document.createElement('select');const p=document.createElement('option');p.value='';p.textContent='Selecciona';c.appendChild(p);d.options.forEach(o=>{const op=document.createElement('option');op.value=o;op.textContent=o;c.appendChild(op);});}
@@ -72,6 +78,30 @@
       const k=document.createElement('div');k.className='q-check blank';k.id=`ppc-check-${i+1}`;k.textContent='·';
       row.append(n,t,a,u,k);host.appendChild(row);
     });
+  }
+
+  function openQuestion11Solver(){
+    const modal=$('fpp-solver-modal');
+    if(!modal)return;
+    $('fpp-solver-target').value='105';
+    $('fpp-solver-result').className='fpp-solver-result';
+    $('fpp-solver-result').textContent='Prem «Resoldre» per trobar el valor de treball que fa que la pasta màxima sigui 105.';
+    modal.classList.add('show');modal.setAttribute('aria-hidden','false');
+  }
+  function closeQuestion11Solver(){
+    const modal=$('fpp-solver-modal');if(!modal)return;
+    modal.classList.remove('show');modal.setAttribute('aria-hidden','true');
+  }
+  function runQuestion11Solver(){
+    const p=pars(seedFromId($('ppc-student-id').value));
+    const target=parseNum($('fpp-solver-target').value);
+    const mode=document.querySelector('input[name="fpp-solver-mode"]:checked')?.value||'value';
+    if(mode!=='value'||!Number.isFinite(target)){ $('fpp-solver-result').textContent='Per aquesta pregunta utilitza «Valor de» i introdueix un valor numèric.';return; }
+    const labor=targetLabor(35,target,p,.5,.6);
+    const shown=r2(yFrontier(35,labor,.5,.6,p));
+    $('fpp-solver-result').className='fpp-solver-result ok';
+    $('fpp-solver-result').innerHTML='<strong>Solució</strong><br>Treball disponible ≈ '+fmt2.format(labor)+' · Producció màxima de pasta = '+fmt2.format(shown);
+    $('ppc-labor').value=fmt2.format(labor);$('ppc-pizza').value='35,00';update();
   }
 
   function check(i){
@@ -136,6 +166,10 @@
   $('ppc-student-id').addEventListener('input',()=>{resetModel();qdefs.forEach((_,i)=>{const c=$(`ppc-answer-${i+1}`);if(c&&c.value!=='')check(i);});});
   ['ppc-pizza','ppc-labor','ppc-ex','ppc-ey'].forEach(id=>$(id).addEventListener('input',update));
   window.addEventListener('resize',update);
+  $('fpp-solver-close')?.addEventListener('click',closeQuestion11Solver);
+  $('fpp-solver-cancel')?.addEventListener('click',closeQuestion11Solver);
+  $('fpp-solver-run')?.addEventListener('click',runQuestion11Solver);
+  $('fpp-solver-modal')?.addEventListener('click',e=>{if(e.target===$('fpp-solver-modal'))closeQuestion11Solver()});
   renderQuestions();resetModel();requestAnimationFrame(update);
 
 })();
