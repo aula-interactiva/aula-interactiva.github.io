@@ -358,6 +358,43 @@
     setTimeout(restoreDraft, 120);
   }
 
+
+  function installSaveAndExitButton() {
+    const session = getSession();
+    if (!session || session.role !== 'student' || document.getElementById('aula-save-exit')) return;
+
+    const button = document.createElement('button');
+    button.id = 'aula-save-exit';
+    button.type = 'button';
+    button.textContent = 'Desa i surt';
+    button.setAttribute('aria-label', 'Desa la pràctica i torna al portal');
+    Object.assign(button.style, {
+      position: 'fixed',
+      right: '14px',
+      bottom: '14px',
+      zIndex: '9999',
+      border: '1px solid #bdbdbd',
+      borderRadius: '7px',
+      background: '#242424',
+      color: '#fff',
+      padding: '7px 10px',
+      fontSize: '11px',
+      fontWeight: '750',
+      cursor: 'pointer',
+      boxShadow: '0 4px 14px rgba(0,0,0,.12)'
+    });
+
+    button.addEventListener('click', () => {
+      const ok = saveDraftNow();
+      button.textContent = ok ? 'Desat ✓' : 'No s’ha pogut desar';
+      setTimeout(() => {
+        location.href = '../../index.html';
+      }, 250);
+    });
+
+    document.body.appendChild(button);
+  }
+
   async function checkPracticeSubmitted(practice) {
     const session = getSession();
     if (!session || session.role !== 'student') {
@@ -617,6 +654,7 @@
   function startPractice(session) {
     hydrateLegacyId(session);
     installDraftAutosave();
+    installSaveAndExitButton();
     practiceStartedAt = Date.now();
     leaveLogged = false;
     const meta = practiceMeta();
