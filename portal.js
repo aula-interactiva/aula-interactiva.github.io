@@ -51,6 +51,23 @@
   const submittedPracticeKeys = new Set();
 
   const $ = id => document.getElementById(id);
+
+  async function loadJsonConfig(path, key, {syncServerClock = false} = {}) {
+    const response = await fetch(path, {cache: 'no-store'});
+    if (!response.ok) throw new Error(key);
+
+    if (syncServerClock) {
+      const serverDate = response.headers.get('Date');
+      if (serverDate) {
+        const serverMs = Date.parse(serverDate);
+        if (Number.isFinite(serverMs)) serverTimeOffsetMs = serverMs - Date.now();
+      }
+    }
+
+    const config = await response.json();
+    if (config?.arees) configs[key] = config;
+    return config;
+  }
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({
     '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
   }[c]));
@@ -336,26 +353,15 @@
     render();
   });
 
-  fetch('practiques.json', {cache:'no-store'})
-    .then(r => {
-      if (!r.ok) throw new Error('practiques');
-      const serverDate = r.headers.get('Date');
-      if (serverDate) {
-        const serverMs = Date.parse(serverDate);
-        if (Number.isFinite(serverMs)) serverTimeOffsetMs = serverMs - Date.now();
-      }
-      return r.json();
-    })
-    .then(c => {
-      if (c?.arees) configs.practiques = c;
+  loadJsonConfig('practiques.json', 'practiques', {syncServerClock: true})
+    .then(() => {
       render();
       refreshSubmissionStates();
     })
     .catch(() => render());
 
-  fetch('apunts.json', {cache:'no-store'})
-    .then(r => { if (!r.ok) throw new Error('apunts'); return r.json(); })
-    .then(c => { if (c?.arees) configs.apunts = c; render(); })
+  loadJsonConfig('apunts.json', 'apunts')
+    .then(render)
     .catch(() => render());
 
   const session = tracker.getSession();
