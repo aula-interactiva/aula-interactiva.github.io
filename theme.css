@@ -287,3 +287,25 @@ input[type="file"]::file-selector-button{
   align-self:center!important;
   font-size:10.5px!important;
 }
+
+/* Pass 5: light grey student code field */
+#login-id{
+  background:#f1f1f1!important;
+  background-color:#f1f1f1!important;
+  border:1px solid #bdbdbd!important;
+}
+#login-id:focus{
+  background:#fff!important;
+  background-color:#fff!important;
+  border-color:#555!important;
+}
+#login-id:-webkit-autofill,
+#login-id:-webkit-autofill:hover{
+  -webkit-box-shadow:0 0 0 1000px #f1f1f1 inset!important;
+  box-shadow:0 0 0 1000px #f1f1f1 inset!important;
+}
+#login-id:-webkit-autofill:focus,
+#login-id:-webkit-autofill:active{
+  -webkit-box-shadow:0 0 0 1000px #fff inset!important;
+  box-shadow:0 0 0 1000px #fff inset!important;
+}
