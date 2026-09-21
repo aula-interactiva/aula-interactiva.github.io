@@ -179,3 +179,76 @@ input[type="file"]::file-selector-button{
 }
 #area-mark:hover{background:#3a3a3a!important}
 #content-mark:hover{background:#f0f0f0!important}
+
+/* Pass 3: access screen + visibly smaller controls */
+.login-view{
+  background:#f3f3f3!important;
+}
+.login-card{
+  background:#fff!important;
+  border:1px solid #d4d4d4!important;
+  border-radius:7px!important;
+  padding:22px!important;
+}
+.login-label{
+  color:#444!important;
+  font-size:11px!important;
+  font-weight:650!important;
+}
+#login-id{
+  background:#fff!important;
+  color:#111!important;
+  border:1px solid #bdbdbd!important;
+  border-radius:4px!important;
+  padding:6px 8px!important;
+  box-shadow:none!important;
+  outline:none!important;
+}
+#login-id:focus{
+  background:#fff!important;
+  border-color:#555!important;
+  box-shadow:0 0 0 2px rgba(0,0,0,.08)!important;
+}
+#login-button{
+  padding:5px 9px!important;
+  font-size:10.5px!important;
+  border-radius:4px!important;
+}
+.login-note,.login-status{font-size:10.5px!important}
+.login-card p{font-size:13px!important;line-height:1.4!important}
+
+/* Strong compact button sizing */
+.practice-card .open-btn,
+.practice-card .pdf-btn,
+.card-action button,
+.ans button,
+.mainbtn,
+.btn,
+.bulk-check,
+#check-all,
+.top a,
+.back-btn{
+  padding:4px 7px!important;
+  font-size:10px!important;
+  line-height:1.1!important;
+  min-height:24px!important;
+}
+.practice-card .open-btn,
+.practice-card .pdf-btn{min-width:auto!important}
+
+/* Two portal switches as visual negatives */
+.hub-marks{display:flex!important;gap:7px!important}
+#area-mark{
+  width:38px!important;height:38px!important;
+  background:#111!important;color:#fff!important;
+  border:1px solid #111!important;
+  box-shadow:none!important;
+}
+#content-mark{
+  width:38px!important;height:38px!important;
+  background:#fff!important;color:#111!important;
+  border:1px solid #111!important;
+  box-shadow:none!important;
+}
+#area-mark:hover{background:#333!important}
+#content-mark:hover{background:#eee!important}
