@@ -33,17 +33,18 @@
       <section class="lesson"><div class="cardhead"><span>EXPLICACIÓ I EXEMPLE</span><span id="sheet-label"></span></div><div class="lessonbody" id="lessonbody"></div></section>
       <section class="practice"><div class="cardhead"><span>ARA FES-HO TU</span><span id="task-count"></span></div><div class="practicebody"><div class="taskintro" id="taskintro"></div><div id="tasks"></div></div><div class="actions"><button class="secondary" id="reset-stage" type="button">Neteja respostes</button><div><button class="secondary hidden" id="prev-stage" type="button">← Anterior</button> <button class="primary" id="validate-stage" type="button">Comprova</button> <button class="primary hidden" id="next-stage" type="button">Següent →</button></div></div></section>
     </div>
-    <section class="checker hidden" id="checker"><div class="cardhead"><span>COMPROVACIÓ DEL FITXER EXCEL</span><span>Opcional però recomanada</span></div><div class="checkerbody"><p>Quan hagis acabat, desa el teu `.xlsx` i selecciona’l aquí. La web comprovarà si les cel·les clau contenen fórmules i si has utilitzat les eines que tocaven. No comprova el format estètic.</p><div class="uploadrow"><input class="upload" id="excel-upload" type="file" accept=".xlsx,.xlsm"><button class="checkfile" id="check-file" type="button" disabled>Comprova el fitxer</button><span class="filemsg" id="filemsg">Encara no has seleccionat cap fitxer.</span></div><div class="checkresults" id="checkresults"></div><div class="checknote">La comprovació llegeix el fitxer només dins del teu navegador. Si aquesta funció no es pot carregar, la resta de la pràctica continua funcionant.</div></div></section>
+    <section class="checker hidden" id="checker"><div class="cardhead"><span>COMPROVACIÓ DEL FITXER EXCEL</span><span>Opcional però recomanada</span></div><div class="checkerbody"><p>Quan hagis acabat, desa el teu `.xlsx` i selecciona’l aquí. La web comprovarà si les cel·les clau contenen fórmules i si has utilitzat les eines que tocaven. No comprova el format estètic.</p><div class="uploadrow"><input class="upload" id="excel-upload" type="file" accept=".xlsx,.xlsm"><button class="checkfile" id="check-file" type="button" disabled>Comprova el fitxer</button><span class="filemsg" id="filemsg">Encara no has seleccionat cap fitxer.</span></div><div class="checkresults" id="checkresults"></div><div class="checknote">La comprovació llegeix el fitxer només dins del teu navegador. Si aquesta funció no es pot carregar, la resta de la pràctica continua funcionant.</div><div class="actions" style="margin:14px -16px -14px"><span class="filemsg" id="submit-status">Quan completis els 9 blocs podràs registrar la pràctica com a acabada.</span><button class="primary" id="submit-practice" type="button" disabled>Finalitza i entrega la pràctica</button></div></div></section>
   </main>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>\n<script src="../../tracking.js?v=7"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="../../tracking.js?v=7"></script>
 <script>
 (() => {
 'use strict';
 const $=id=>document.getElementById(id);
 const fmt=n=>Number(n).toLocaleString('ca-ES',{maximumFractionDigits:2,minimumFractionDigits:0});
 const num=s=>{if(typeof s==='number')return s;let t=String(s??'').trim().replace(/\s/g,'').replace(/€/g,'');if(!t)return NaN;if(t.includes(',')&&t.includes('.'))t=t.lastIndexOf(',')>t.lastIndexOf('.')?t.replace(/\./g,'').replace(',','.'):t.replace(/,/g,'');else t=t.replace(',','.');return Number(t)};
-const answers={}; const completed=new Set(); let current=0;
+const answers={}; const completed=new Set(); let current=0, validationAttempts=0, submitted=false; const startedAt=Date.now();
 
 const stages=[
 {
@@ -98,8 +99,8 @@ function renderNav(){const list=$('stage-list');list.innerHTML='';stages.forEach
 function renderLesson(){const s=stages[current];$('hero-title').textContent=s.title;$('hero-sub').textContent=current===0?'No cal saber Excel abans de començar. Cada bloc explica una idea, mostra un exemple i després et demana que la facis al teu fitxer.':s.intro;$('badge').textContent=`Bloc ${current+1} de ${stages.length}`;$('sheet-label').textContent=`FULL: ${s.sheet}`;$('lessonbody').innerHTML=s.lesson;document.querySelectorAll('.hintbtn').forEach(b=>b.addEventListener('click',()=>{const h=b.nextElementSibling;h.classList.toggle('show');b.textContent=h.classList.contains('show')?'Amaga la pista':'Necessito una pista'}))}
 function renderTasks(){const s=stages[current];$('taskintro').textContent=s.intro;$('task-count').textContent=`${s.tasks.length} comprovacions`;$('tasks').innerHTML='';s.tasks.forEach((t,j)=>{const key=`${current}-${j}`,wrap=document.createElement('div');wrap.className='task';let control;if(t.type==='select')control=`<select data-key="${key}"><option value="">— Tria —</option>${t.opts.map(o=>`<option${answers[key]===o?' selected':''}>${o}</option>`).join('')}</select>`;else control=`<input data-key="${key}" value="${String(answers[key]??'').replace(/"/g,'&quot;')}" ${t.type==='num'?'inputmode="decimal"':''} placeholder="Resposta">`;wrap.innerHTML=`<div class="tasktext">${t.q}</div><div class="taskanswer"><div>${control}</div><div class="status" id="status-${key}">—</div></div>`;$('tasks').appendChild(wrap)});$('tasks').querySelectorAll('input,select').forEach(el=>el.addEventListener('input',()=>answers[el.dataset.key]=el.value));$('next-stage').classList.add('hidden');$('validate-stage').classList.remove('hidden');$('prev-stage').classList.toggle('hidden',current===0)}
 function checkTask(t,v){if(t.type==='num'){const x=num(v);return Number.isFinite(x)&&Math.abs(x-t.a)<=(t.tol??.005)}if(t.normalize)return normalize(v)===normalize(t.a);return String(v??'').trim().toLocaleLowerCase('ca')===String(t.a).trim().toLocaleLowerCase('ca')}
-function validate(){const s=stages[current];let all=true;s.tasks.forEach((t,j)=>{const key=`${current}-${j}`,ok=checkTask(t,answers[key]);const st=$(`status-${key}`);st.className='status '+(ok?'ok':'bad');st.textContent=ok?'Correcte':'Revisa';if(!ok)all=false});if(all){completed.add(current);renderNav();$('validate-stage').classList.add('hidden');if(current<stages.length-1)$('next-stage').classList.remove('hidden');else $('checker').classList.remove('hidden')}}
-function render(){renderNav();renderLesson();renderTasks();$('checker').classList.toggle('hidden',current!==stages.length-1 || !completed.has(current))}
+function validate(){validationAttempts++;const s=stages[current];let all=true;s.tasks.forEach((t,j)=>{const key=`${current}-${j}`,ok=checkTask(t,answers[key]);const st=$(`status-${key}`);st.className='status '+(ok?'ok':'bad');st.textContent=ok?'Correcte':'Revisa';if(!ok)all=false});if(all){completed.add(current);renderNav();$('validate-stage').classList.add('hidden');if(current<stages.length-1)$('next-stage').classList.remove('hidden');else $('checker').classList.remove('hidden')}}
+function render(){renderNav();renderLesson();renderTasks();const ready=completed.size===stages.length;$('checker').classList.toggle('hidden',current!==stages.length-1 || !completed.has(current));$('submit-practice').disabled=!ready||submitted;if(ready&&!submitted)$('submit-status').textContent='Els 9 blocs estan completats. Ja pots registrar la pràctica com a acabada.'}
 $('validate-stage').addEventListener('click',validate);$('reset-stage').addEventListener('click',()=>{stages[current].tasks.forEach((_,j)=>delete answers[`${current}-${j}`]);renderTasks()});$('next-stage').addEventListener('click',()=>{if(current<stages.length-1){current++;render();window.scrollTo({top:0,behavior:'smooth'})}});$('prev-stage').addEventListener('click',()=>{if(current>0){current--;render();window.scrollTo({top:0,behavior:'smooth'})}});
 
 let chosenFile=null;$('excel-upload').addEventListener('change',e=>{chosenFile=e.target.files?.[0]||null;$('check-file').disabled=!chosenFile;$('filemsg').textContent=chosenFile?chosenFile.name:'Encara no has seleccionat cap fitxer.'});
@@ -107,6 +108,40 @@ const F=(ws,addr)=>ws?.[addr]?.f||'';const formulaFilled=(ws,range)=>{const m=ra
 $('check-file').addEventListener('click',async()=>{const box=$('checkresults');box.innerHTML='';if(!chosenFile)return;if(!window.XLSX){$('filemsg').textContent='No s’ha pogut carregar el comprovador automàtic. Pots continuar sense aquesta part.';return}try{const wb=XLSX.read(await chosenFile.arrayBuffer(),{type:'array',cellFormula:true});const c=wb.Sheets['COMPRES'],d=wb.Sheets['DADES'],v=wb.Sheets['VENDES'];const checks=[
 ['Fulls originals conservats',!!c&&!!d&&!!v],['Imports D6:D15 amb fórmules',formulaFilled(c,'D6:D15')],['Imports nets F6:F15 amb fórmules',formulaFilled(c,'F6:F15')],['IVA G6:G15 amb fórmules',formulaFilled(c,'G6:G15')],['Referència absoluta $K$2',/\$K\$2/i.test(F(c,'G6'))],['Suma manual a J6',!!F(c,'J6')&&!/SUM/i.test(F(c,'J6'))],['Funció de suma a J7',/SUM/i.test(F(c,'J7'))],['Funció de recompte a J8',/COUNT|COUNTA/i.test(F(c,'J8'))],['Mitjana construïda a F9',F(d,'F9').includes('/')],['Funció de mitjana a F10',/AVERAGE/i.test(F(d,'F10'))],['Mínim i màxim amb funcions',/MIN/i.test(F(d,'F11'))&&/MAX/i.test(F(d,'F12'))],['Desviacions C6:C17',formulaFilled(d,'C6:C17')],['Quadrats D6:D17',formulaFilled(d,'D6:D17')],['Variància construïda a F15',!!F(d,'F15')],['Desviació construïda a F16',!!F(d,'F16')],['Funció de desviació a F17',/STDEV/i.test(F(d,'F17'))]
 ];let pass=0;checks.forEach(([lab,ok])=>{if(ok)pass++;const el=document.createElement('div');el.className='checkitem '+(ok?'pass':'fail');el.textContent=(ok?'✓ ':'✗ ')+lab;box.appendChild(el)});$('filemsg').textContent=`${pass} de ${checks.length} comprovacions superades.`}catch(err){$('filemsg').textContent='No s’ha pogut llegir el fitxer. Assegura’t que és un .xlsx desat per Excel.'}});
+
+$('submit-practice').addEventListener('click',async()=>{
+  if(submitted||completed.size!==stages.length)return;
+  const tracker=window.PracticeTracker,session=tracker?.getSession?.();
+  if(!tracker||!session)return;
+  const total=stages.reduce((sum,s)=>sum+s.tasks.length,0);
+  $('submit-practice').disabled=true;
+  $('submit-practice').textContent='Enviant…';
+  $('submit-status').textContent='Registrant la pràctica…';
+  const result=await tracker.submit({
+    submissionId:tracker.makeSubmissionId('excel-zero',session.id),
+    id:session.id,
+    practice:'Pràctica 0 · Primer contacte amb Excel',
+    area:'Estadística',
+    status:'Entregada',
+    total,
+    correct:total,
+    attempts:validationAttempts,
+    progress:100,
+    minutes:Math.max(1,Math.round((Date.now()-startedAt)/60000)),
+    version:'excel-zero-v2',
+    detail:{blocksCompleted:completed.size,totalBlocks:stages.length},
+    justifications:[]
+  });
+  if(result.ok){
+    submitted=true;
+    $('submit-practice').textContent='Pràctica entregada';
+    $('submit-status').textContent='Entrega registrada correctament.';
+  }else{
+    $('submit-practice').disabled=false;
+    $('submit-practice').textContent='Finalitza i entrega la pràctica';
+    $('submit-status').textContent='No s’ha pogut confirmar l’entrega. Torna-ho a provar.';
+  }
+});
 render();
 })();
 </script>
