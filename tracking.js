@@ -3,7 +3,7 @@
 
   if (window.PracticeTracker?.version === 'v5') return;
 
-  const ENDPOINT = 'https://script.google.com/macros/s/AKfycbzwnq5YjykYa80K1RtK6aTWyc5iLqQJD0KEAcPvhHEKOE-pHxGKj_be-bXfCqs7R8R_/exec';
+  const ENDPOINT = 'https://script.google.com/macros/s/AKfycbxq88klu15RnDmp39XjfwuVhtZ36KrQWm-nbLh_v1aaFL-2tfxwl9HK5H5sKFqXyBzw/exec';
   const SESSION_KEY = 'aula-interactiva-session-v3';
   const STUDENT_CODE_HASHES = new Set([
     "3750ed2a7a82f760c10ec07482f512870967de3711a949fc90906201d950412a",
