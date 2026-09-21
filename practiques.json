@@ -1,5 +1,5 @@
 {
-  "versio": 14,
+  "versio": 15,
   "ajuda": "visible controla la visibilitat per a l’alumnat; disponible és l’interruptor general d’accés. Opcionalment, obertura i tancament (ISO 8601 amb zona horària, p. ex. 2026-09-20T08:00:00+02:00) limiten automàticament l’accés. El professor pot previsualitzar les pràctiques fora de termini.",
   "arees": {
     "economia": {
@@ -23,8 +23,8 @@
         {
           "id": "oferta",
           "ordre": 2,
-          "visible": false,
-          "disponible": false,
+          "visible": true,
+          "disponible": true,
           "codi": "Pràctica 2a",
           "titol": "Funció i corba d’oferta",
           "descripcio": "Moviments i desplaçaments de l’oferta, costos de producció, impostos i subvencions.",
