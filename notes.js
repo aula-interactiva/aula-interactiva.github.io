@@ -30,20 +30,23 @@
   }
 
   function closePanel() {
+    state.practiceId = '';
     $('notes-panel').classList.add('hidden');
     $('practice-grid').classList.remove('hidden');
     document.querySelector('.hub-hero')?.classList.remove('hidden');
   }
 
   function setLoading() {
+    $('notes-practices').classList.remove('hidden');
     $('notes-practices').innerHTML = '';
     $('notes-content').innerHTML = '<div class="notes-empty">Carregant notes…</div>';
   }
 
   function studentView(notes) {
-    $('notes-title').textContent = 'Notes';
     const mark = $('notes-area-mark');
-    mark.classList.remove('hidden');
+    $('notes-practices').classList.toggle('hidden', Boolean(state.practiceId));
+    mark.classList.toggle('hidden', Boolean(state.practiceId));
+    $('notes-title').textContent = state.practiceId ? '' : 'Notes';
     mark.textContent = state.area === 'Economia' ? 'E' : 'Σ';
     const other = state.area === 'Economia' ? 'Estadística' : 'Economia';
     mark.title = 'Canvia a ' + other;
@@ -75,11 +78,13 @@
     });
 
     if (!state.practiceId) {
+      $('notes-title').textContent = 'Notes';
       $('notes-content').innerHTML = '';
       return;
     }
 
     const row = areaNotes.find(n => n.practiceId === state.practiceId);
+    $('notes-title').textContent = row?.practice || 'Notes';
     $('notes-content').innerHTML = row
       ? `<div class="student-note-row">
           <div><div class="note-practice">${esc(row.practice)}</div></div>
@@ -144,14 +149,19 @@
   }
 
   function renderTeacher() {
-    $('notes-title').textContent = 'Notes';
     const mark = $('notes-area-mark');
-    mark.classList.remove('hidden');
+    $('notes-practices').classList.toggle('hidden', Boolean(state.practiceId));
+    mark.classList.toggle('hidden', Boolean(state.practiceId));
+    $('notes-title').textContent = state.practiceId ? '' : 'Notes';
     mark.textContent = state.area === 'Economia' ? 'E' : 'Σ';
     const other = state.area === 'Economia' ? 'Estadística' : 'Economia';
     mark.title = 'Canvia a ' + other;
     mark.setAttribute('aria-label', 'Canvia a ' + other);
     teacherPracticeButtons(state.notes);
+    if (state.practiceId) {
+      const selected = state.notes.find(n => n.area === state.area && n.practiceId === state.practiceId);
+      $('notes-title').textContent = selected?.practice || 'Notes';
+    }
   }
 
   function render() {
@@ -188,7 +198,14 @@
   }
 
   $('notes-button')?.addEventListener('click', showPanel);
-  $('notes-close')?.addEventListener('click', closePanel);
+  $('notes-close')?.addEventListener('click', () => {
+    if (state.practiceId) {
+      state.practiceId = '';
+      render();
+      return;
+    }
+    closePanel();
+  });
   $('notes-area-mark')?.addEventListener('click', () => {
     state.area = state.area === 'Economia' ? 'Estadística' : 'Economia';
     state.practiceId = '';
