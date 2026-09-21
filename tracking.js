@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  if (window.PracticeTracker?.version === 'v3') return;
+  if (window.PracticeTracker?.version === 'v4') return;
 
   const ENDPOINT = 'https://script.google.com/macros/s/AKfycbzwnq5YjykYa80K1RtK6aTWyc5iLqQJD0KEAcPvhHEKOE-pHxGKj_be-bXfCqs7R8R_/exec';
   const SESSION_KEY = 'aula-interactiva-session-v2';
@@ -184,31 +184,32 @@
     }
   }
 
-  async function getSubmissions() {
-    const session = getSession();
-    if (!session || session.role !== 'student') return {ok: true, submissions: []};
-
-    try {
-      const result = await jsonp({action: 'submissions', id: session.id});
-      if (!result || result.ok !== true || !Array.isArray(result.submissions)) {
-        return {ok: false, submissions: []};
-      }
-      return {ok: true, submissions: result.submissions};
-    } catch (error) {
-      return {ok: false, submissions: [], error};
-    }
+  function stablePracticeSubmissionId(practicePath, id) {
+    const path = normalizeRepoPath(practicePath || location.pathname).toLowerCase();
+    const parts = path.split('/').filter(Boolean);
+    const filename = parts.pop() || 'practice';
+    const slug = filename.replace(/\.html?$/i, '') || 'practice';
+    const area = parts.pop() || 'practice';
+    const safe = (area + '-' + slug)
+      .replace(/[^a-z0-9_-]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 90) || 'practice';
+    return `final-${normalizeId(id)}-${safe}`;
   }
 
-  function submissionMatchesPractice(item, practice) {
-    const path = normalizeRepoPath(practice?.fitxer || location.pathname);
-    const slug = path.split('/').pop()?.replace(/\.html?$/i, '') || '';
-    const id = String(practice?.id || '').trim();
-    const key = normalizeRepoPath(item?.practiceKey || '');
-    const itemSlug = String(item?.key || '').trim();
+  async function checkPracticeSubmitted(practice) {
+    const session = getSession();
+    if (!session || session.role !== 'student') {
+      return {ok: true, submitted: false, submissionId: ''};
+    }
 
-    if (key && (key === path || key.endsWith('/' + path))) return true;
-    if (itemSlug && (itemSlug === id || itemSlug === slug)) return true;
-    return false;
+    const submissionId = stablePracticeSubmissionId(practice?.fitxer || location.pathname, session.id);
+    try {
+      const result = await jsonp({action: 'confirm', submissionId}, 8000);
+      return {ok: true, submitted: result?.ok === true, submissionId};
+    } catch (error) {
+      return {ok: false, submitted: false, submissionId, error};
+    }
   }
 
   async function submit(payload) {
@@ -219,6 +220,7 @@
 
     const practiceKey = normalizeRepoPath(location.pathname);
     payload.practiceKey = practiceKey;
+    payload.submissionId = stablePracticeSubmissionId(practiceKey, session.id);
     payload.detail = {...(payload.detail || {}), _practiceKey: practiceKey};
 
     const body = new URLSearchParams({payload: JSON.stringify(payload)});
@@ -519,8 +521,8 @@
       return;
     }
 
-    const submissions = await getSubmissions();
-    if (submissions.ok && submissions.submissions.some(item => submissionMatchesPractice(item, practice))) {
+    const submitted = await checkPracticeSubmitted(practice);
+    if (submitted.ok && submitted.submitted) {
       showBlockedPractice('submitted');
       return;
     }
@@ -536,7 +538,7 @@
   }
 
   window.PracticeTracker = Object.freeze({
-    version: 'v3',
+    version: 'v4',
     endpoint: ENDPOINT,
     normalizeId,
     validateId,
@@ -546,8 +548,8 @@
     isTeacher,
     makeSubmissionId,
     submit,
-    getSubmissions,
-    submissionMatchesPractice,
+    checkPracticeSubmitted,
+    stablePracticeSubmissionId,
     logActivity
   });
 })();
