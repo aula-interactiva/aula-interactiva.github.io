@@ -149,3 +149,33 @@ input[type="file"]::file-selector-button{
   .hero,.panel,.card{padding:12px!important}
   .hero h1,.card h1,.panel h1{font-size:22px!important}
 }
+
+/* Pass 2: smaller controls */
+.open-btn,.pdf-btn,.teacher-tool-link,#logout-button,#login-button,
+.ans button,.mainbtn,.btn,#check-all,.bulk-check,.back-btn,.top a,
+.reset-model-btn,input[type="file"]::file-selector-button{
+  padding:4px 7px!important;
+  font-size:10.5px!important;
+  line-height:1.15!important;
+  min-height:0!important;
+}
+.open-btn,.pdf-btn{padding:5px 8px!important;font-size:11px!important}
+.hub-mark{
+  width:40px!important;
+  height:40px!important;
+  font-size:14px!important;
+}
+
+/* Inverted portal selectors */
+#area-mark{
+  background:#242424!important;
+  color:#fff!important;
+  border:1px solid #242424!important;
+}
+#content-mark{
+  background:#fff!important;
+  color:#242424!important;
+  border:1px solid #242424!important;
+}
+#area-mark:hover{background:#3a3a3a!important}
+#content-mark:hover{background:#f0f0f0!important}
