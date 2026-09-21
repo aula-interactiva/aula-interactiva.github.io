@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  if (window.PracticeTracker?.version === 'v5') return;
+  if (window.PracticeTracker?.version === 'v6') return;
 
   if (!document.querySelector('link[data-aula-theme]')) {
     const theme = document.createElement('link');
@@ -323,16 +323,22 @@
     }
   }
 
+  function controlsWithin(root = document) {
+    const out = [];
+    if (root && root.matches && root.matches('input,select,textarea')) out.push(root);
+    if (root && root.querySelectorAll) out.push(...root.querySelectorAll('input,select,textarea'));
+    return out.filter(el => {
+      const id = String(el.id || '');
+      const type = String(el.type || '').toLowerCase();
+      if (/student-id|login-id/.test(id)) return false;
+      if (type === 'file' || type === 'button' || type === 'submit' || type === 'reset') return false;
+      return true;
+    });
+  }
+
   function applyDraftValues(draft, root = document) {
     if (!draft || !Array.isArray(draft.values)) return 0;
-    const controls = Array.from(root.querySelectorAll ? root.querySelectorAll('input,select,textarea') : [])
-      .filter(el => {
-        const id = String(el.id || '');
-        const type = String(el.type || '').toLowerCase();
-        if (/student-id|login-id/.test(id)) return false;
-        if (type === 'file' || type === 'button' || type === 'submit' || type === 'reset') return false;
-        return true;
-      });
+    const controls = controlsWithin(root);
     const allControls = draftControls();
     const allIndex = new Map(allControls.map((el, index) => [el, index]));
     const byKey = new Map();
@@ -402,12 +408,20 @@
     // Dynamic practices often replace their fields when changing block.
     // Re-apply saved values to newly rendered controls without discarding older blocks.
     let applying = false;
-    const observer = new MutationObserver(() => {
+    const observer = new MutationObserver(records => {
       if (applying) return;
       const draft = loadDraft();
       if (!draft) return;
       applying = true;
-      try { applyDraftValues(draft, document); } finally { applying = false; }
+      try {
+        for (const record of records) {
+          for (const node of record.addedNodes || []) {
+            if (node && node.nodeType === 1) applyDraftValues(draft, node);
+          }
+        }
+      } finally {
+        applying = false;
+      }
     });
     observer.observe(document.body, {childList: true, subtree: true});
   }
@@ -801,7 +815,7 @@
   }
 
   window.PracticeTracker = Object.freeze({
-    version: 'v5',
+    version: 'v6',
     endpoint: ENDPOINT,
     normalizeId,
     validateId,
