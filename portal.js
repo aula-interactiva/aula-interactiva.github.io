@@ -79,9 +79,9 @@
     $('login-view').classList.add('hidden');
     $('hub-view').classList.remove('hidden');
     const teacher = session.role === 'teacher';
-    $('session-role').textContent = teacher ? 'Professor' : 'Alumne';
-    $('session-id').textContent = '';
-    $('session-id').hidden = true;
+    $('session-role').textContent = teacher ? 'Professor' : 'Alumne ·';
+    $('session-id').textContent = teacher ? '' : `••••${String(session.id).slice(-2)}`;
+    $('session-id').hidden = teacher;
     $('teacher-tools').classList.toggle('hidden', !teacher);
     render();
   }
