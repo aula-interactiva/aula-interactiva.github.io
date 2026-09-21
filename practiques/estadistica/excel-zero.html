@@ -71,7 +71,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="../../tracking.js?v=18"></script>
+<script src="../../tracking.js?v=19"></script>
 <script>
 (() => {
 'use strict';
@@ -198,6 +198,35 @@ $('submit-practice').addEventListener('click',async()=>{
   }
 });
 render();
+
+window.AulaDraftState = {
+  get() {
+    return {
+      current,
+      completed: Array.from(completed),
+      answers: {...answers},
+      validationAttempts
+    };
+  },
+  restore(state) {
+    if (!state || typeof state !== 'object') return;
+    Object.keys(answers).forEach(k => delete answers[k]);
+    if (state.answers && typeof state.answers === 'object') Object.assign(answers, state.answers);
+    completed.clear();
+    if (Array.isArray(state.completed)) state.completed.forEach(i => {
+      const n = Number(i);
+      if (Number.isInteger(n) && n >= 0 && n < stages.length) completed.add(n);
+    });
+    const wanted = Number(state.current);
+    current = Number.isInteger(wanted) ? Math.max(0, Math.min(stages.length - 1, wanted)) : 0;
+    validationAttempts = Number(state.validationAttempts) || 0;
+    render();
+    if (completed.has(current)) {
+      $('validate-stage').classList.add('hidden');
+      if (current < stages.length - 1) $('next-stage').classList.remove('hidden');
+    }
+  }
+};
 })();
 </script>
 </body>
