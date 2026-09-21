@@ -1,11 +1,34 @@
 (() => {
   'use strict';
 
-  if (window.PracticeTracker?.version === 'v4') return;
+  if (window.PracticeTracker?.version === 'v5') return;
 
   const ENDPOINT = 'https://script.google.com/macros/s/AKfycbzwnq5YjykYa80K1RtK6aTWyc5iLqQJD0KEAcPvhHEKOE-pHxGKj_be-bXfCqs7R8R_/exec';
   const SESSION_KEY = 'aula-interactiva-session-v3';
-  let jsonpSeq = 0;
+  const STUDENT_CODE_HASHES = new Set([
+    "3750ed2a7a82f760c10ec07482f512870967de3711a949fc90906201d950412a",
+    "e4715c4e7730ae01e959862c2fb75ba141f711004c11e392fc8c8d025629ed76",
+    "806326232c8129066b24c2e2e8d3bbd9e5ae09badd3d95a23db93f1d0c0f1678",
+    "0b1841a0b50461576daaa4cdd32e8f705fb8995eb0d52c3888089a1e35373882",
+    "20a7be8746c9d5e57afa3b419c046f46a53de41d0ee896b6a1b7f44e0257b83a",
+    "c38c2c129089a762802c251ba6560ae5caeda57e592b4506d3d15cb7625623d3",
+    "32f33cf75e59c020419f03cdd267d12e551a2115510eed8ca9ba8a52506050f6",
+    "0b894eeaf3c532ecedb245ca30eb15a970bb5f6325a92c01a974cde11ebab1fd",
+    "21eaca4fca2af0b0f9e8e84ae57396b45b9bad0a7d59ff975b56c874664fb6bb",
+    "878af48e79f6affeb88d34fdcdd544e0574d939b3e0b5e3282e8352fe23cfb65",
+    "3830554b4ca09371a6ccd59c5d6c94371028ed249dded5471debbfd681ee9942",
+    "7ea0c5f1c1bb56bf959a1b9a76df205c9039a85d2f394c85926b6203bc10e489",
+    "24d33f767fac408225261c878829daf800bbe48331bebc2ad5c1bede12d44d1d",
+    "0a7a0a7d62ef45c44f411126120f38fe8de9c8153b0cad5ee57a4ffb719727cb",
+    "dad3eea75e4692d65d2ea08eb265baa812e7d28fca312b9e3f6b40511adef934",
+    "ec80b6e7f0feb7ee6d7afd223f10576da6e052d2bd64be9fe28fd4b14ed4ce5c",
+    "9c7d9e9d08a714f65dd8b5167cd85205fad6f321d254c807e742267ed91e4275",
+    "2686429e53e8680e1269111aaeb4f87a9aa9a52347e24cb962508e724ea6b7a6",
+    "d8d841fc795fd86ab79abc171560c34c8fa693c7201c40bf9afeee6d969fdda7",
+    "fd541b0d6a8988cbf136ee1be6a758b3e0e398669663c21772f8eb3702b9fba5",
+    "eb9d85092e63d4550914bcb4a2f63d91a833b296a34409d36698f1551f359b1a"
+]);
+  const LOCAL_SUBMISSION_PREFIX = 'aula-interactiva-submitted-v1:';
   let practiceStartedAt = Date.now();
   let leaveLogged = false;
   let serverTimeOffsetMs = 0;
@@ -27,6 +50,20 @@
 
   function isTeacherCode(id) {
     return fnv1a('aula-teacher-v3:' + String(id)) === 2813788514;
+  }
+
+  async function sha256Hex(text) {
+    const bytes = new TextEncoder().encode(String(text));
+    const digest = await crypto.subtle.digest('SHA-256', bytes);
+    return Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  async function isKnownStudentCode(id) {
+    try {
+      return STUDENT_CODE_HASHES.has(await sha256Hex('aula-student-v1:' + String(id)));
+    } catch (_) {
+      return false;
+    }
   }
 
   function getSession() {
@@ -52,28 +89,6 @@
     sessionStorage.removeItem(SESSION_KEY);
   }
 
-  function jsonp(params, timeoutMs = 8000) {
-    return new Promise((resolve, reject) => {
-      const callback = `__practiceTrackerCb${Date.now()}_${jsonpSeq++}`;
-      const script = document.createElement('script');
-      const timer = setTimeout(() => cleanup(new Error('Temps d’espera exhaurit')), timeoutMs);
-
-      function cleanup(err, data) {
-        clearTimeout(timer);
-        try { delete window[callback]; } catch (_) { window[callback] = undefined; }
-        if (script.parentNode) script.parentNode.removeChild(script);
-        err ? reject(err) : resolve(data);
-      }
-
-      window[callback] = data => cleanup(null, data);
-      const url = new URL(ENDPOINT);
-      Object.entries({...params, callback}).forEach(([k, v]) => url.searchParams.set(k, String(v)));
-      script.onerror = () => cleanup(new Error('No s’ha pogut contactar amb el registre'));
-      script.src = url.toString();
-      document.head.appendChild(script);
-    });
-  }
-
   async function validateId(value) {
     const id = normalizeId(value);
     if (!/^\d{6}$/.test(id)) return {ok: false, id, reason: 'format'};
@@ -82,14 +97,13 @@
       return {ok: true, id, role: 'teacher', reason: ''};
     }
 
-    try {
-      const result = await jsonp({action: 'validate', id});
-      const ok = result && result.ok === true;
-      if (!ok) return {ok: false, id, role: '', reason: 'not-found'};
+    if (await isKnownStudentCode(id)) {
       return {ok: true, id, role: 'student', reason: ''};
-    } catch (error) {
-      return {ok: false, id, reason: 'network', error};
     }
+
+    // Student login is intentionally independent of Google Apps Script.
+    // Roster changes must be bundled into STUDENT_CODE_HASHES before they can log in.
+    return {ok: false, id, role: '', reason: 'not-found'};
   }
 
   async function login(value) {
@@ -115,17 +129,6 @@
       ? Array.from(crypto.getRandomValues(new Uint32Array(2))).map(n => n.toString(36)).join('')
       : Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
     return `${practice}-${id}-${Date.now()}-${random}`;
-  }
-
-  async function confirmSubmission(submissionId, attempts = 7) {
-    for (let i = 0; i < attempts; i++) {
-      await new Promise(r => setTimeout(r, i === 0 ? 700 : 1200));
-      try {
-        const result = await jsonp({action: 'confirm', submissionId}, 8000);
-        if (result && result.ok === true) return true;
-      } catch (_) {}
-    }
-    return false;
   }
 
   function activityPayload(event, detail = {}) {
@@ -161,6 +164,7 @@
       await fetch(ENDPOINT, {
         method: 'POST',
         mode: 'no-cors',
+        credentials: 'omit',
         cache: 'no-store',
         body: new URLSearchParams({payload: JSON.stringify(payload)})
       });
@@ -172,13 +176,17 @@
 
   function logActivityBeacon(event, detail = {}) {
     const payload = activityPayload(event, detail);
-    if (!payload || !navigator.sendBeacon) return false;
+    if (!payload) return false;
     try {
-      const data = new URLSearchParams({payload: JSON.stringify(payload)}).toString();
-      return navigator.sendBeacon(
-        ENDPOINT,
-        new Blob([data], {type: 'application/x-www-form-urlencoded;charset=UTF-8'})
-      );
+      fetch(ENDPOINT, {
+        method: 'POST',
+        mode: 'no-cors',
+        credentials: 'omit',
+        cache: 'no-store',
+        keepalive: true,
+        body: new URLSearchParams({payload: JSON.stringify(payload)})
+      }).catch(() => {});
+      return true;
     } catch (_) {
       return false;
     }
@@ -197,19 +205,38 @@
     return `final-${normalizeId(id)}-${safe}`;
   }
 
+  function localSubmissionKey(practicePath, id) {
+    return LOCAL_SUBMISSION_PREFIX + normalizeId(id) + ':' +
+      normalizeRepoPath(practicePath || location.pathname).toLowerCase();
+  }
+
+  function hasLocalSubmission(practicePath, id) {
+    try {
+      return localStorage.getItem(localSubmissionKey(practicePath, id)) === '1';
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function rememberLocalSubmission(practicePath, id) {
+    try {
+      localStorage.setItem(localSubmissionKey(practicePath, id), '1');
+    } catch (_) {}
+  }
+
   async function checkPracticeSubmitted(practice) {
     const session = getSession();
     if (!session || session.role !== 'student') {
       return {ok: true, submitted: false, submissionId: ''};
     }
 
-    const submissionId = stablePracticeSubmissionId(practice?.fitxer || location.pathname, session.id);
-    try {
-      const result = await jsonp({action: 'confirm', submissionId}, 8000);
-      return {ok: true, submitted: result?.ok === true, submissionId};
-    } catch (error) {
-      return {ok: false, submitted: false, submissionId, error};
-    }
+    const practicePath = practice?.fitxer || location.pathname;
+    const submissionId = stablePracticeSubmissionId(practicePath, session.id);
+    return {
+      ok: true,
+      submitted: hasLocalSubmission(practicePath, session.id),
+      submissionId
+    };
   }
 
   async function submit(payload) {
@@ -228,14 +255,20 @@
       await fetch(ENDPOINT, {
         method: 'POST',
         mode: 'no-cors',
+        credentials: 'omit',
         cache: 'no-store',
         body
       });
     } catch (error) {
       return {ok: false, error};
     }
-    const confirmed = await confirmSubmission(payload.submissionId);
-    return {ok: confirmed};
+    rememberLocalSubmission(practiceKey, session.id);
+
+    // Confirmation through GET/JSONP is intentionally not required here:
+    // Apps Script web apps have a documented multi-account routing problem.
+    // The POST uses credentials:'omit', and the deterministic submission ID
+    // keeps duplicate writes idempotent on the backend.
+    return {ok: true, confirmed: false};
   }
 
   function practiceMeta() {
@@ -538,7 +571,7 @@
   }
 
   window.PracticeTracker = Object.freeze({
-    version: 'v4',
+    version: 'v5',
     endpoint: ENDPOINT,
     normalizeId,
     validateId,
