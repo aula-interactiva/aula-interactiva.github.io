@@ -42,6 +42,7 @@
     "eb9d85092e63d4550914bcb4a2f63d91a833b296a34409d36698f1551f359b1a"
 ]);
   const LOCAL_SUBMISSION_PREFIX = 'aula-interactiva-submitted-v1:';
+  const LOCAL_DRAFT_PREFIX = 'aula-interactiva-draft-v1:';
   let practiceStartedAt = Date.now();
   let leaveLogged = false;
   let serverTimeOffsetMs = 0;
@@ -237,6 +238,126 @@
     } catch (_) {}
   }
 
+
+  function draftKey(practicePath, id) {
+    return LOCAL_DRAFT_PREFIX + normalizeId(id) + ':' +
+      normalizeRepoPath(practicePath || location.pathname).toLowerCase();
+  }
+
+  function draftControls() {
+    return Array.from(document.querySelectorAll('input,select,textarea'))
+      .filter(el => {
+        const id = String(el.id || '');
+        const type = String(el.type || '').toLowerCase();
+        if (/student-id|login-id/.test(id)) return false;
+        if (type === 'file' || type === 'button' || type === 'submit' || type === 'reset') return false;
+        return true;
+      });
+  }
+
+  function controlKey(el, index) {
+    return el.id ? 'id:' + el.id
+      : el.name ? 'name:' + el.name + ':' + index
+      : 'idx:' + index;
+  }
+
+  function snapshotDraft() {
+    const controls = draftControls();
+    return {
+      savedAt: Date.now(),
+      path: normalizeRepoPath(location.pathname),
+      values: controls.map((el, index) => {
+        const type = String(el.type || '').toLowerCase();
+        return {
+          key: controlKey(el, index),
+          type,
+          value: (type === 'checkbox' || type === 'radio') ? '' : String(el.value ?? ''),
+          checked: (type === 'checkbox' || type === 'radio') ? !!el.checked : null
+        };
+      })
+    };
+  }
+
+  function saveDraftNow() {
+    const session = getSession();
+    if (!session || session.role !== 'student' || !location.pathname.includes('/practiques/')) return false;
+    try {
+      localStorage.setItem(
+        draftKey(location.pathname, session.id),
+        JSON.stringify(snapshotDraft())
+      );
+      document.dispatchEvent(new CustomEvent('aula:draft-saved', {detail: {savedAt: Date.now()}}));
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function loadDraft() {
+    const session = getSession();
+    if (!session || session.role !== 'student') return null;
+    try {
+      const raw = localStorage.getItem(draftKey(location.pathname, session.id));
+      return raw ? JSON.parse(raw) : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function restoreDraft() {
+    const draft = loadDraft();
+    if (!draft || !Array.isArray(draft.values)) return false;
+
+    const controls = draftControls();
+    const byKey = new Map();
+    controls.forEach((el, index) => byKey.set(controlKey(el, index), el));
+
+    let restored = 0;
+    for (const item of draft.values) {
+      const el = byKey.get(item.key);
+      if (!el) continue;
+      const type = String(el.type || '').toLowerCase();
+
+      if (type === 'checkbox' || type === 'radio') {
+        el.checked = !!item.checked;
+      } else {
+        el.value = item.value ?? '';
+      }
+
+      el.dispatchEvent(new Event('input', {bubbles: true}));
+      el.dispatchEvent(new Event('change', {bubbles: true}));
+      restored++;
+    }
+
+    if (restored) {
+      document.dispatchEvent(new CustomEvent('aula:draft-restored', {detail: {savedAt: draft.savedAt || null}}));
+    }
+    return restored > 0;
+  }
+
+  function clearDraft(practicePath, id) {
+    try {
+      localStorage.removeItem(draftKey(practicePath || location.pathname, id));
+    } catch (_) {}
+  }
+
+  function installDraftAutosave() {
+    const session = getSession();
+    if (!session || session.role !== 'student') return;
+
+    let timer = null;
+    const schedule = () => {
+      clearTimeout(timer);
+      timer = setTimeout(saveDraftNow, 350);
+    };
+
+    document.addEventListener('input', schedule, true);
+    document.addEventListener('change', schedule, true);
+    window.addEventListener('pagehide', saveDraftNow);
+
+    setTimeout(restoreDraft, 120);
+  }
+
   async function checkPracticeSubmitted(practice) {
     const session = getSession();
     if (!session || session.role !== 'student') {
@@ -276,6 +397,7 @@
       return {ok: false, error};
     }
     rememberLocalSubmission(practiceKey, session.id);
+    clearDraft(practiceKey, session.id);
 
     // Confirmation through GET/JSONP is intentionally not required here:
     // Apps Script web apps have a documented multi-account routing problem.
@@ -494,6 +616,7 @@
 
   function startPractice(session) {
     hydrateLegacyId(session);
+    installDraftAutosave();
     practiceStartedAt = Date.now();
     leaveLogged = false;
     const meta = practiceMeta();
@@ -598,6 +721,8 @@
     submit,
     checkPracticeSubmitted,
     stablePracticeSubmissionId,
-    logActivity
+    logActivity,
+    saveDraftNow,
+    restoreDraft
   });
 })();
