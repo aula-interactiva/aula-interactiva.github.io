@@ -48,7 +48,7 @@
   let area = qs.get('area') === 'estadistica' ? 'estadistica' : 'economia';
   let mode = qs.get('mode') === 'apunts' ? 'apunts' : 'practiques';
   let serverTimeOffsetMs = 0;
-  let studentSubmissions = [];
+  const submittedPracticeKeys = new Set();
 
   const $ = id => document.getElementById(id);
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({
@@ -149,6 +149,29 @@
     }).format(new Date(ms));
   }
 
+  async function refreshSubmissionStates() {
+    const session = tracker.getSession();
+    if (!session || session.role !== 'student') return;
+
+    const areas = Object.values(configs.practiques?.arees || {});
+    const practices = areas
+      .flatMap(a => a?.practiques || [])
+      .filter(p => p && p.visible !== false && p.disponible === true);
+
+    const checks = await Promise.all(practices.map(async p => {
+      const key = String(p.fitxer || p.id || '');
+      const result = await tracker.checkPracticeSubmitted(p);
+      return {key, result};
+    }));
+
+    checks.forEach(({key, result}) => {
+      if (!result?.ok) return;
+      if (result.submitted) submittedPracticeKeys.add(key);
+      else submittedPracticeKeys.delete(key);
+    });
+    render();
+  }
+
   function render() {
     const session = tracker.getSession();
     if (!session) {
@@ -195,7 +218,7 @@
         : practiceAvailability(p);
       const published = availability.open;
       const individuallySubmitted = !teacher && !isApunts &&
-        studentSubmissions.some(item => tracker.submissionMatchesPractice(item, p));
+        submittedPracticeKeys.has(String(p.fitxer || p.id || ''));
       const canOpen = (published && !individuallySubmitted) || teacher;
       const preview = teacher && !published;
       const status = preview
@@ -323,7 +346,11 @@
       }
       return r.json();
     })
-    .then(c => { if (c?.arees) configs.practiques = c; render(); })
+    .then(c => {
+      if (c?.arees) configs.practiques = c;
+      render();
+      refreshSubmissionStates();
+    })
     .catch(() => render());
 
   fetch('apunts.json', {cache:'no-store'})
@@ -335,12 +362,6 @@
   if (session) {
     showPortal(session);
     if (session.role === 'student') {
-      tracker.getSubmissions().then(result => {
-        if (result.ok) {
-          studentSubmissions = result.submissions;
-          render();
-        }
-      });
       tracker.logActivity('OPEN_PORTAL', {practice: 'Portal', area: 'Sistema', title: 'Aula Interactiva'});
     }
   } else {
