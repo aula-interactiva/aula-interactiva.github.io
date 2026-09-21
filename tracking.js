@@ -364,16 +364,28 @@
     return restored;
   }
 
+  function restoreCustomState(draft, attempt = 0) {
+    if (!draft || draft.customState == null) return true;
+    try {
+      const adapter = window.AulaDraftState;
+      if (!adapter || typeof adapter.restore !== 'function') return true;
+      const result = adapter.restore(draft.customState);
+      if (result === false && attempt < 4) {
+        setTimeout(() => restoreCustomState(draft, attempt + 1), 250 * (attempt + 1));
+        return false;
+      }
+      return true;
+    } catch (_) {
+      if (attempt < 4) setTimeout(() => restoreCustomState(draft, attempt + 1), 250 * (attempt + 1));
+      return false;
+    }
+  }
+
   function restoreDraft() {
     const draft = loadDraft();
     if (!draft || !Array.isArray(draft.values)) return false;
 
-    try {
-      const adapter = window.AulaDraftState;
-      if (adapter && typeof adapter.restore === 'function' && draft.customState != null) {
-        adapter.restore(draft.customState);
-      }
-    } catch (_) {}
+    restoreCustomState(draft);
 
     const restored = applyDraftValues(draft, document);
 
