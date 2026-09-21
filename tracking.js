@@ -29,7 +29,6 @@
     "eb9d85092e63d4550914bcb4a2f63d91a833b296a34409d36698f1551f359b1a"
 ]);
   const LOCAL_SUBMISSION_PREFIX = 'aula-interactiva-submitted-v1:';
-  let jsonpSeq = 0;
   let practiceStartedAt = Date.now();
   let leaveLogged = false;
   let serverTimeOffsetMs = 0;
@@ -90,28 +89,6 @@
     sessionStorage.removeItem(SESSION_KEY);
   }
 
-  function jsonp(params, timeoutMs = 8000) {
-    return new Promise((resolve, reject) => {
-      const callback = `__practiceTrackerCb${Date.now()}_${jsonpSeq++}`;
-      const script = document.createElement('script');
-      const timer = setTimeout(() => cleanup(new Error('Temps d’espera exhaurit')), timeoutMs);
-
-      function cleanup(err, data) {
-        clearTimeout(timer);
-        try { delete window[callback]; } catch (_) { window[callback] = undefined; }
-        if (script.parentNode) script.parentNode.removeChild(script);
-        err ? reject(err) : resolve(data);
-      }
-
-      window[callback] = data => cleanup(null, data);
-      const url = new URL(ENDPOINT);
-      Object.entries({...params, callback}).forEach(([k, v]) => url.searchParams.set(k, String(v)));
-      script.onerror = () => cleanup(new Error('No s’ha pogut contactar amb el registre'));
-      script.src = url.toString();
-      document.head.appendChild(script);
-    });
-  }
-
   async function validateId(value) {
     const id = normalizeId(value);
     if (!/^\d{6}$/.test(id)) return {ok: false, id, reason: 'format'};
@@ -152,17 +129,6 @@
       ? Array.from(crypto.getRandomValues(new Uint32Array(2))).map(n => n.toString(36)).join('')
       : Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
     return `${practice}-${id}-${Date.now()}-${random}`;
-  }
-
-  async function confirmSubmission(submissionId, attempts = 7) {
-    for (let i = 0; i < attempts; i++) {
-      await new Promise(r => setTimeout(r, i === 0 ? 700 : 1200));
-      try {
-        const result = await jsonp({action: 'confirm', submissionId}, 8000);
-        if (result && result.ok === true) return true;
-      } catch (_) {}
-    }
-    return false;
   }
 
   function activityPayload(event, detail = {}) {
