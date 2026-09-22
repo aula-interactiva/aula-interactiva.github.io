@@ -34,8 +34,8 @@
         {
           "id": "demanda",
           "ordre": 3,
-          "visible": false,
-          "disponible": false,
+          "visible": true,
+          "disponible": true,
           "codi": "Pràctica 2b",
           "titol": "Funció i corba de demanda",
           "descripcio": "Moviments i desplaçaments de la demanda, renda i preus de béns substitutius i complements.",
