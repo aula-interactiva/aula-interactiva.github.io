@@ -143,7 +143,6 @@
   function update(){
     const p=pars(seedFromId($('demand-student-id').value)),m=readModel(),q=visibleQ(m.price,p,m);
     $('demand-qd').textContent=fmt0.format(q);
-    $('demand-spending').textContent=fmt2.format(roundN(roundN(m.price,2)*q,2));
     draw(m,p);
     qdefs.forEach((_,i)=>{const c=$(`demand-answer-${i+1}`);if(c&&c.value!=='')check(i);});
   }
