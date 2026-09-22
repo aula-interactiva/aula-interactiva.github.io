@@ -155,7 +155,6 @@
   function update(){
     const p=pars(seedFromId($('supply-student-id').value)),m=readModel(),q=visibleQ(m.price,p,m);
     $('supply-qs').textContent=fmt0.format(q);
-    $('supply-revenue').textContent=fmt2.format(roundN(roundN(m.price,2)*q,2));
     $('supply-net-price').textContent=fmt2.format(roundN(m.price-m.tax,2));
     draw(m,p);
     qdefs.forEach((_,i)=>{const c=$(`supply-answer-${i+1}`);if(c&&c.value!=='')check(i);});
