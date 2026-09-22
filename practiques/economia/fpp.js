@@ -156,8 +156,7 @@
   function update(){
     const p=pars(seedFromId($('ppc-student-id').value)),m=readModel();
     const y=yFrontier(m.pizza,m.labor,m.ex,m.ey,p),xe=xEnd(m.labor,m.ex,p),ye=yEnd(m.labor,m.ey,p),oc=(Number.isFinite(y)&&Number.isFinite(yFrontier(m.pizza+1,m.labor,m.ex,m.ey,p)))?r2(y-yFrontier(m.pizza+1,m.labor,m.ex,m.ey,p)):NaN;
-    $('ppc-pasta-max').textContent=Number.isFinite(y)?fmt2.format(y):'—';$('ppc-pizza-max').textContent=Number.isFinite(xe)?fmt2.format(xe):'—';$('ppc-pasta-end').textContent=Number.isFinite(ye)?fmt2.format(ye):'—';$('ppc-oc').textContent=Number.isFinite(oc)?fmt2.format(oc):'—';
-    draw(m,p);qdefs.forEach((_,i)=>{const c=$(`ppc-answer-${i+1}`);if(c&&c.value!=='')check(i);});
+draw(m,p);qdefs.forEach((_,i)=>{const c=$(`ppc-answer-${i+1}`);if(c&&c.value!=='')check(i);});
   }
   function openPdf(){try{const raw=atob(ppcPdfBase64),bytes=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);const url=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));const w=window.open(url,'_blank','noopener');if(!w){const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener';a.click();}setTimeout(()=>URL.revokeObjectURL(url),60000);}catch(e){alert('No s’ha pogut obrir el PDF.');console.error(e);}}
 
