@@ -90,6 +90,7 @@
 
   function goalWorks(d,p,given){
     if(!Number.isFinite(given)||given<=0) return false;
+    given=roundN(given,2);
     const m=scenario(d.m);
     if(d.kind==='incomeGoal') return visibleQ(m.price,p,{...m,income:given})===d.target;
     if(d.kind==='wineGoal') return visibleQ(m.price,p,{...m,wine:given})===d.target;
@@ -105,7 +106,7 @@
     else{
       const v=parseNum(raw);if(Number.isFinite(v)){
         if(d.kind==='incomeGoal'||d.kind==='wineGoal'||d.kind==='priceGoal') ok=goalWorks(d,p,v);
-        else{const e=expected(d,p);if(d.kind==='spending')ok=roundN(v,2)===roundN(e,2);else ok=roundN(v,0)===roundN(e,0);}
+        else{const e=expected(d,p);ok=roundN(v,2)===roundN(e,2);}
       }
     }
     box.className='q-check '+(ok?'correct':'wrong');box.textContent=ok?'Correcte':'Revisa-ho';
