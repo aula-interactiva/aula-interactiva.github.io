@@ -180,9 +180,11 @@ function appendSubmission_(payload, uploadedFiles) {
 
   if (text_(payload.status) === 'Activitat') {
     const activity = ss.getSheetByName(CONFIG.SHEETS.activity);
+    const activityUser = activeUser_(normalizeId_(payload.id));
     activity.appendRow([
       new Date(),
       normalizeId_(payload.id),
+      activityUser ? activityUser.name : '',
       text_(payload.practice),
       text_(payload.area),
       text_(payload.status),
