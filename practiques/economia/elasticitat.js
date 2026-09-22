@@ -145,8 +145,8 @@
   }
   function update(){
     const p=pars(seedFromId($('elas-student-id').value)),m=readModel();
-    const q=demand(m.price,m.income,m.taco,m.wine,p),qv=r2(q),pv=r2(m.price),sp=r2(pv*qv);
-    $('elas-qd').textContent=Number.isFinite(qv)?fmt2.format(qv):'—';$('elas-spending').textContent=Number.isFinite(sp)?fmt2.format(sp):'—';draw(m,p);
+    const q=demand(m.price,m.income,m.taco,m.wine,p),qv=r2(q);
+    $('elas-qd').textContent=Number.isFinite(qv)?fmt2.format(qv):'—';draw(m,p);
     qdefs.forEach((_,i)=>{const c=$(`elas-answer-${i+1}`);if(c&&c.value!=='')check(i);});
   }
   function openPdf(){
