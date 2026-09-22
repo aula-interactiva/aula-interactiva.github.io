@@ -113,9 +113,9 @@ button{cursor:pointer}
 .q-row>div{display:flex;align-items:center;min-width:0}
 .q-num{justify-content:center;font-weight:800;color:#34383b}
 .q-text{padding:3px 7px;line-height:1.16}
-.q-answer{background:var(--input);padding:0}
+.q-answer{background:#f1f1f1;padding:0}
 .q-answer input,.q-answer select{width:100%;height:100%;min-height:28px;border:0;background:transparent;padding:2px 6px;outline:none;color:#22272a;font-size:11px;text-align:center;font-weight:650}
-.q-answer input:focus,.q-answer select:focus{background:var(--input-focus);box-shadow:inset 0 0 0 1.5px var(--accent)}
+.q-answer input:focus,.q-answer select:focus{background:#e7e7e7;box-shadow:inset 0 0 0 1.5px #777}
 .q-unit{justify-content:center;color:#4f5558;font-size:10px;text-align:center;padding:2px 3px}
 .q-check{justify-content:center;font-weight:760;font-size:10.5px;text-align:center;padding:2px 4px}
 .q-check.correct{background:var(--green-bg);color:var(--green)}
