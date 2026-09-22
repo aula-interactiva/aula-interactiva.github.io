@@ -117,7 +117,7 @@
   function check(i){
     const d=qdefs[i],c=$(`demand-answer-${i+1}`),box=$(`demand-check-${i+1}`);if(!c||!box)return;
     const raw=c.value;if(raw===''){box.className='q-check blank';box.textContent='·';return;}
-    const p=pars(seedFromId($('demand-student-id').value));let ok=false;
+    const p=pars(seedFromId(($('demand-student-id').dataset.studentId || $('demand-student-id').value)));let ok=false;
     if(d.options) ok=raw===expected(d,p);
     else{
       const v=parseNum(raw);if(Number.isFinite(v)){
@@ -150,7 +150,7 @@
   }
 
   function update(){
-    const p=pars(seedFromId($('demand-student-id').value)),m=readModel(),q=visibleQ(m.price,p,m);
+    const p=pars(seedFromId(($('demand-student-id').dataset.studentId || $('demand-student-id').value))),m=readModel(),q=visibleQ(m.price,p,m);
     $('demand-qd').textContent=fmt0.format(q);
     draw(m,p);
     qdefs.forEach((_,i)=>{const c=$(`demand-answer-${i+1}`);if(c&&c.value!=='')check(i);});
