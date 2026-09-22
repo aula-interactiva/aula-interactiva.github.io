@@ -105,6 +105,15 @@
     return NaN;
   }
 
+  function goalMatchesVisibleTarget(d,p,v){
+    const m=scenario(d.m);
+    if(d.kind==='incomeGoal') m.income=v;
+    else if(d.kind==='wineGoal') m.wine=v;
+    else if(d.kind==='priceGoal') m.price=v;
+    else return false;
+    return visibleQ(m.price,p,m)===d.target;
+  }
+
   function check(i){
     const d=qdefs[i],c=$(`demand-answer-${i+1}`),box=$(`demand-check-${i+1}`);if(!c||!box)return;
     const raw=c.value;if(raw===''){box.className='q-check blank';box.textContent='·';return;}
@@ -112,7 +121,7 @@
     if(d.options) ok=raw===expected(d,p);
     else{
       const v=parseNum(raw);if(Number.isFinite(v)){
-        if(d.kind==='incomeGoal'||d.kind==='wineGoal'||d.kind==='priceGoal') ok=roundN(v,2)===goalValue(d,p);
+        if(d.kind==='incomeGoal'||d.kind==='wineGoal'||d.kind==='priceGoal') ok=goalMatchesVisibleTarget(d,p,v);
         else{const e=expected(d,p);ok=roundN(v,2)===roundN(e,2);}
       }
     }
