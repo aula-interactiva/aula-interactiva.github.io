@@ -168,10 +168,6 @@
     const situation=Math.abs(excess)<=tolerance?'Equilibri':(excess>0?'Excés de demanda':"Excés d'oferta");
     $('qd').textContent=fmt0.format(qd);
     $('qs').textContent=fmt0.format(qs);
-    $('excess').textContent=signed0(excess);
-    $('situation').textContent=situation;
-    $('peq').textContent=fmt2.format(eq.p);
-    $('qeq').textContent=fmt0.format(eq.q);
     drawChart(m,currentParams,eq,{qd,qs,D,S});
     for(let i=0;i<questionDefs.length;i++){
       const c=$(`answer-${i+1}`); if(c && c.value!=='') checkAnswer(i);
