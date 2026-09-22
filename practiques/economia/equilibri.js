@@ -223,8 +223,7 @@
   function displayedExpected(def){
     const exact=def.answer(currentScenarios);
     if(def.type==='select') return exact;
-    const decimals=def.type==='price'?2:0;
-    return roundAsDisplayed(exact,decimals);
+    return roundAsDisplayed(exact,2);
   }
 
   function acceptedNumericValues(def){
@@ -241,10 +240,10 @@
     }
     if(g.kind==='qtyDelta'){
       const out=new Set();
-      scenario.quantities.forEach(n=>base.quantities.forEach(b=>out.add(roundAsDisplayed(n-b,0))));
+      scenario.quantities.forEach(n=>base.quantities.forEach(b=>out.add(roundAsDisplayed(n-b,2))));
       return [...out];
     }
-    if(g.kind==='qtyTimes') return [...new Set(scenario.quantities.map(q=>roundAsDisplayed(g.rate*q,0)))];
+    if(g.kind==='qtyTimes') return [...new Set(scenario.quantities.map(q=>roundAsDisplayed(g.rate*q,2)))];
     return [displayedExpected(def)];
   }
 
@@ -258,8 +257,7 @@
     else{
       const given=parseNumber(raw);
       if(Number.isFinite(given)){
-        const decimals=def.type==='price'?2:0;
-        const visibleGiven=roundAsDisplayed(given,decimals);
+        const visibleGiven=roundAsDisplayed(given,2);
         // Totes les respostes numèriques es comparen exclusivament amb valors que
         // l'alumne pot veure a pantalla. Si diversos valors visibles són compatibles
         // amb la tolerància d'"Equilibri", tots es consideren correctes.
