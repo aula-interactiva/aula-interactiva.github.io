@@ -135,9 +135,8 @@
     else{
       const v=parseNum(raw);if(Number.isFinite(v)){
         const e=expected(d,p);
-        if(Array.isArray(e)) ok=e.some(x=>x===roundN(v,2));
-        else if(d.kind==='revenue') ok=roundN(v,2)===roundN(e,2);
-        else ok=roundN(v,0)===roundN(e,0);
+        if(Array.isArray(e)) ok=e.some(x=>roundN(x,2)===roundN(v,2));
+        else ok=roundN(v,2)===roundN(e,2);
       }
     }
     box.className='q-check '+(ok?'correct':'wrong');box.textContent=ok?'Correcte':'Revisa-ho';
