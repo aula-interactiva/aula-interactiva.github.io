@@ -132,7 +132,7 @@
     // Restaura les condicions base del model per a l'ID actual.
     // El preu es recalcula perquè el punt de partida torni a ser l'equilibri.
     ['income','taco','wine','sauce','wage','tax'].forEach(id=>{ $(id).value=initialModelValues[id]; });
-    const p=parameters(seedFromId($('student-id').value));
+    const p=parameters(seedFromId(($('student-id').dataset.studentId || $('student-id').value)));
     const base={income:20000,taco:6,wine:20,sauce:3,wage:5,tax:0};
     const eq=equilibrium(p,base);
     $('price').value=Number.isFinite(eq.p) ? eq.p.toFixed(2).replace('.',',') : initialModelValues.price;
@@ -157,7 +157,7 @@
   let currentParams=parameters(6380), currentScenarios=scenarios(currentParams);
 
   function updateModel(){
-    const seed=seedFromId($('student-id').value);
+    const seed=seedFromId(($('student-id').dataset.studentId || $('student-id').value));
     currentParams=parameters(seed);
     currentScenarios=scenarios(currentParams);
     const m=readModel();
