@@ -97,7 +97,7 @@
   function check(i){
     const d=qdefs[i],c=$(`elas-answer-${i+1}`),box=$(`elas-check-${i+1}`);if(!c||!box)return;
     const raw=c.value;if(raw===''){box.className='q-check blank';box.textContent='·';return;}
-    const s=scenario(seedFromId($('elas-student-id').value));let ok=false;
+    const s=scenario(seedFromId(($('elas-student-id').dataset.studentId || $('elas-student-id').value)));let ok=false;
     if(d.kind==='select') ok=raw===d.ans(s);
     else{
       const v=parseNum(raw),expected=d.ans(s);
@@ -144,7 +144,7 @@
     const yt=svgEl('text',{x:18,y:margin.t+ph/2,'text-anchor':'middle','font-size':11.5,fill:'#353a3d','font-weight':700,transform:`rotate(-90 18 ${margin.t+ph/2})`});yt.textContent='Preu (€/plat)';svg.appendChild(yt);
   }
   function update(){
-    const p=pars(seedFromId($('elas-student-id').value)),m=readModel();
+    const p=pars(seedFromId(($('elas-student-id').dataset.studentId || $('elas-student-id').value))),m=readModel();
     const q=demand(m.price,m.income,m.taco,m.wine,p),qv=r2(q);
     $('elas-qd').textContent=Number.isFinite(qv)?fmt2.format(qv):'—';draw(m,p);
     qdefs.forEach((_,i)=>{const c=$(`elas-answer-${i+1}`);if(c&&c.value!=='')check(i);});
