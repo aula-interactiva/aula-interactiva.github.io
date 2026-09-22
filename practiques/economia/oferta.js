@@ -118,7 +118,7 @@
   function check(i){
     const d=qdefs[i],c=$(`supply-answer-${i+1}`),box=$(`supply-check-${i+1}`);if(!c||!box)return;
     const raw=c.value;if(raw===''){box.className='q-check blank';box.textContent='·';return;}
-    const p=pars(seedFromId($('supply-student-id').value));let ok=false;
+    const p=pars(seedFromId(($('supply-student-id').dataset.studentId || $('supply-student-id').value)));let ok=false;
     if(d.kind==='select') ok=raw===expected(d,p);
     else{
       const v=parseNum(raw);if(Number.isFinite(v)){
@@ -153,7 +153,7 @@
   }
 
   function update(){
-    const p=pars(seedFromId($('supply-student-id').value)),m=readModel(),q=visibleQ(m.price,p,m);
+    const p=pars(seedFromId(($('supply-student-id').dataset.studentId || $('supply-student-id').value))),m=readModel(),q=visibleQ(m.price,p,m);
     $('supply-qs').textContent=fmt0.format(q);
     $('supply-net-price').textContent=fmt2.format(roundN(m.price-m.tax,2));
     draw(m,p);
