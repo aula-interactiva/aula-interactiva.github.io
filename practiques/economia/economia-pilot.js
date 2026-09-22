@@ -122,13 +122,25 @@
   }
 
   function recordAttempt(i) {
-    if (!validatedId) return;
+    if (!validatedId) return false;
     const control = $(answerId(i));
-    if (!control) return;
+    if (!control) return false;
     const value = String(control.value ?? '').trim();
-    if (!value || value === lastChecked[i]) return;
+    if (!value || value === lastChecked[i]) return false;
     lastChecked[i] = value;
     attempts[i] += 1;
+    return true;
+  }
+
+  function logProgressUpdate() {
+    if (!validatedId || submitted) return;
+    const results = currentResults();
+    tracker.logActivity('PROGRESS_UPDATE', {
+      practice: cfg.practice,
+      area: cfg.area || 'Economia',
+      title: document.title,
+      progress: NQ ? results.correct / NQ * 100 : 0
+    });
   }
 
   function currentResults() {
@@ -243,11 +255,26 @@
     for (let i = 0; i < NQ; i++) {
       const c = $(answerId(i));
       if (!c) continue;
-      const handler = () => setTimeout(() => recordAttempt(i), 0);
+      const handler = event => {
+        if (!event.isTrusted) return;
+        setTimeout(() => {
+          if (recordAttempt(i)) logProgressUpdate();
+        }, 0);
+      };
       c.addEventListener('change', handler);
       if (c.tagName !== 'SELECT') c.addEventListener('blur', handler);
     }
   }
+
+  document.addEventListener('aula:draft-restored', () => {
+    setTimeout(() => {
+      answerControls().forEach(control => {
+        if (String(control.value ?? '').trim()) {
+          control.dispatchEvent(new Event('change', {bubbles: true}));
+        }
+      });
+    }, 120);
+  });
 
   idInput.maxLength = 6;
   idInput.value = '';
