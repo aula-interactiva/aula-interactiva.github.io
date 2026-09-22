@@ -84,29 +84,19 @@
     });
   }
 
-  function goalCandidates(kind,d,p){
-    const target=d.target, vals=[];
+  function goalValue(kind,d,p){
+    const target=d.target;
     if(kind==='priceGoal'){
       const m=scenario(d.m),S=supplyConst(p,m);
-      const exact=m.tax+Math.pow(target/S,1/p.SA);
-      const center=roundN(exact,2);
-      for(let k=-300;k<=300;k++){
-        const v=roundN(center+k/100,2);if(v<0)continue;
-        if(visibleQ(v,p,m)===target) vals.push(v);
-      }
-    }else if(kind==='wageGoal'){
-      const m=scenario(d.m),net=m.price-m.tax;
-      if(net>0){
-        const denom=100*p.SF*Math.pow(m.sauce,p.SB)*Math.pow(net,p.SA);
-        const exact=Math.pow(target/denom,1/p.SD);
-        const center=roundN(exact,2);
-        for(let k=-500;k<=500;k++){
-          const v=roundN(center+k/100,2);if(v<=0)continue;
-          if(visibleQ(m.price,p,{...m,wage:v})===target) vals.push(v);
-        }
-      }
+      return roundN(m.tax+Math.pow(target/S,1/p.SA),2);
     }
-    return [...new Set(vals)];
+    if(kind==='wageGoal'){
+      const m=scenario(d.m),net=m.price-m.tax;
+      if(net<=0) return NaN;
+      const denom=100*p.SF*Math.pow(m.sauce,p.SB)*Math.pow(net,p.SA);
+      return roundN(Math.pow(target/denom,1/p.SD),2);
+    }
+    return NaN;
   }
 
   function expected(d,p){
@@ -119,11 +109,9 @@
     if(d.kind==='priceIncrease'){
       const b=scenario(d.base),m=scenario(d.m),q0=visibleQ(b.price,p,b);
       const S=supplyConst(p,m),exact=m.tax+Math.pow(q0/S,1/p.SA);
-      const candidates=[];const center=roundN(exact,2);
-      for(let k=-200;k<=200;k++){const price=roundN(center+k/100,2);if(price>=0&&visibleQ(price,p,m)===q0)candidates.push(roundN(price-b.price,2));}
-      return [...new Set(candidates)];
+      return roundN(exact-b.price,2);
     }
-    if(d.kind==='priceGoal'||d.kind==='wageGoal') return goalCandidates(d.kind,d,p);
+    if(d.kind==='priceGoal'||d.kind==='wageGoal') return goalValue(d.kind,d,p);
     return NaN;
   }
 
