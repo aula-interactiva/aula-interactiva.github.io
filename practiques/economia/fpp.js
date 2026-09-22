@@ -93,7 +93,7 @@
     modal.classList.remove('show');modal.setAttribute('aria-hidden','true');
   }
   function runQuestion11Solver(){
-    const p=pars(seedFromId($('ppc-student-id').value));
+    const p=pars(seedFromId(($('ppc-student-id').dataset.studentId || $('ppc-student-id').value)));
     const target=parseNum($('fpp-solver-target').value);
     const mode=document.querySelector('input[name="fpp-solver-mode"]:checked')?.value||'value';
     if(mode!=='value'||!Number.isFinite(target)){ $('fpp-solver-result').textContent='Per aquesta pregunta utilitza «Valor de» i introdueix un valor numèric.';return; }
@@ -107,7 +107,7 @@
   function check(i){
     const d=qdefs[i], c=$(`ppc-answer-${i+1}`), box=$(`ppc-check-${i+1}`);if(!c||!box)return;
     const raw=c.value;if(raw===''){box.className='q-check blank';box.textContent='·';return;}
-    const p=pars(seedFromId($('ppc-student-id').value));
+    const p=pars(seedFromId(($('ppc-student-id').dataset.studentId || $('ppc-student-id').value)));
     let ok=false;
     if(d.kind==='classify'){const max=visibleY(d.x,p);const expected=d.y<=max?'Assolible':'Inassolible';ok=raw===expected;}
     else if(d.kind==='trend') ok=raw==='Augmenta';
@@ -154,7 +154,7 @@
     const yt=svgEl('text',{x:16,y:margin.t+ph/2,'text-anchor':'middle','font-size':11.5,fill:'#353a3d','font-weight':700,transform:`rotate(-90 16 ${margin.t+ph/2})`});yt.textContent='Pasta';svg.appendChild(yt);
   }
   function update(){
-    const p=pars(seedFromId($('ppc-student-id').value)),m=readModel();
+    const p=pars(seedFromId(($('ppc-student-id').dataset.studentId || $('ppc-student-id').value))),m=readModel();
     const y=yFrontier(m.pizza,m.labor,m.ex,m.ey,p),xe=xEnd(m.labor,m.ex,p),ye=yEnd(m.labor,m.ey,p),oc=(Number.isFinite(y)&&Number.isFinite(yFrontier(m.pizza+1,m.labor,m.ex,m.ey,p)))?r2(y-yFrontier(m.pizza+1,m.labor,m.ex,m.ey,p)):NaN;
 draw(m,p);qdefs.forEach((_,i)=>{const c=$(`ppc-answer-${i+1}`);if(c&&c.value!=='')check(i);});
   }
