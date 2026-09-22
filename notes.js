@@ -187,7 +187,7 @@
       const result = await tracker.apiGet('notes');
       if (!result?.ok) {
         $('notes-content').innerHTML = result?.error === 'unauthorized'
-          ? '<div class="notes-empty">La sessió ha caducat. Torna a entrar al portal.</div>'
+          ? '<div class="notes-empty">No s’ha pogut validar l’accés a Notes. La sessió del portal continua activa.</div>'
           : '<div class="notes-empty">No s’han pogut carregar les notes.</div>';
         return;
       }
