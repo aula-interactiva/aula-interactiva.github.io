@@ -88,14 +88,21 @@
     return NaN;
   }
 
-  function goalWorks(d,p,given){
-    if(!Number.isFinite(given)||given<=0) return false;
-    given=roundN(given,2);
-    const m=scenario(d.m);
-    if(d.kind==='incomeGoal') return visibleQ(m.price,p,{...m,income:given})===d.target;
-    if(d.kind==='wineGoal') return visibleQ(m.price,p,{...m,wine:given})===d.target;
-    if(d.kind==='priceGoal') return visibleQ(given,p,m)===d.target;
-    return false;
+  function goalValue(d,p){
+    const m=scenario(d.m),target=d.target;
+    if(d.kind==='incomeGoal'){
+      const denom=100*p.DA*Math.pow(m.taco,p.DE)*Math.pow(m.wine,p.DF)*Math.pow(m.price,p.DD);
+      return roundN(Math.pow(target/denom,1/p.DB),2);
+    }
+    if(d.kind==='wineGoal'){
+      const denom=100*p.DA*Math.pow(m.income,p.DB)*Math.pow(m.taco,p.DE)*Math.pow(m.price,p.DD);
+      return roundN(Math.pow(target/denom,1/p.DF),2);
+    }
+    if(d.kind==='priceGoal'){
+      const D=demandConst(p,m);
+      return roundN(Math.pow(target/D,1/p.DD),2);
+    }
+    return NaN;
   }
 
   function check(i){
@@ -105,7 +112,7 @@
     if(d.options) ok=raw===expected(d,p);
     else{
       const v=parseNum(raw);if(Number.isFinite(v)){
-        if(d.kind==='incomeGoal'||d.kind==='wineGoal'||d.kind==='priceGoal') ok=goalWorks(d,p,v);
+        if(d.kind==='incomeGoal'||d.kind==='wineGoal'||d.kind==='priceGoal') ok=roundN(v,2)===goalValue(d,p);
         else{const e=expected(d,p);ok=roundN(v,2)===roundN(e,2);}
       }
     }
