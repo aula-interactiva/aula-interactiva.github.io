@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="ca">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Solucionari · Equilibri de mercat</title>
+  <style>
+    :root{--bg:#f4f4f4;--paper:#fff;--ink:#1f2326;--muted:#686d71;--line:#d8dadd;--dark:#42474c;--ok:#eef3ef}
+    *{box-sizing:border-box}
+    html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,Segoe UI,Arial,sans-serif}
+    body{min-height:100vh}
+    .topbar{position:sticky;top:0;z-index:10;background:var(--dark);color:#fff;border-bottom:1px solid #33383c}
+    .topbar-inner{max-width:920px;margin:0 auto;padding:11px 22px;display:flex;align-items:center;justify-content:space-between;gap:14px}
+    .btn{appearance:none;border:1px solid rgba(255,255,255,.25);background:transparent;color:#fff;border-radius:7px;padding:7px 10px;font:700 12px/1 Inter,Segoe UI,Arial,sans-serif;text-decoration:none;cursor:pointer}
+    .btn:hover{background:rgba(255,255,255,.08)}
+    .page{max-width:920px;margin:0 auto;padding:38px 22px 70px}
+    .eyebrow{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+    h1{font-size:34px;line-height:1.1;margin:7px 0 8px;letter-spacing:-.025em}
+    .intro{margin:0 0 25px;color:var(--muted);font-size:14px}
+    .exercise{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:22px 24px;margin:0 0 14px;break-inside:avoid}
+    .exercise h2{font-size:18px;margin:0 0 15px}
+    .exercise h3{font-size:14px;margin:18px 0 8px}
+    .exercise p,.exercise li{font-size:14px;line-height:1.55}
+    .equation{font-family:"Cambria Math","Times New Roman",serif;font-size:18px;text-align:center;margin:10px 0}
+    .result{background:var(--ok);border:1px solid #d7dfd8;border-radius:7px;padding:8px 10px;margin:10px 0;font-weight:700}
+    @media(max-width:650px){.page{padding:26px 14px 50px}.topbar-inner{padding:10px 14px}h1{font-size:27px}.exercise{padding:18px 16px}}
+    @media print{@page{margin:16mm}body{background:#fff}.topbar{display:none}.page{max-width:none;padding:0}.exercise{border:0;border-radius:0;padding:0;margin:0 0 22px}h1{font-size:25px}.exercise p,.exercise li{font-size:11pt;line-height:1.4}.equation{font-size:13pt}}
+  </style>
+</head>
+<body>
+<header class="topbar"><div class="topbar-inner">
+  <a class="btn" href="../../index.html?area=economia&mode=apunts">← Tornar</a>
+  <button class="btn" type="button" onclick="window.print()">Imprimeix / Desa en PDF</button>
+</div></header>
+
+<main class="page">
+  <div class="eyebrow">Professor · Tema 2</div>
+  <h1>Solucionari · Equilibri de mercat</h1>
+  <p class="intro">Solucions dels cinc exercicis de la Pràctica 2c.</p>
+
+  <section class="exercise">
+    <h2>Exercici 1 · Reconstruir el mercat</h2>
+    <p><strong>a)</strong> (Q_1) és la demanda perquè disminueix quan augmenta el preu. (Q_2) és l’oferta perquè augmenta amb el preu.</p>
+    <p><strong>b)</strong> Per (Q_1), la pendent és ((140-180)/(20-10)=-4), per tant:</p>
+    <div class="equation">Q<sub>d</sub> = 220 − 4P</div>
+    <p>Per (Q_2), la pendent és ((80-60)/(20-10)=2), per tant:</p>
+    <div class="equation">Q<sub>s</sub> = 40 + 2P</div>
+    <p><strong>c)</strong> Igualant:</p>
+    <div class="equation">220 − 4P = 40 + 2P → 180 = 6P → P* = 30</div>
+    <div class="equation">Q* = 220 − 4·30 = 100</div>
+    <div class="result">Equilibri: P* = 30 € i Q* = 100.</div>
+    <p><strong>d)</strong> Si (P=25): (Q_d=120) i (Q_s=90). Hi ha un excés de demanda de 30 unitats.</p>
+  </section>
+
+  <section class="exercise">
+    <h2>Exercici 2 · Mercat no lineal</h2>
+    <p><strong>a)</strong> (Q_1=260-2P^2) és la demanda i (Q_2=20+8P) és l’oferta.</p>
+    <p><strong>b)</strong></p>
+    <div class="equation">260 − 2P² = 20 + 8P</div>
+    <div class="equation">P² + 4P − 120 = 0</div>
+    <div class="equation">(P + 12)(P − 10) = 0</div>
+    <p>Les solucions són (P=-12) i (P=10). Es descarta el preu negatiu.</p>
+    <div class="result">P* = 10 €.</div>
+    <p><strong>c)</strong> (Q*=20+8·10=100).</p>
+    <div class="result">Q* = 100.</div>
+    <p><strong>d)</strong> Si (P=8): (Q_d=260-2·8^2=132) i (Q_s=84). Excés de demanda = 48 unitats.</p>
+    <p><strong>e)</strong> En igualar les dues relacions apareix (P^2), de manera que cal resoldre una equació de segon grau.</p>
+  </section>
+
+  <section class="exercise">
+    <h2>Exercici 3 · Què ha canviat?</h2>
+    <p><strong>a)</strong></p>
+    <div class="equation">300 − 5P = 60 + 3P → 240 = 8P → P* = 30</div>
+    <div class="equation">Q* = 150</div>
+    <div class="result">Equilibri inicial: P* = 30 € i Q* = 150.</div>
+    <p><strong>b)</strong> La nova demanda té pendent (-5): (Q_d'=a-5P). Com passa pel punt ((27,141)):</p>
+    <div class="equation">141 = a − 5·27 → a = 276</div>
+    <div class="equation">Q<sub>d</sub>' = 276 − 5P</div>
+    <p><strong>c)</strong> A cada preu es demanden 24 unitats menys que abans.</p>
+    <p><strong>d)</strong> La renda disminueix i també disminueix la demanda: és un <strong>bé normal</strong>.</p>
+    <p><strong>e)</strong> Si la renda augmentés, esperaríem un augment de la demanda.</p>
+  </section>
+
+  <section class="exercise">
+    <h2>Exercici 4 · Relació amb un altre producte</h2>
+    <p><strong>a)</strong></p>
+    <div class="equation">360 − 4P = 40 + 4P → 320 = 8P → P* = 40</div>
+    <div class="equation">Q* = 200</div>
+    <div class="result">Equilibri inicial: P* = 40 € i Q* = 200.</div>
+    <p><strong>b)</strong> La nova demanda manté pendent (-4): (Q_d'=a-4P). Com passa per ((44,216)):</p>
+    <div class="equation">216 = a − 4·44 → a = 392</div>
+    <div class="equation">Q<sub>d</sub>' = 392 − 4P</div>
+    <p><strong>c)</strong> A qualsevol preu es compren 32 unitats més.</p>
+    <p><strong>d)</strong> Quan augmenta el preu de B, augmenta la demanda d’A. Per tant, A i B són <strong>béns substitutius</strong>.</p>
+    <p><strong>e)</strong> Si l’augment del preu de B hagués reduït la demanda d’A, serien <strong>béns complementaris</strong>.</p>
+  </section>
+
+  <section class="exercise">
+    <h2>Exercici 5 · Cas final</h2>
+    <h3>a) Equilibri inicial</h3>
+    <p>L’oferta (P=10+0,2Q_s) és equivalent a:</p>
+    <div class="equation">Q<sub>s</sub> = 5P − 50</div>
+    <div class="equation">500 − 5P = 5P − 50 → 550 = 10P → P* = 55</div>
+    <div class="equation">Q* = 225</div>
+    <div class="result">Equilibri inicial: P* = 55 € i Q* = 225.</div>
+
+    <h3>b–c) Primera observació</h3>
+    <p>La nova demanda té pendent (-5) i a (P=50) es volen comprar 230 unitats:</p>
+    <div class="equation">230 = a − 5·50 → a = 480</div>
+    <div class="equation">Q<sub>d</sub>' = 480 − 5P</div>
+    <p>La renda augmenta però la demanda disminueix: és un <strong>bé inferior</strong>.</p>
+
+    <h3>d–e) Segona observació</h3>
+    <p>Després de l’augment del preu de B, a (P=50) es volen comprar 260 unitats:</p>
+    <div class="equation">260 = a − 250 → a = 510</div>
+    <div class="equation">Q<sub>d</sub>'' = 510 − 5P</div>
+    <p>Quan augmenta el preu de B, augmenta la demanda d’A: A i B són <strong>substitutius</strong>.</p>
+
+    <h3>f) Impost de 8 € per unitat</h3>
+    <p>La relació inicial dels productors era (P=10+0,2Q_s). Amb l’impost:</p>
+    <div class="equation">P = 18 + 0,2Q<sub>s</sub></div>
+    <p>Equivalentment:</p>
+    <div class="equation">Q<sub>s</sub> = 5P − 90</div>
+
+    <h3>g) Equilibri final</h3>
+    <div class="equation">510 − 5P = 5P − 90 → 600 = 10P → P = 60</div>
+    <div class="equation">Q = 210</div>
+    <div class="result">Equilibri final: P = 60 € i Q = 210.</div>
+
+    <h3>h) Comparació</h3>
+    <p>El preu passa de 55 € a 60 €: augmenta 5 €. La quantitat passa de 225 a 210: disminueix 15 unitats.</p>
+
+    <h3>i) Interpretació</h3>
+    <p>La renda i el preu del producte B afecten el comportament dels consumidors. L’impost afecta el comportament dels productors.</p>
+  </section>
+</main>
+</body>
+</html>
