@@ -49,6 +49,19 @@
   let practiceClosesAt = null;
   let accessTimer = null;
 
+  // Session tracking: additive only. It does not affect answers, drafts or submissions.
+  const ACTIVE_IDLE_MS = 3 * 60 * 1000;
+  const ACTIVE_SAMPLE_MS = 5000;
+  const SESSION_PULSE_MS = 5 * 60 * 1000;
+  let practiceSessionId = '';
+  let practiceActiveMs = 0;
+  let practiceInitialProgress = null;
+  let practiceInitialProgressLocked = false;
+  let lastInteractionAt = Date.now();
+  let lastActiveTickAt = Date.now();
+  let activeSampleTimer = null;
+  let sessionPulseTimer = null;
+
   function normalizeId(value) {
     return String(value ?? '').replace(/\D/g, '').slice(0, 6);
   }
@@ -195,6 +208,34 @@
     });
   }
 
+  function sampleActiveTime() {
+    if (!practiceSessionId) return;
+    const now = Date.now();
+    const elapsed = Math.max(0, now - lastActiveTickAt);
+
+    if (
+      document.visibilityState === 'visible' &&
+      now - lastInteractionAt <= ACTIVE_IDLE_MS
+    ) {
+      // The cap avoids counting a long browser-throttled interval as active time.
+      practiceActiveMs += Math.min(elapsed, ACTIVE_SAMPLE_MS * 2);
+    }
+
+    lastActiveTickAt = now;
+  }
+
+  function sessionExtra() {
+    if (!practiceSessionId) return {};
+    sampleActiveTime();
+    return {
+      sessionId: practiceSessionId,
+      activeMinutes: Math.round((practiceActiveMs / 60000) * 10) / 10,
+      initialProgress: Number.isFinite(practiceInitialProgress)
+        ? Math.round(practiceInitialProgress)
+        : ''
+    };
+  }
+
   function activityPayload(event, detail = {}) {
     const session = getSession();
     if (!session || session.role !== 'student') return null;
@@ -209,12 +250,15 @@
       correct: 0,
       attempts: 0,
       progress: Number.isFinite(detail.progress) ? Math.round(detail.progress) : '',
-      minutes: Number.isFinite(detail.minutes) ? Math.max(0, Math.round(detail.minutes)) : '',
-      version: 'activity-v1',
+      minutes: Number.isFinite(detail.minutes)
+        ? Math.max(0, Math.round(detail.minutes * 10) / 10)
+        : '',
+      version: 'activity-v2',
       detail: {
         event,
         page: detail.page || location.pathname,
         title: detail.title || document.title || '',
+        ...sessionExtra(),
         ...(detail.extra || {})
       },
       justifications: []
@@ -758,10 +802,55 @@
 
   function startPractice(session) {
     hydrateLegacyId(session);
+
+    practiceStartedAt = Date.now();
+    practiceSessionId = makeSubmissionId('session', session.id);
+    practiceActiveMs = 0;
+    practiceInitialProgress = estimateProgress();
+    practiceInitialProgressLocked = false;
+    lastInteractionAt = Date.now();
+    lastActiveTickAt = Date.now();
+    leaveLogged = false;
+
+    // Draft restoration may change the starting progress. Capture it before the
+    // student begins working, without changing the existing draft behaviour.
+    document.addEventListener('aula:draft-restored', () => {
+      if (!practiceInitialProgressLocked) {
+        practiceInitialProgress = estimateProgress();
+      }
+    }, {once: true});
+
     installDraftAutosave();
     installSaveAndExitButton();
-    practiceStartedAt = Date.now();
-    leaveLogged = false;
+
+    const lockInitialProgress = () => {
+      if (!practiceInitialProgressLocked) {
+        practiceInitialProgress = estimateProgress();
+        practiceInitialProgressLocked = true;
+      }
+    };
+
+    const markInteraction = () => {
+      sampleActiveTime();
+      lockInitialProgress();
+      lastInteractionAt = Date.now();
+    };
+
+    ['pointerdown', 'keydown', 'input', 'change', 'scroll', 'touchstart'].forEach(type => {
+      document.addEventListener(type, markInteraction, {capture: true, passive: true});
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      sampleActiveTime();
+      lastActiveTickAt = Date.now();
+      if (document.visibilityState === 'visible') {
+        lastInteractionAt = Date.now();
+      }
+    });
+
+    setTimeout(lockInitialProgress, 900);
+    activeSampleTimer = setInterval(sampleActiveTime, ACTIVE_SAMPLE_MS);
+
     const meta = practiceMeta();
 
     logActivity('OPEN_PRACTICE', {
@@ -770,32 +859,43 @@
       title: meta.title
     });
 
-    window.addEventListener('pagehide', () => {
+    // Safety pulse: preserves recent progress and active-time estimates even if
+    // the final pagehide request is lost. These remain technical rows in Activitat.
+    sessionPulseTimer = setInterval(() => {
       if (leaveLogged) return;
-      leaveLogged = true;
-      logActivityBeacon('LEAVE_PRACTICE', {
+      logActivity('SESSION_PULSE', {
         practice: meta.practice,
         area: meta.area,
         title: meta.title,
         minutes: (Date.now() - practiceStartedAt) / 60000,
         progress: estimateProgress()
       });
-    }, {once: true});
+    }, SESSION_PULSE_MS);
+
+    const finishPracticeSession = (extra = {}) => {
+      if (leaveLogged) return;
+      leaveLogged = true;
+      lockInitialProgress();
+      sampleActiveTime();
+      if (activeSampleTimer) clearInterval(activeSampleTimer);
+      if (sessionPulseTimer) clearInterval(sessionPulseTimer);
+
+      logActivityBeacon('LEAVE_PRACTICE', {
+        practice: meta.practice,
+        area: meta.area,
+        title: meta.title,
+        minutes: (Date.now() - practiceStartedAt) / 60000,
+        progress: estimateProgress(),
+        extra
+      });
+    };
+
+    window.addEventListener('pagehide', () => finishPracticeSession(), {once: true});
 
     if (Number.isFinite(practiceClosesAt)) {
       accessTimer = setInterval(() => {
         if (currentAccessTime() >= practiceClosesAt) {
-          if (!leaveLogged) {
-            leaveLogged = true;
-            logActivityBeacon('LEAVE_PRACTICE', {
-              practice: meta.practice,
-              area: meta.area,
-              title: meta.title,
-              minutes: (Date.now() - practiceStartedAt) / 60000,
-              progress: estimateProgress(),
-              extra: {reason: 'access-closed'}
-            });
-          }
+          finishPracticeSession({reason: 'access-closed'});
           showBlockedPractice('closed', practiceClosesAt);
         }
       }, 15000);
