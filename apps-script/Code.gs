@@ -13,10 +13,13 @@ const SHEETS = Object.freeze({
   submissions: 'Entregues',
   corrections: 'Correccions',
   activity: 'Activitat',
-  practiceGrades: 'Notes_Practiques'
+  practiceGrades: 'Notes_Practiques',
+  pdfUploads: 'PDF_Entregues'
 });
 
 const TOKEN_TTL_SECONDS = 21600; // 6 hores
+const PDF_ROOT_FOLDER_ID = '19kL-nxDJxMDj8IF2t7dwyFsN_bdT5j0t';
+const MAX_PDF_BYTES = 10 * 1024 * 1024;
 
 function doGet(e) {
   try {
@@ -87,6 +90,10 @@ function savePayload_(payload) {
     return {ok: true, type: 'activity'};
   }
 
+  if (status === 'Fitxer') {
+    return savePdf_(payload, student);
+  }
+
   if (status !== 'Entregada') {
     return {ok: false, error: 'unsupported-status'};
   }
@@ -111,6 +118,78 @@ function savePayload_(payload) {
     submissionId,
     corrections: justifications.length
   };
+}
+
+function savePdf_(p, student) {
+  const mimeType = String(p.mimeType || '').toLowerCase();
+  if (mimeType !== 'application/pdf') {
+    return {ok: false, error: 'pdf-only'};
+  }
+
+  const base64 = String(p.fileBase64 || '').replace(/^data:application\/pdf;base64,/, '');
+  if (!base64) return {ok: false, error: 'missing-file'};
+
+  let bytes;
+  try {
+    bytes = Utilities.base64Decode(base64);
+  } catch (_) {
+    return {ok: false, error: 'invalid-file'};
+  }
+
+  if (!bytes || !bytes.length) return {ok: false, error: 'empty-file'};
+  if (bytes.length > MAX_PDF_BYTES) return {ok: false, error: 'file-too-large'};
+
+  const root = DriveApp.getFolderById(PDF_ROOT_FOLDER_ID);
+  const areaFolder = getOrCreateFolder_(root, safeFilePart_(p.area || 'General'));
+  const practiceFolder = getOrCreateFolder_(areaFolder, safeFilePart_(p.practice || 'Pràctica'));
+
+  const filename =
+    normalizeId_(p.id) + '_' +
+    safeFilePart_(student.name || 'Alumne') + '_' +
+    safeFilePart_(p.practice || 'Pràctica') + '.pdf';
+
+  // Manté una sola versió activa per alumne i pràctica.
+  const oldFiles = practiceFolder.getFilesByName(filename);
+  while (oldFiles.hasNext()) {
+    oldFiles.next().setTrashed(true);
+  }
+
+  const blob = Utilities.newBlob(bytes, 'application/pdf', filename);
+  const file = practiceFolder.createFile(blob);
+
+  appendByHeaders_(SHEETS.pdfUploads, {
+    'Data/hora': new Date(),
+    'ID': idNumber_(p.id),
+    'Nom': student.name,
+    'Àrea': clean_(p.area),
+    'Pràctica': clean_(p.practice),
+    'Fitxer': filename,
+    'URL': file.getUrl(),
+    'ID fitxer': file.getId(),
+    'Mida bytes': bytes.length,
+    'ID entrega': clean_(p.submissionId)
+  });
+
+  return {
+    ok: true,
+    type: 'pdf',
+    fileId: file.getId(),
+    url: file.getUrl(),
+    name: filename
+  };
+}
+
+function getOrCreateFolder_(parent, name) {
+  const folders = parent.getFoldersByName(name);
+  return folders.hasNext() ? folders.next() : parent.createFolder(name);
+}
+
+function safeFilePart_(value) {
+  return String(value == null ? '' : value)
+    .replace(/[\\/:*?"<>|]+/g, '-')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 120) || 'Sense nom';
 }
 
 function appendSubmission_(p) {
