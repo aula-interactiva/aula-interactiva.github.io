@@ -260,9 +260,15 @@
 
       let buttons = '';
       if (isApunts) {
-        buttons = canOpen
+        const resources = Array.isArray(p.recursos) ? p.recursos : [];
+        const resourceButtons = resources.map(r => (
+          canOpen
+            ? `<a class="pdf-btn portal-link" href="${esc(r.fitxer)}" target="_blank" rel="noopener">${esc(r.titol || 'Recurs')}</a>`
+            : `<button class="pdf-btn" disabled>${esc(r.titol || 'Recurs')}</button>`
+        )).join('');
+        buttons = (canOpen
           ? `<a class="open-btn portal-link material-link" data-title="${esc(p.titol)}" data-area="${esc(a.nom)}" href="${esc(p.fitxer)}" target="_blank" rel="noopener">Obrir apunts</a>`
-          : '<button class="open-btn" disabled>Obrir apunts</button>';
+          : '<button class="open-btn" disabled>Obrir apunts</button>') + resourceButtons;
       } else {
         const pdfBtn = p.pdf
           ? (canOpen
