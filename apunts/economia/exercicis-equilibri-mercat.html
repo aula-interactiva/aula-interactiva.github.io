@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="ca">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Exercicis · Equilibri de mercat</title>
+  <style>
+    :root{--bg:#f4f4f4;--paper:#fff;--ink:#1f2326;--muted:#686d71;--line:#d8dadd;--dark:#42474c}
+    *{box-sizing:border-box}
+    html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,Segoe UI,Arial,sans-serif}
+    body{min-height:100vh}
+    .topbar{position:sticky;top:0;z-index:10;background:var(--dark);color:#fff;border-bottom:1px solid #33383c}
+    .topbar-inner{max-width:920px;margin:0 auto;padding:11px 22px;display:flex;align-items:center;justify-content:space-between;gap:14px}
+    .topbar-actions{display:flex;gap:8px;align-items:center}
+    .btn{appearance:none;border:1px solid rgba(255,255,255,.25);background:transparent;color:#fff;border-radius:7px;padding:7px 10px;font:700 12px/1 Inter,Segoe UI,Arial,sans-serif;text-decoration:none;cursor:pointer}
+    .btn:hover{background:rgba(255,255,255,.08)}
+    .page{max-width:920px;margin:0 auto;padding:38px 22px 70px}
+    .eyebrow{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+    h1{font-size:34px;line-height:1.1;margin:7px 0 8px;letter-spacing:-.025em}
+    .intro{margin:0 0 25px;color:var(--muted);font-size:14px}
+    .exercise{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:22px 24px;margin:0 0 14px;break-inside:avoid}
+    .exercise h2{font-size:18px;margin:0 0 15px}
+    .exercise p,.exercise li{font-size:14px;line-height:1.55}
+    .exercise p{margin:9px 0}
+    .exercise ol{margin:12px 0 0;padding-left:23px}
+    .exercise li{padding-left:4px;margin:7px 0}
+    .equation{font-family:"Cambria Math","Times New Roman",serif;font-size:19px;text-align:center;margin:14px 0}
+    .context{margin-top:17px!important}
+    .changes{margin:10px 0 12px;padding-left:22px}
+    .quote{border-left:3px solid #aaa;padding:7px 12px;margin:12px 0;background:#f6f6f6;font-style:italic}
+    @media(max-width:650px){
+      .page{padding:26px 14px 50px}
+      .topbar-inner{padding:10px 14px}
+      h1{font-size:27px}
+      .exercise{padding:18px 16px}
+      .btn{padding:7px 8px}
+    }
+    @media print{
+      @page{margin:16mm}
+      body{background:#fff}
+      .topbar{display:none}
+      .page{max-width:none;padding:0}
+      .intro{margin-bottom:16px}
+      .exercise{border:0;border-radius:0;padding:0;margin:0 0 22px;box-shadow:none}
+      h1{font-size:25px}
+      .exercise h2{font-size:16px}
+      .exercise p,.exercise li{font-size:11pt;line-height:1.4}
+      .equation{font-size:13pt}
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="btn" href="../../index.html?area=economia&mode=apunts">← Tornar</a>
+      <div class="topbar-actions">
+        <button class="btn" type="button" onclick="window.print()">Imprimeix / Desa en PDF</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="eyebrow">Tema 2 · Demanda i oferta</div>
+    <h1>Exercicis · Equilibri de mercat</h1>
+    <p class="intro">Exercicis per resoldre a classe.</p>
+
+    <section class="exercise">
+      <h2>Exercici 1</h2>
+      <p>En un mercat es coneixen les relacions següents:</p>
+      <div class="equation">Q<sub>1</sub> = 180 − 3P − 0,5P</div>
+      <div class="equation">Q<sub>2</sub> = 18 + 2P + 0,5P</div>
+      <ol type="a">
+        <li>Identifica quina relació correspon als compradors i quina als venedors. Justifica la resposta.</li>
+        <li>Calcula el preu i la quantitat d’equilibri.</li>
+        <li>Si el preu de mercat fos de 30 €, calcula les dues quantitats i explica què estaria passant al mercat.</li>
+        <li>Explica quin comportament esperaries dels compradors i venedors a partir d’aquesta situació.</li>
+      </ol>
+    </section>
+
+    <section class="exercise">
+      <h2>Exercici 2</h2>
+      <p>En un altre mercat:</p>
+      <div class="equation">Q<sub>1</sub> = 260 − 4(P − 5)</div>
+      <div class="equation">Q<sub>2</sub> = 30 + 3(P − 2)</div>
+      <ol type="a">
+        <li>Identifica les dues relacions.</li>
+        <li>Calcula l’equilibri del mercat.</li>
+        <li>Un dia el producte es ven a 25 €. Calcula què passa al mercat i quantifica la diferència entre les dues quantitats.</li>
+        <li>Uns dies més tard el preu és de 45 €. Repeteix l’anàlisi.</li>
+        <li>Sense tornar a calcular l’equilibri, explica en quin sentit hauria de moure’s el preu en cadascuna de les dues situacions.</li>
+      </ol>
+    </section>
+
+    <section class="exercise">
+      <h2>Exercici 3</h2>
+      <p>En el mercat d’un servei d’oci es coneixen:</p>
+      <div class="equation">Q<sub>1</sub> = 300 − 5(P − 4)</div>
+      <div class="equation">P = 8 + 0,2(Q<sub>2</sub> − 20)</div>
+      <ol type="a">
+        <li>Identifica les dues relacions i calcula l’equilibri inicial.</li>
+      </ol>
+      <p class="context">Durant els mesos següents augmenta de manera considerable la renda mitjana de les famílies que utilitzen aquest servei.</p>
+      <p>Les dades recollides posteriorment mostren que, per a qualsevol preu, els consumidors estan disposats a contractar <strong>40 serveis més que abans</strong>.</p>
+      <ol type="a" start="2">
+        <li>Escriu la relació que descriu ara el comportament dels consumidors.</li>
+        <li>Calcula el nou equilibri.</li>
+        <li>Compara les dues situacions.</li>
+        <li>Què pots deduir sobre aquest servei a partir del comportament observat quan varia la renda?</li>
+      </ol>
+    </section>
+
+    <section class="exercise">
+      <h2>Exercici 4</h2>
+      <p>En el mercat del producte A:</p>
+      <div class="equation">P = 68 − 0,2(Q<sub>1</sub> + 20)</div>
+      <div class="equation">Q<sub>2</sub> = 6(P − 8) + 30</div>
+      <ol type="a">
+        <li>Identifica les dues relacions i calcula l’equilibri.</li>
+      </ol>
+      <p class="context">Posteriorment passen dues coses:</p>
+      <ul class="changes">
+        <li>el preu del producte B, que sovint es consumeix juntament amb A, augmenta notablement;</li>
+        <li>apareix un nou procés de fabricació que permet produir cada quantitat de A a un preu <strong>4 € inferior</strong> al d’abans.</li>
+      </ul>
+      <p>Després del canvi en el preu de B, els estudis de mercat indiquen que, a qualsevol preu de A, els consumidors volen comprar <strong>30 unitats menys</strong>.</p>
+      <ol type="a" start="2">
+        <li>Escriu les dues noves relacions del mercat.</li>
+        <li>Calcula el nou equilibri.</li>
+        <li>Explica què ha passat amb cadascuna de les dues relacions.</li>
+        <li>Què pots deduir sobre la relació entre A i B?</li>
+        <li>Compara els dos equilibris.</li>
+        <li>Abans de fer els càlculs, què es podia anticipar amb certesa sobre el preu? I sobre la quantitat? Raona la resposta.</li>
+      </ol>
+    </section>
+
+    <section class="exercise">
+      <h2>Exercici 5 · Nivell examen</h2>
+      <p>Una empresa d’anàlisi de mercats estudia un producte i obté aquestes relacions:</p>
+      <div class="equation">Q<sub>1</sub> = 420 − 6(P − 5)</div>
+      <div class="equation">P = 10 + 0,25(Q<sub>2</sub> − 40)</div>
+      <ol type="a">
+        <li>Identifica les dues funcions i calcula l’equilibri inicial.</li>
+      </ol>
+      <p class="context">Al cap d’un any s’observen simultàniament tres canvis:</p>
+      <ul class="changes">
+        <li>la renda mitjana dels consumidors disminueix un 8%;</li>
+        <li>el preu d’un altre producte que cobreix una necessitat semblant augmenta;</li>
+        <li>el cost de producció per unitat augmenta 6 €.</li>
+      </ul>
+      <p>Després d’aquests canvis, l’empresa observa que, <strong>abans de tenir en compte el canvi en els costos de producció</strong>, la quantitat que els consumidors desitgen comprar a cada preu és <strong>24 unitats superior</strong> a la inicial.</p>
+      <ol type="a" start="2">
+        <li>Què indica aquest resultat sobre l’efecte conjunt dels dos primers canvis?</li>
+        <li>A partir de la informació disponible, què pots deduir sobre la relació d’aquest producte amb la renda i amb l’altre producte?</li>
+        <li>Escriu la nova relació corresponent al comportament dels consumidors.</li>
+        <li>Incorpora ara l’augment de 6 € dels costos de producció i escriu la nova relació corresponent als productors.</li>
+        <li>Calcula el nou equilibri.</li>
+        <li>Compara quantitativament el preu i la quantitat inicials i finals.</li>
+        <li>Un alumne afirma:
+          <div class="quote">“Com que la renda ha disminuït, necessàriament havia de disminuir la demanda.”</div>
+          Explica si aquesta afirmació es pot sostenir amb la informació del problema.
+        </li>
+      </ol>
+    </section>
+  </main>
+</body>
+</html>
