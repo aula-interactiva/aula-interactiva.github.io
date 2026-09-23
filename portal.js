@@ -277,10 +277,13 @@
               ? `<a class="pdf-btn portal-link material-link" data-title="${esc(p.titol)} · PDF" data-area="${esc(a.nom)}" href="${esc(p.pdf)}" target="_blank" rel="noopener">Veure PDF</a>`
               : '<button class="pdf-btn" disabled>Veure PDF</button>')
           : '';
+        const solutionBtn = teacher && p.solucionari
+          ? `<a class="pdf-btn portal-link" href="${esc(p.solucionari)}" target="_blank" rel="noopener">${esc(p.solucionariTitol || 'Solucionari')}</a>`
+          : '';
         const openBtn = canOpen
           ? `<a class="open-btn portal-link" href="${esc(p.fitxer)}">Obrir pràctica</a>`
           : '<button class="open-btn" disabled>Obrir pràctica</button>';
-        buttons = pdfBtn + openBtn;
+        buttons = pdfBtn + solutionBtn + openBtn;
       }
 
       return `<article class="practice-card ${canOpen ? 'active' : 'disabled'} ${preview ? 'teacher-preview' : ''}">
