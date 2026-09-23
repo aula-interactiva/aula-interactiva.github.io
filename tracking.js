@@ -566,6 +566,40 @@
     };
   }
 
+  async function uploadPdf(file, {practice = 'Pràctica', area = 'Sistema', submissionId = ''} = {}) {
+    const session = getSession();
+    if (!session || session.role !== 'student') return {ok: false, error: 'no-student-session'};
+    if (!file || file.type !== 'application/pdf') return {ok: false, error: 'pdf-only'};
+    if (file.size > 10 * 1024 * 1024) return {ok: false, error: 'file-too-large'};
+
+    const buffer = await file.arrayBuffer();
+    const bytes = new Uint8Array(buffer);
+    let binary = '';
+    const chunk = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunk) {
+      binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+    }
+
+    const payload = {
+      submissionId: submissionId || stablePracticeSubmissionId(normalizeRepoPath(location.pathname), session.id),
+      id: session.id,
+      practice,
+      area,
+      status: 'Fitxer',
+      mimeType: 'application/pdf',
+      fileName: file.name || 'resolucions.pdf',
+      size: file.size,
+      fileBase64: btoa(binary)
+    };
+
+    try {
+      await postPayload(payload);
+      return {ok: true, confirmed: false};
+    } catch (error) {
+      return {ok: false, error};
+    }
+  }
+
   async function submit(payload) {
     const session = getSession();
     if (session?.role === 'teacher') {
@@ -962,6 +996,7 @@
     isTeacher,
     makeSubmissionId,
     submit,
+    uploadPdf,
     checkPracticeSubmitted,
     stablePracticeSubmissionId,
     logActivity,
