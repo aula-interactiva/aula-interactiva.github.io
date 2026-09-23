@@ -1,5 +1,5 @@
 {
-  "versio": 13,
+  "versio": 14,
   "ajuda": "Els apunts publicats poden ser PDF o pàgines HTML. visible controla si la targeta es mostra a l’alumnat; el professor pot previsualitzar també apunts ocults. disponible controla si l’alumnat els pot obrir.",
   "arees": {
     "economia": {
@@ -33,6 +33,12 @@
               "titol": "Exercicis equilibri de mercat",
               "fitxer": "apunts/economia/exercicis-equilibri-mercat.html",
               "visible": true,
+              "disponible": false
+            },
+            {
+              "titol": "Solucionari · Equilibri de mercat",
+              "fitxer": "apunts/economia/solucionari-equilibri-mercat.html",
+              "visible": false,
               "disponible": false
             }
           ]
