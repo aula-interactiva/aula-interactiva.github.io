@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Exercicis d'equilibri de mercat · Pràctica 2d</title>
+<link rel="stylesheet" href="../../styles.css?v=6" />
+<link rel="stylesheet" href="economia-pilot.css" />
+<style>
+  .eq-shell{max-width:1120px;margin:0 auto;padding:18px 18px 60px}
+  .eq-intro{background:#f3f3f3;border:1px solid #ddd;border-radius:10px;padding:14px 16px;margin:14px 0 18px;font-size:14px;line-height:1.45}
+  .exercise-card{background:#fff;border:1px solid #d9d9d9;border-radius:10px;margin:0 0 16px;overflow:hidden}
+  .exercise-head{background:#444;color:#fff;padding:10px 14px;font-weight:800;font-size:14px}
+  .exercise-body{padding:16px}
+  .exercise-body p,.exercise-body li{font-size:14px;line-height:1.5}
+  .equation{font-family:"Cambria Math","Times New Roman",serif;font-size:18px;text-align:center;margin:9px 0}
+  .data-table{border-collapse:collapse;margin:10px auto 14px;min-width:360px;max-width:100%}
+  .data-table th,.data-table td{border:1px solid #ccc;padding:7px 12px;text-align:center}
+  .answer-list{display:grid;gap:9px;margin-top:14px}
+  .answer-row{display:grid;grid-template-columns:34px minmax(0,1fr) 190px 30px;gap:8px;align-items:center}
+  .answer-row input,.answer-row select{width:100%;padding:7px 8px;border:1px solid #bbb;border-radius:6px;background:#fff}
+  .q-num{font-weight:800;text-align:center}
+  .q-check{font-weight:800;text-align:center}
+  .q-check.correct{color:#26713c}.q-check.wrong{color:#a52a2a}.q-check.blank{color:#999}
+  .pdf-box{border:1px solid #ccc;border-radius:10px;padding:16px;margin-top:18px;background:#fafafa}
+  .pdf-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
+  .pdf-row input[type=file]{max-width:100%}
+  .pdf-help{font-size:13px;color:#666;margin-top:7px}
+  .pdf-status{font-size:13px;font-weight:700}
+  @media(max-width:760px){.answer-row{grid-template-columns:28px 1fr}.answer-row input,.answer-row select{grid-column:2}.q-check{grid-column:1}.data-table{min-width:0;width:100%}}
+</style>
+</head>
+<body>
+<div class="eq-shell">
+<header class="app-topbar">
+  <div class="app-title-wrap">
+    <a class="back-btn" href="../../index.html?area=economia">← Pràctiques</a>
+    <div class="app-title">EXERCICIS D'EQUILIBRI DE MERCAT <small>Pràctica 2d · 5 exercicis</small></div>
+  </div>
+  <div class="pilot-id-tools">
+    <label class="student-id">ID alumne <input aria-label="ID alumne" autocomplete="off" id="student-id" inputmode="numeric" maxlength="6" placeholder="6 dígits"/></label>
+    <button id="market-validate-id" type="button">Validar ID</button>
+    <span class="pilot-status" id="market-id-status"></span>
+  </div>
+</header>
+
+<div class="eq-intro"><strong>Instruccions.</strong> Resol els exercicis en un full a part i introdueix aquí els resultats. Els exercicis van de menys a més dificultat i no inclouen pistes de procediment. Al final pots adjuntar un PDF escanejat amb els càlculs perquè es pugui revisar el raonament.</div>
+
+<section class="exercise-card"><div class="exercise-head">Exercici 1 · Reconstruir el mercat</div><div class="exercise-body">
+<p>Observa les dades següents. Les dues relacions són lineals.</p>
+<table class="data-table"><thead><tr><th>P</th><th>Q1</th><th>Q2</th></tr></thead><tbody><tr><td>10</td><td>180</td><td>60</td></tr><tr><td>20</td><td>140</td><td>80</td></tr><tr><td>40</td><td>60</td><td>120</td></tr></tbody></table>
+<div class="answer-list">
+<div class="answer-row"><div class="q-num">1</div><div>Quina columna correspon a la demanda?</div><select id="answer-1"><option value="">Selecciona…</option><option>Q1</option><option>Q2</option></select><div id="check-1" class="q-check blank">·</div></div>
+<div class="answer-row"><div class="q-num">2</div><div>Escriu la funció de demanda.</div><input id="answer-2" placeholder="Ex.: 120-3P"/><div id="check-2" class="q-check blank">·</div></div>
+<div class="answer-row"><div class="q-num">3</div><div>Escriu la funció d'oferta.</div><input id="answer-3" placeholder="Ex.: 20+2P"/><div id="check-3" class="q-check blank">·</div></div>
+<div class="answer-row"><div class="q-num">4</div><div>Preu d'equilibri.</div><input id="answer-4" inputmode="decimal"/><div id="check-4" class="q-check blank">·</div></div>
+<div class="answer-row"><div class="q-num">5</div><div>Quantitat d'equilibri.</div><input id="answer-5" inputmode="decimal"/><div id="check-5" class="q-check blank">·</div></div>
+<div class="answer-row"><div class="q-num">6</div><div>A P = 25, quina situació hi ha?</div><select id="answer-6"><option value="">Selecciona…</option><option>Excés de demanda</option><option>Excés d'oferta</option><option>Equilibri</option></select><div id="check-6" class="q-check blank">·</div></div>
+<div class="answer-row"><div class="q-num">7</div><div>Magnitud de l'excés.</div><input id="answer-7" inputmode="decimal"/><div id="check-7" class="q-check blank">·</div></div>
+</div></div></section>
+
+<section class="exercise-card"><div class="exercise-head">Exercici 2 · Mercat no lineal</div><div class="exercise-body">
+<div class="equation">Q1 = 260 − 2P² &nbsp;&nbsp;&nbsp; Q2 = 20 + 8P</div>
+<div class="answer-list">
+<div class="answer-row"><div class="q-num">8</div><div>Quina relació és la demanda?</div><select id="answer-8"><option value="">Selecciona…</option><option>Q1</option><option>Q2</option></select><div id="check-8" class="q-check blank">·</div></div>
+<div class="answer-row"><div class="q-num">9</div><div>Preu d'equilibri econòmicament vàlid.</div><input id="answer-9" inputmode="decimal"/><div id="check-9" class="q-check blank">·</div></div>
+<div class="answer-row"><div class="q-num">10</div><div>Quina altra arrel algebraica s'ha de descartar?</div><input id="answer-10" inputmode="decimal"/><div id="check-10" class="q-check blank">·</div></div>
+<div class="answer-row"><div class="q-num">11</div><div>Quantitat d'equilibri.</div><input id="answer-11" inputmode="decimal"/><div id="check-11" class="q-check blank">·</div></div>
+<div class="answer-row"><div class="q-num">12</div><div>A P = 8, quina situació hi ha?</div><select id="answer-12"><option value="">Selecciona…</option><option>Excés de demanda</option><option>Excés d'oferta</option><option>Equilibri</option></select><div id="check-12" class="q-check blank">·</div></div>
+<div class="answer-row"><div class="q-num">13</div><div>Magnitud de l'excés a P = 8.</div><input id="answer-13" inputmode="decimal"/><div id="check-13" class="q-check blank">·</div></div>
+<div class="answer-row"><div class="q-num">14</div><div>Quin tipus d'equació cal resoldre per trobar l'equilibri?</div><select id="answer-14"><option value="">Selecciona…</option><option>Primer grau</option><option>Segon grau</option></select><div id="check-14" class="q-check blank">·</div></div>
+</div></div></section>
+
+<section class="exercise-card"><div class="exercise-head">Exercici 3 · Què ha canviat?</div><div class="exercise-body">
+<p>Inicialment:</p><div class="equation">Qd = 300 − 5P &nbsp;&nbsp;&nbsp; Qs = 60 + 3P</div>
+<p>La renda disminueix. La nova situació d'equilibri observada és P = 27 i Q = 141. La pendent de la demanda no canvia.</p>
+<div class="answer-list">
+<div class="answer-row"><div class="q-num">15</div><div>Preu d'equilibri inicial.</div><input id="answer-15" inputmode="decimal"/><div id="check-15" class="q-check blank">·</div></div>
+<div class="answer-row"><div class="q-num">16</div><div>Quantitat d'equilibri inicial.</div><input id="answer-16" inputmode="decimal"/><div id="check-16" class="q-check blank">·</div></div>
+<div class="answer-row"><div class="q-num">17</div><div>Escriu la nova funció de demanda.</div><input id="answer-17" placeholder="Ex.: 250-5P"/><div id="check-17" class="q-check blank">·</div></div>
+<div class="answer-row"><div class="q-num">18</div><div>Variació de la demanda a qualsevol preu (nova − inicial).</div><input id="answer-18" inputmode="decimal"/><div id="check-18" class="q-check blank">·</div></div>
+<div class="answer-row"><div class="q-num">19</div><div>Quin tipus de bé és respecte de la renda?</div><select id="answer-19"><option value="">Selecciona…</option><option>Normal</option><option>Inferior</option></select><div id="check-19" class="q-check blank">·</div></div>
+<div class="answer-row"><div class="q-num">20</div><div>Si la renda augmentés, què esperaries que passés amb la demanda?</div><select id="answer-20"><option value="">Selecciona…</option><option>Augmentaria</option><option>Disminuiria</option><option>No canviaria</option></select><div id="check-20" class="q-check blank">·</div></div>
+</div></div></section>
+
+<section class="exercise-card"><div class="exercise-head">Exercici 4 · Relació amb un altre producte</div><div class="exercise-body">
+<p>Mercat del producte A:</p><div class="equation">Qd = 360 − 4P &nbsp;&nbsp;&nbsp; Qs = 40 + 4P</div>
+<p>El preu del producte B augmenta. Les condicions de producció d'A no canvien. El nou equilibri d'A és P = 44 i Q = 216, i la pendent de la demanda es manté.</p>
+<div class="answer-list">
+<div class="answer-row"><div class="q-num">21</div><div>Preu d'equilibri inicial.</div><input id="answer-21" inputmode="decimal"/><div id="check-21" class="q-check blank">·</div></div>
+<div class="answer-row"><div class="q-num">22</div><div>Quantitat d'equilibri inicial.</div><input id="answer-22" inputmode="decimal"/><div id="check-22" class="q-check blank">·</div></div>
+<div class="answer-row"><div class="q-num">23</div><div>Escriu la nova funció de demanda.</div><input id="answer-23" placeholder="Ex.: 380-4P"/><div id="check-23" class="q-check blank">·</div></div>
+<div class="answer-row"><div class="q-num">24</div><div>Variació de la demanda a qualsevol preu.</div><input id="answer-24" inputmode="decimal"/><div id="check-24" class="q-check blank">·</div></div>
+<div class="answer-row"><div class="q-num">25</div><div>Quina relació hi ha entre A i B?</div><select id="answer-25"><option value="">Selecciona…</option><option>Substitutius</option><option>Complementaris</option><option>Independents</option></select><div id="check-25" class="q-check blank">·</div></div>
+<div class="answer-row"><div class="q-num">26</div><div>Si l'augment del preu de B hagués reduït la demanda d'A, serien…</div><select id="answer-26"><option value="">Selecciona…</option><option>Substitutius</option><option>Complementaris</option><option>Independents</option></select><div id="check-26" class="q-check blank">·</div></div>
+</div></div></section>
+
+<section class="exercise-card"><div class="exercise-head">Exercici 5 · Cas final</div><div class="exercise-body">
+<p>Situació inicial:</p><div class="equation">Qd = 500 − 5P &nbsp;&nbsp;&nbsp; P = 10 + 0,2Qs</div>
+<p>Després, la renda augmenta un 10%. A P = 50, la demanda passa de 250 a 230 i manté la mateixa pendent. Posteriorment augmenta el preu del producte B i, a P = 50, la demanda d'A passa a 260, també amb la mateixa pendent. Finalment s'aplica un impost de 8 € per unitat als productors.</p>
+<div class="answer-list">
+<div class="answer-row"><div class="q-num">27</div><div>Escriu l'oferta inicial en forma Qs = f(P).</div><input id="answer-27" placeholder="Ex.: 4P-20"/><div id="check-27" class="q-check blank">·</div></div>
+<div class="answer-row"><div class="q-num">28</div><div>Preu d'equilibri inicial.</div><input id="answer-28" inputmode="decimal"/><div id="check-28" class="q-check blank">·</div></div>
+<div class="answer-row"><div class="q-num">29</div><div>Quantitat d'equilibri inicial.</div><input id="answer-29" inputmode="decimal"/><div id="check-29" class="q-check blank">·</div></div>
+<div class="answer-row"><div class="q-num">30</div><div>Nova demanda després de l'augment de renda.</div><input id="answer-30" placeholder="Ex.: 480-5P"/><div id="check-30" class="q-check blank">·</div></div>
+<div class="answer-row"><div class="q-num">31</div><div>Respecte de la renda, A és un bé…</div><select id="answer-31"><option value="">Selecciona…</option><option>Normal</option><option>Inferior</option></select><div id="check-31" class="q-check blank">·</div></div>
+<div class="answer-row"><div class="q-num">32</div><div>Nova demanda després de l'augment del preu de B.</div><input id="answer-32" placeholder="Ex.: 510-5P"/><div id="check-32" class="q-check blank">·</div></div>
+<div class="answer-row"><div class="q-num">33</div><div>A i B són…</div><select id="answer-33"><option value="">Selecciona…</option><option>Substitutius</option><option>Complementaris</option><option>Independents</option></select><div id="check-33" class="q-check blank">·</div></div>
+<div class="answer-row"><div class="q-num">34</div><div>Escriu l'oferta després de l'impost en forma Qs = f(P).</div><input id="answer-34" placeholder="Ex.: 5P-90"/><div id="check-34" class="q-check blank">·</div></div>
+<div class="answer-row"><div class="q-num">35</div><div>Preu d'equilibri final.</div><input id="answer-35" inputmode="decimal"/><div id="check-35" class="q-check blank">·</div></div>
+<div class="answer-row"><div class="q-num">36</div><div>Quantitat d'equilibri final.</div><input id="answer-36" inputmode="decimal"/><div id="check-36" class="q-check blank">·</div></div>
+<div class="answer-row"><div class="q-num">37</div><div>Variació del preu final respecte de l'inicial.</div><input id="answer-37" inputmode="decimal"/><div id="check-37" class="q-check blank">·</div></div>
+<div class="answer-row"><div class="q-num">38</div><div>Variació de la quantitat final respecte de la inicial.</div><input id="answer-38" inputmode="decimal"/><div id="check-38" class="q-check blank">·</div></div>
+</div></div></section>
+
+<section class="pdf-box">
+  <strong>Resolucions en PDF</strong>
+  <div class="pdf-row">
+    <input id="resolution-pdf" type="file" accept="application/pdf,.pdf" disabled>
+    <button id="upload-pdf" type="button" disabled>Adjunta el PDF</button>
+    <span id="pdf-status" class="pdf-status"></span>
+  </div>
+  <div class="pdf-help">Opcional. Adjunta l'escaneig dels fulls de resolució en un únic PDF (màxim 10 MB). Servirà per revisar els càlculs i el procediment si és necessari.</div>
+</section>
+
+<div class="pilot-submit" style="margin-top:18px">
+  <button class="pilot-submit-btn" id="market-submit" type="button">Entrega la pràctica</button>
+  <span class="pilot-submit-status" id="market-submit-status"></span>
+</div>
+</div>
+
+<script src="../../tracking.js?v=25"></script>
+<script src="equilibri-exercicis.js?v=1"></script>
+<script>
+window.EconomyPracticePilotConfig = {
+  slug: "equilibri-exercicis",
+  practice: "Pràctica 2d · Exercicis d'equilibri de mercat",
+  area: "Economia",
+  version: "pilot-1",
+  questionCount: 38,
+  answerTemplate: "answer-{n}",
+  checkTemplate: "check-{n}",
+  idInput: "student-id",
+  validateButton: "market-validate-id",
+  idStatus: "market-id-status",
+  submitButton: "market-submit",
+  submitStatus: "market-submit-status",
+  justifications: []
+};
+</script>
+<script src="economia-pilot.js?v=2"></script>
+</body>
+</html>
