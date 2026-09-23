@@ -260,7 +260,8 @@
 
       let buttons = '';
       if (isApunts) {
-        const resources = Array.isArray(p.recursos) ? p.recursos : [];
+        const resources = (Array.isArray(p.recursos) ? p.recursos : [])
+          .filter(r => teacher || r.visible !== false);
         const resourceButtons = resources.map(r => (
           canOpen
             ? `<a class="pdf-btn portal-link" href="${esc(r.fitxer)}" target="_blank" rel="noopener">${esc(r.titol || 'Recurs')}</a>`
