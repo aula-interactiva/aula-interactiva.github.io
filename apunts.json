@@ -1,5 +1,5 @@
 {
-  "versio": 10,
+  "versio": 11,
   "ajuda": "Els apunts publicats poden ser PDF o pàgines HTML. visible controla si la targeta es mostra a l’alumnat; el professor pot previsualitzar també apunts ocults. disponible controla si l’alumnat els pot obrir.",
   "arees": {
     "economia": {
@@ -27,7 +27,13 @@
           "codi": "Tema 2",
           "titol": "Demanda i oferta",
           "descripcio": "Mercats i competència, demanda, oferta, equilibri de mercat i canvis en l’equilibri.",
-          "fitxer": "apunts/economia/tema-2-demanda-oferta.pdf"
+          "fitxer": "apunts/economia/tema-2-demanda-oferta.pdf",
+          "recursos": [
+            {
+              "titol": "Exercicis equilibri de mercat",
+              "fitxer": "apunts/economia/exercicis-equilibri-mercat.html"
+            }
+          ]
         },
         {
           "id": "tema-3-elasticitat",
