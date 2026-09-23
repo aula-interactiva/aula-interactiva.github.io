@@ -952,7 +952,7 @@
   }
 
   window.PracticeTracker = Object.freeze({
-    version: 'v6',
+    version: 'v7',
     endpoint: ENDPOINT,
     normalizeId,
     validateId,
