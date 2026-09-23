@@ -262,11 +262,12 @@
       if (isApunts) {
         const resources = (Array.isArray(p.recursos) ? p.recursos : [])
           .filter(r => teacher || r.visible !== false);
-        const resourceButtons = resources.map(r => (
-          canOpen
+        const resourceButtons = resources.map(r => {
+          const resourceOpen = teacher || r.disponible !== false;
+          return resourceOpen
             ? `<a class="pdf-btn portal-link" href="${esc(r.fitxer)}" target="_blank" rel="noopener">${esc(r.titol || 'Recurs')}</a>`
-            : `<button class="pdf-btn" disabled>${esc(r.titol || 'Recurs')}</button>`
-        )).join('');
+            : `<button class="pdf-btn" disabled>${esc(r.titol || 'Recurs')}</button>`;
+        }).join('');
         buttons = (canOpen
           ? `<a class="open-btn portal-link material-link" data-title="${esc(p.titol)}" data-area="${esc(a.nom)}" href="${esc(p.fitxer)}" target="_blank" rel="noopener">Obrir apunts</a>`
           : '<button class="open-btn" disabled>Obrir apunts</button>') + resourceButtons;
