@@ -27,9 +27,6 @@
   .pdf-row input[type=file]{max-width:100%}
   .pdf-help{font-size:13px;color:#666;margin-top:7px}
   .pdf-status{font-size:13px;font-weight:700}
-  .teacher-solution{display:none;justify-content:flex-end;margin:10px 0 0}
-  .teacher-solution a{display:inline-flex;align-items:center;gap:6px;border:1px solid #333;background:#fff;color:#222;border-radius:7px;padding:7px 10px;text-decoration:none;font-size:12px;font-weight:800}
-  .teacher-solution a:hover{background:#f0f0f0}
   @media(max-width:760px){.answer-row{grid-template-columns:28px 1fr}.answer-row input,.answer-row select{grid-column:2}.q-check{grid-column:1}.data-table{min-width:0;width:100%}}
 </style>
 </head>
@@ -46,10 +43,6 @@
     <span class="pilot-status" id="market-id-status"></span>
   </div>
 </header>
-
-<div id="teacher-solution" class="teacher-solution">
-  <a href="https://docs.google.com/document/d/1R390F2h-bjHzF6045kPzlai-satu3nxua_2ZtYAOJuo/edit" target="_blank" rel="noopener">Solucionari · Professor</a>
-</div>
 
 <div class="eq-intro"><strong>Instruccions.</strong> Resol els exercicis en un full a part i introdueix aquí els resultats. Els exercicis van de menys a més dificultat i no inclouen pistes de procediment. Al final pots adjuntar un PDF escanejat amb els càlculs perquè es pugui revisar el raonament.</div>
 
@@ -156,11 +149,5 @@ window.EconomyPracticePilotConfig = {
 };
 </script>
 <script src="economia-pilot.js?v=2"></script>
-<script>
-(() => {
-  const box = document.getElementById('teacher-solution');
-  if (box && window.PracticeTracker?.isTeacher?.()) box.style.display = 'flex';
-})();
-</script>
 </body>
 </html>
