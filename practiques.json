@@ -1,5 +1,5 @@
 {
-  "versio": 16,
+  "versio": 17,
   "ajuda": "visible controla la visibilitat per a l’alumnat; disponible és l’interruptor general d’accés. Opcionalment, obertura i tancament (ISO 8601 amb zona horària, p. ex. 2026-09-20T08:00:00+02:00) limiten automàticament l’accés. El professor pot previsualitzar les pràctiques fora de termini.",
   "arees": {
     "economia": {
@@ -62,7 +62,9 @@
           "titol": "Exercicis d’equilibri de mercat",
           "descripcio": "Cinc exercicis de dificultat creixent sobre funcions d’oferta i demanda, equilibri, renda, béns relacionats i impostos, amb possibilitat d’adjuntar la resolució en PDF.",
           "fitxer": "practiques/economia/equilibri-exercicis.html",
-          "pdf": null
+          "pdf": null,
+          "solucionari": "https://docs.google.com/document/d/1R390F2h-bjHzF6045kPzlai-satu3nxua_2ZtYAOJuo/edit",
+          "solucionariTitol": "Solucionari"
         },
         {
           "id": "elasticitat",
