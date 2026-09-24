@@ -34,6 +34,10 @@ function doGet(e) {
       result = notes_(p.token, p.code);
     } else if (action === 'content-config') {
       result = contentConfig_();
+    } else if (action === 'submission-status') {
+      result = submissionStatus_(p.code, p.submissionId);
+    } else if (action === 'pdf-status') {
+      result = pdfStatus_(p.code, p.submissionId);
     } else if (action === 'ping') {
       result = {ok: true, serverTime: new Date().toISOString()};
     } else {
@@ -130,6 +134,54 @@ function savePayload_(payload) {
     submissionId,
     corrections: justifications.length
   };
+}
+
+function submissionStatus_(code, submissionId) {
+  const id = normalizeId_(code);
+  const sid = String(submissionId || '').trim();
+  if (!/^\d{6}$/.test(id) || !sid) return {ok: false, error: 'invalid-request'};
+
+  const student = findStudent_(id);
+  if (!student || !student.active) return {ok: false, error: 'unauthorized'};
+
+  const sh = sheet_(SHEETS.submissions);
+  const headers = headers_(sh);
+  const idCol = headers.indexOf('ID');
+  const sidCol = headers.indexOf('ID entrega');
+  if (idCol < 0 || sidCol < 0 || sh.getLastRow() < 2) {
+    return {ok: true, submitted: false, submissionId: sid};
+  }
+
+  const rows = sh.getRange(2, 1, sh.getLastRow() - 1, sh.getLastColumn()).getDisplayValues();
+  const submitted = rows.some(r =>
+    normalizeId_(r[idCol]) === id && String(r[sidCol] || '').trim() === sid
+  );
+
+  return {ok: true, submitted, submissionId: sid};
+}
+
+function pdfStatus_(code, submissionId) {
+  const id = normalizeId_(code);
+  const sid = String(submissionId || '').trim();
+  if (!/^\d{6}$/.test(id) || !sid) return {ok: false, error: 'invalid-request'};
+
+  const student = findStudent_(id);
+  if (!student || !student.active) return {ok: false, error: 'unauthorized'};
+
+  const sh = sheet_(SHEETS.pdfUploads);
+  const headers = headers_(sh);
+  const idCol = headers.indexOf('ID');
+  const sidCol = headers.indexOf('ID entrega');
+  if (idCol < 0 || sidCol < 0 || sh.getLastRow() < 2) {
+    return {ok: true, uploaded: false, submissionId: sid};
+  }
+
+  const rows = sh.getRange(2, 1, sh.getLastRow() - 1, sh.getLastColumn()).getDisplayValues();
+  const uploaded = rows.some(r =>
+    normalizeId_(r[idCol]) === id && String(r[sidCol] || '').trim() === sid
+  );
+
+  return {ok: true, uploaded, submissionId: sid};
 }
 
 function contentConfig_() {
