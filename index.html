@@ -4,20 +4,11 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Aula Interactiva</title>
-<script>
-  (() => {
-    const bust = Date.now();
-    ['styles.css', 'theme.css'].forEach(href => {
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = href + '?v=' + bust;
-      document.head.appendChild(link);
-    });
-  })();
-</script>
+<link rel="stylesheet" href="styles.css?v=13" />
+<link rel="stylesheet" href="theme.css?v=5" />
 </head>
 <body>
-<section id="login-view" class="login-view">
+<section id="login-view" class="login-view hidden">
   <div class="login-card">
     <div class="login-kicker">AULA INTERACTIVA</div>
 <p>Introdueix el teu codi personal per accedir a l’aula.</p>
@@ -73,23 +64,8 @@
   </div>
 </section>
 
-<script>
-  (() => {
-    const bust = Date.now();
-    const files = ['tracking.js', 'portal.js', 'notes.js'];
-
-    const loadNext = () => {
-      const file = files.shift();
-      if (!file) return;
-
-      const script = document.createElement('script');
-      script.src = file + '?v=' + bust;
-      script.onload = loadNext;
-      document.body.appendChild(script);
-    };
-
-    loadNext();
-  })();
-</script>
+<script src="tracking.js?v=33"></script>
+<script src="portal.js?v=21"></script>
+<script src="notes.js?v=8"></script>
 </body>
 </html>
