@@ -52,6 +52,7 @@
   const contentOverrides = new Map();
   let contentControlReady = false;
   let contentRetryTimer = null;
+  let initialContentLoadDone = false;
 
   const $ = id => document.getElementById(id);
 
@@ -274,12 +275,17 @@
 
     $('area-note').textContent = `${a.nom} · ${isApunts ? 'Apunts' : 'Pràctiques'} · ${a.simbol} canvia l’àrea · ${isApunts ? 'A' : 'P'} canvia Apunts/Pràctiques`;
 
+    const grid = $('practice-grid');
+    if (!initialContentLoadDone) {
+      grid.classList.remove('topic-layout');
+      grid.innerHTML = '<div class="portal-empty">Carregant continguts…</div>';
+      return;
+    }
+
     const source = isApunts ? (a.apunts || []) : (a.practiques || []);
     const list = source
       .filter(p => teacher || p.visible !== false)
       .sort((x, y) => (x.ordre || 0) - (y.ordre || 0));
-    const grid = $('practice-grid');
-
     if (!list.length) {
       grid.innerHTML = `<div class="portal-empty">${isApunts ? 'Encara no hi ha apunts publicats en aquesta àrea.' : 'No hi ha pràctiques visibles en aquesta àrea.'}</div>`;
       return;
@@ -498,9 +504,11 @@
 
   Promise.allSettled([
     loadJsonConfig('practiques.json', 'practiques', {syncServerClock: true}),
-    loadJsonConfig('apunts.json', 'apunts')
-  ]).then(async () => {
-    await loadContentOverrides();
+    loadJsonConfig('apunts.json', 'apunts'),
+    loadContentOverrides()
+  ]).then(() => {
+    applyContentOverrides();
+    initialContentLoadDone = true;
     render();
     refreshSubmissionStates();
   });
