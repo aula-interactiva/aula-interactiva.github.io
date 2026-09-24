@@ -203,6 +203,22 @@
     });
   }
 
+  function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  async function confirmWithRetry(action, params, predicate, {attempts = 8, delayMs = 700} = {}) {
+    let last = null;
+    for (let i = 0; i < attempts; i++) {
+      try {
+        last = await jsonp({action, ...params});
+        if (last?.ok && predicate(last)) return {ok: true, result: last};
+      } catch (_) {}
+      if (i < attempts - 1) await sleep(delayMs);
+    }
+    return {ok: false, result: last};
+  }
+
   function sampleActiveTime() {
     if (!practiceSessionId) return;
     const now = Date.now();
@@ -555,11 +571,19 @@
 
     const practicePath = practice?.fitxer || location.pathname;
     const submissionId = stablePracticeSubmissionId(practicePath, session.id);
-    return {
-      ok: true,
-      submitted: hasLocalSubmission(practicePath, session.id),
-      submissionId
-    };
+
+    try {
+      const result = await jsonp({
+        action: 'submission-status',
+        code: session.id,
+        submissionId
+      });
+      if (!result?.ok) return {ok: false, submitted: false, submissionId};
+      if (result.submitted) rememberLocalSubmission(practicePath, session.id);
+      return {ok: true, submitted: result.submitted === true, submissionId};
+    } catch (error) {
+      return {ok: false, submitted: false, submissionId, error};
+    }
   }
 
   async function uploadPdf(file, {practice = 'Pràctica', area = 'Sistema', submissionId = ''} = {}) {
@@ -591,9 +615,17 @@
 
     try {
       await postPayload(payload);
-      return {ok: true, confirmed: false};
+      const confirmation = await confirmWithRetry(
+        'pdf-status',
+        {code: session.id, submissionId: payload.submissionId},
+        result => result.uploaded === true
+      );
+      if (!confirmation.ok) {
+        return {ok: false, error: 'pdf-not-confirmed', confirmed: false};
+      }
+      return {ok: true, confirmed: true};
     } catch (error) {
-      return {ok: false, error};
+      return {ok: false, error, confirmed: false};
     }
   }
 
@@ -614,9 +646,26 @@
 
     try {
       await postPayload(payload);
-      return {ok: true, confirmed: false};
+      const key = mode + '|' + areaKey + '|' + itemId;
+      const confirmation = await confirmWithRetry(
+        'content-config',
+        {},
+        result => {
+          const item = Array.isArray(result.items)
+            ? result.items.find(x => (x.mode + '|' + x.area + '|' + x.id) === key)
+            : null;
+          return !!item &&
+            item.visible === (visible === true) &&
+            item.disponible === (disponible === true);
+        },
+        {attempts: 6, delayMs: 600}
+      );
+      if (!confirmation.ok) {
+        return {ok: false, error: 'content-not-confirmed', confirmed: false};
+      }
+      return {ok: true, confirmed: true};
     } catch (error) {
-      return {ok: false, error};
+      return {ok: false, error, confirmed: false};
     }
   }
 
@@ -639,17 +688,21 @@
 
     try {
       await postPayload(payload);
+      const confirmation = await confirmWithRetry(
+        'submission-status',
+        {code: session.id, submissionId: payload.submissionId},
+        result => result.submitted === true
+      );
+      if (!confirmation.ok) {
+        return {ok: false, error: 'submission-not-confirmed', confirmed: false};
+      }
     } catch (error) {
-      return {ok: false, error};
+      return {ok: false, error, confirmed: false};
     }
+
     rememberLocalSubmission(practiceKey, session.id);
     clearDraft(practiceKey, session.id);
-
-    // Confirmation through GET/JSONP is intentionally not required here:
-    // Apps Script web apps have a documented multi-account routing problem.
-    // The POST uses credentials:'omit', and the deterministic submission ID
-    // keeps duplicate writes idempotent on the backend.
-    return {ok: true, confirmed: false};
+    return {ok: true, confirmed: true};
   }
 
   function practiceMeta() {
@@ -996,7 +1049,11 @@
     }
 
     const submitted = await checkPracticeSubmitted(practice);
-    if (submitted.ok && submitted.submitted) {
+    if (!submitted.ok) {
+      showBlockedPractice('verification');
+      return;
+    }
+    if (submitted.submitted) {
       showBlockedPractice('submitted');
       return;
     }
@@ -1033,8 +1090,8 @@
       const session = getSession();
       if (!session) return {ok: false, error: 'no-session'};
 
-      if (action === 'notes') {
-        return jsonp({action: 'notes', code: session.id, ...params});
+      if (action === 'notes' || action === 'submission-status' || action === 'pdf-status') {
+        return jsonp({action, code: session.id, ...params});
       }
 
       return jsonp({action, ...params});
