@@ -14,7 +14,8 @@ const SHEETS = Object.freeze({
   corrections: 'Correccions',
   activity: 'Activitat',
   practiceGrades: 'Notes_Practiques',
-  pdfUploads: 'PDF_Entregues'
+  pdfUploads: 'PDF_Entregues',
+  contentAccess: 'Control_Continguts'
 });
 
 const TOKEN_TTL_SECONDS = 21600; // 6 hores
@@ -31,6 +32,8 @@ function doGet(e) {
       result = login_(p.code);
     } else if (action === 'notes') {
       result = notes_(p.token, p.code);
+    } else if (action === 'content-config') {
+      result = contentConfig_();
     } else if (action === 'ping') {
       result = {ok: true, serverTime: new Date().toISOString()};
     } else {
@@ -86,6 +89,10 @@ function savePayload_(payload) {
   if (String(payload.id || '').trim() === '142858') {
     return {ok: true, skipped: true, test: true};
   }
+  if (status === 'ConfiguracioContingut') {
+    return saveContentState_(payload, student);
+  }
+
   const submissionId = String(payload.submissionId || '').trim();
   if (!submissionId) return {ok: false, error: 'missing-submission-id'};
 
@@ -123,6 +130,62 @@ function savePayload_(payload) {
     submissionId,
     corrections: justifications.length
   };
+}
+
+function contentConfig_() {
+  const sh = sheet_(SHEETS.contentAccess);
+  const lastRow = sh.getLastRow();
+  if (lastRow < 2) return {ok: true, items: []};
+
+  const rows = sh.getRange(2, 1, lastRow - 1, 6).getValues();
+  const items = rows
+    .filter(r => String(r[0] || '').trim() && String(r[1] || '').trim() && String(r[2] || '').trim())
+    .map(r => ({
+      mode: String(r[0] || '').trim(),
+      area: String(r[1] || '').trim(),
+      id: String(r[2] || '').trim(),
+      title: String(r[3] || '').trim(),
+      visible: r[4] === true,
+      disponible: r[5] === true
+    }));
+
+  return {ok: true, items};
+}
+
+function saveContentState_(p, student) {
+  if (!student || student.role !== 'teacher') {
+    return {ok: false, error: 'unauthorized'};
+  }
+
+  const mode = String(p.mode || '').trim();
+  const area = String(p.areaKey || '').trim();
+  const itemId = String(p.itemId || '').trim();
+  if (!['practiques', 'apunts'].includes(mode) || !area || !itemId) {
+    return {ok: false, error: 'invalid-content-state'};
+  }
+
+  const sh = sheet_(SHEETS.contentAccess);
+  const lastRow = sh.getLastRow();
+  const rows = lastRow >= 2 ? sh.getRange(2, 1, lastRow - 1, 6).getValues() : [];
+  let rowNumber = -1;
+
+  for (let i = 0; i < rows.length; i++) {
+    if (
+      String(rows[i][0] || '').trim() === mode &&
+      String(rows[i][1] || '').trim() === area &&
+      String(rows[i][2] || '').trim() === itemId
+    ) {
+      rowNumber = i + 2;
+      break;
+    }
+  }
+
+  const values = [[mode, area, itemId, clean_(p.title), p.visible === true, p.disponible === true]];
+
+  if (rowNumber > 0) sh.getRange(rowNumber, 1, 1, 6).setValues(values);
+  else sh.appendRow(values[0]);
+
+  return {ok: true, type: 'content-state'};
 }
 
 function savePdf_(p, student) {
