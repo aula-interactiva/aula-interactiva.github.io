@@ -152,7 +152,7 @@
     const closesAt = parseAccessTime(p.tancament);
     const now = currentAccessTime();
 
-    if (p.disponible !== true) return {open:false, state:'upcoming', opensAt, closesAt};
+    if (p.disponible !== true) return {open:false, state:'closed', opensAt, closesAt};
     if (opensAt !== null && now < opensAt) return {open:false, state:'upcoming', opensAt, closesAt};
     if (closesAt !== null && now >= closesAt) return {open:false, state:'closed', opensAt, closesAt};
     return {open:true, state:'open', opensAt, closesAt};
