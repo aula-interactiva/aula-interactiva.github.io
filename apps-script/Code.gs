@@ -14,15 +14,12 @@ const SHEETS = Object.freeze({
   corrections: 'Correccions',
   activity: 'Activitat',
   practiceGrades: 'Notes_Practiques',
-  pdfUploads: 'PDF_Entregues',
-  contentAccess: 'Control_Continguts'
+  pdfUploads: 'PDF_Entregues'
 });
 
 const TOKEN_TTL_SECONDS = 21600; // 6 hores
 const PDF_ROOT_FOLDER_ID = '19kL-nxDJxMDj8IF2t7dwyFsN_bdT5j0t';
 const MAX_PDF_BYTES = 10 * 1024 * 1024;
-const GITHUB_REPO = 'aula-interactiva/aula-interactiva.github.io';
-const GITHUB_BRANCH = 'main';
 
 function doGet(e) {
   try {
@@ -34,8 +31,6 @@ function doGet(e) {
       result = login_(p.code);
     } else if (action === 'notes') {
       result = notes_(p.token, p.code);
-    } else if (action === 'content-config') {
-      result = contentConfig_();
     } else if (action === 'submission-status') {
       result = submissionStatus_(p.code, p.submissionId);
     } else if (action === 'pdf-status') {
@@ -95,10 +90,6 @@ function savePayload_(payload) {
   if (String(payload.id || '').trim() === '142858') {
     return {ok: true, skipped: true, test: true};
   }
-  if (status === 'ConfiguracioContingut') {
-    return saveContentState_(payload, student);
-  }
-
   const submissionId = String(payload.submissionId || '').trim();
   if (!submissionId) return {ok: false, error: 'missing-submission-id'};
 
@@ -184,189 +175,6 @@ function pdfStatus_(code, submissionId) {
   );
 
   return {ok: true, uploaded, submissionId: sid};
-}
-
-function contentConfig_() {
-  const sh = sheet_(SHEETS.contentAccess);
-  const lastRow = sh.getLastRow();
-  if (lastRow < 2) return {ok: true, items: []};
-
-  const rows = sh.getRange(2, 1, lastRow - 1, 6).getValues();
-  const items = rows
-    .filter(r => String(r[0] || '').trim() && String(r[1] || '').trim() && String(r[2] || '').trim())
-    .map(r => ({
-      mode: String(r[0] || '').trim(),
-      area: String(r[1] || '').trim(),
-      id: String(r[2] || '').trim(),
-      title: String(r[3] || '').trim(),
-      visible: r[4] === true,
-      disponible: r[5] === true
-    }));
-
-  return {ok: true, items};
-}
-
-function saveContentState_(p, student) {
-  if (!student || student.role !== 'teacher') {
-    return {ok: false, error: 'unauthorized'};
-  }
-
-  const mode = String(p.mode || '').trim();
-  const area = String(p.areaKey || '').trim();
-  const itemId = String(p.itemId || '').trim();
-
-  if (!['practiques', 'apunts'].includes(mode) || !area || !itemId) {
-    return {ok: false, error: 'invalid-content-state'};
-  }
-
-  const filePath = mode === 'practiques' ? 'practiques.json' : 'apunts.json';
-  const published = publishContentStateToGithub_(
-    filePath,
-    mode,
-    area,
-    itemId,
-    p.visible === true,
-    p.disponible === true
-  );
-
-  if (!published.ok) return published;
-
-  // Manté Control_Continguts com a registre de suport, però no és la font
-  // que consumeix l'alumnat. La font publicada és el JSON de GitHub Pages.
-  const sh = sheet_(SHEETS.contentAccess);
-  const lastRow = sh.getLastRow();
-  const rows = lastRow >= 2 ? sh.getRange(2, 1, lastRow - 1, 6).getValues() : [];
-  let rowNumber = -1;
-
-  for (let i = 0; i < rows.length; i++) {
-    if (
-      String(rows[i][0] || '').trim() === mode &&
-      String(rows[i][1] || '').trim() === area &&
-      String(rows[i][2] || '').trim() === itemId
-    ) {
-      rowNumber = i + 2;
-      break;
-    }
-  }
-
-  const values = [[
-    mode,
-    area,
-    itemId,
-    clean_(p.title),
-    p.visible === true,
-    p.disponible === true
-  ]];
-
-  if (rowNumber > 0) sh.getRange(rowNumber, 1, 1, 6).setValues(values);
-  else sh.appendRow(values[0]);
-
-  return {
-    ok: true,
-    type: 'content-state',
-    published: true,
-    commitSha: published.commitSha || ''
-  };
-}
-
-function publishContentStateToGithub_(filePath, mode, area, itemId, visible, disponible) {
-  const token = PropertiesService.getScriptProperties().getProperty('GITHUB_TOKEN');
-  if (!token) return {ok: false, error: 'missing-github-token'};
-
-  const apiUrl =
-    'https://api.github.com/repos/' +
-    GITHUB_REPO +
-    '/contents/' +
-    encodeURIComponent(filePath);
-
-  for (let attempt = 0; attempt < 3; attempt++) {
-    const getRes = UrlFetchApp.fetch(
-      apiUrl + '?ref=' + encodeURIComponent(GITHUB_BRANCH) + '&_=' + Date.now(),
-      {
-        method: 'get',
-        muteHttpExceptions: true,
-        headers: githubHeaders_(token)
-      }
-    );
-
-    if (getRes.getResponseCode() !== 200) {
-      return {
-        ok: false,
-        error: 'github-read-failed',
-        status: getRes.getResponseCode()
-      };
-    }
-
-    const current = JSON.parse(getRes.getContentText());
-    const jsonText = Utilities.newBlob(
-      Utilities.base64Decode(String(current.content || '').replace(/\s/g, ''))
-    ).getDataAsString('UTF-8');
-
-    const config = JSON.parse(jsonText);
-    const areaConfig = config && config.arees && config.arees[area];
-    const list = mode === 'practiques'
-      ? areaConfig && areaConfig.practiques
-      : areaConfig && areaConfig.apunts;
-
-    if (!Array.isArray(list)) {
-      return {ok: false, error: 'content-area-not-found'};
-    }
-
-    const item = list.find(x => String(x && x.id || '') === itemId);
-    if (!item) return {ok: false, error: 'content-item-not-found'};
-
-    item.visible = visible === true;
-    item.disponible = disponible === true;
-    config.versio = Number(config.versio || 0) + 1;
-
-    const updatedText = JSON.stringify(config, null, 2) + '\n';
-    const body = {
-      message: 'Actualitza publicació: ' + itemId,
-      content: Utilities.base64Encode(
-        Utilities.newBlob(updatedText, 'application/json').getBytes()
-      ),
-      sha: current.sha,
-      branch: GITHUB_BRANCH
-    };
-
-    const putRes = UrlFetchApp.fetch(apiUrl, {
-      method: 'put',
-      contentType: 'application/json',
-      payload: JSON.stringify(body),
-      muteHttpExceptions: true,
-      headers: githubHeaders_(token)
-    });
-
-    const status = putRes.getResponseCode();
-    if (status === 200 || status === 201) {
-      const out = JSON.parse(putRes.getContentText());
-      return {
-        ok: true,
-        commitSha: out && out.commit && out.commit.sha || ''
-      };
-    }
-
-    if (status !== 409) {
-      return {
-        ok: false,
-        error: 'github-write-failed',
-        status
-      };
-    }
-
-    Utilities.sleep(350);
-  }
-
-  return {ok: false, error: 'github-conflict'};
-}
-
-function githubHeaders_(token) {
-  return {
-    Authorization: 'Bearer ' + token,
-    Accept: 'application/vnd.github+json',
-    'X-GitHub-Api-Version': '2022-11-28',
-    'User-Agent': 'Aula-Interactiva-Apps-Script'
-  };
 }
 
 function savePdf_(p, student) {
