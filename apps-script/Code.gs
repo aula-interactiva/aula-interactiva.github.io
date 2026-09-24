@@ -30,7 +30,7 @@ function doGet(e) {
     if (action === 'login') {
       result = login_(p.code);
     } else if (action === 'notes') {
-      result = notes_(p.token);
+      result = notes_(p.token, p.code);
     } else if (action === 'ping') {
       result = {ok: true, serverTime: new Date().toISOString()};
     } else {
@@ -284,8 +284,19 @@ function login_(code) {
   };
 }
 
-function notes_(token) {
-  const auth = authFromToken_(token);
+function notes_(token, code) {
+  let auth = null;
+
+  const id = normalizeId_(code);
+  if (/^\d{6}$/.test(id)) {
+    const student = findStudent_(id);
+    if (student && student.active) {
+      auth = {id: student.id, role: student.role};
+    }
+  }
+
+  // Compatibilitat amb tokens emesos per versions anteriors del portal.
+  if (!auth) auth = authFromToken_(token);
   if (!auth) return {ok: false, error: 'unauthorized'};
 
   const sh = sheet_(SHEETS.practiceGrades);
