@@ -1010,9 +1010,7 @@
       if (!session) return {ok: false, error: 'no-session'};
 
       if (action === 'notes') {
-        const auth = await jsonp({action: 'login', code: session.id});
-        if (!auth?.ok || !auth.token) return {ok: false, error: auth?.error || 'unauthorized'};
-        return jsonp({action: 'notes', token: auth.token, ...params});
+        return jsonp({action: 'notes', code: session.id, ...params});
       }
 
       return jsonp({action, ...params});
