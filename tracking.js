@@ -153,8 +153,7 @@
 
   function jsonp(params = {}) {
     return new Promise((resolve, reject) => {
-      const callback = '__aulaJsonp';
-      const previous = window[callback];
+      const callback = '__aulaJsonp_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2);
       const script = document.createElement('script');
       const timer = setTimeout(() => {
         cleanup();
@@ -164,11 +163,7 @@
       function cleanup() {
         clearTimeout(timer);
         script.remove();
-        if (previous === undefined) {
-          try { delete window[callback]; } catch (_) { window[callback] = undefined; }
-        } else {
-          window[callback] = previous;
-        }
+        try { delete window[callback]; } catch (_) { window[callback] = undefined; }
       }
 
       window[callback] = data => {
@@ -177,7 +172,7 @@
       };
 
       const url = new URL(ENDPOINT);
-      Object.entries({...params, callback}).forEach(([key, value]) => {
+      Object.entries({...params, callback, _: Date.now()}).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== '') url.searchParams.set(key, String(value));
       });
       script.src = url.toString();
