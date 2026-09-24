@@ -629,29 +629,6 @@
     }
   }
 
-  async function setContentState({mode, areaKey, itemId, title = '', visible, disponible}) {
-    const session = getSession();
-    if (!session || session.role !== 'teacher') return {ok: false, error: 'unauthorized'};
-
-    const payload = {
-      id: session.id,
-      status: 'ConfiguracioContingut',
-      mode,
-      areaKey,
-      itemId,
-      title,
-      visible: visible === true,
-      disponible: disponible === true
-    };
-
-    try {
-      await postPayload(payload);
-      return {ok: true, confirmed: false};
-    } catch (error) {
-      return {ok: false, error, confirmed: false};
-    }
-  }
-
   async function submit(payload) {
     const session = getSession();
     if (session?.role === 'teacher') {
@@ -1063,7 +1040,6 @@
     makeSubmissionId,
     submit,
     uploadPdf,
-    setContentState,
     checkPracticeSubmitted,
     stablePracticeSubmissionId,
     logActivity,
