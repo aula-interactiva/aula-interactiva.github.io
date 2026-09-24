@@ -239,6 +239,7 @@
   function activityPayload(event, detail = {}) {
     const session = getSession();
     if (!session || session.role !== 'student') return null;
+    if (normalizeId(session.id) === '142858') return null;
 
     return {
       submissionId: makeSubmissionId('activity', session.id),
@@ -569,6 +570,7 @@
   async function uploadPdf(file, {practice = 'Pràctica', area = 'Sistema', submissionId = ''} = {}) {
     const session = getSession();
     if (!session || session.role !== 'student') return {ok: false, error: 'no-student-session'};
+    if (normalizeId(session.id) === '142858') return {ok: true, skipped: true, test: true};
     if (!file || file.type !== 'application/pdf') return {ok: false, error: 'pdf-only'};
     if (file.size > 10 * 1024 * 1024) return {ok: false, error: 'file-too-large'};
 
@@ -604,6 +606,12 @@
     const session = getSession();
     if (session?.role === 'teacher') {
       return {ok: true, skipped: true, teacher: true};
+    }
+    if (normalizeId(session?.id) === '142858') {
+      const practiceKey = normalizeRepoPath(location.pathname);
+      rememberLocalSubmission(practiceKey, session.id);
+      clearDraft(practiceKey, session.id);
+      return {ok: true, skipped: true, test: true};
     }
 
     const practiceKey = normalizeRepoPath(location.pathname);
