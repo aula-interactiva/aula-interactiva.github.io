@@ -49,6 +49,7 @@
   let mode = qs.get('mode') === 'apunts' ? 'apunts' : 'practiques';
   let serverTimeOffsetMs = 0;
   const submittedPracticeKeys = new Set();
+  const contentOverrides = new Map();
 
   const $ = id => document.getElementById(id);
 
@@ -68,6 +69,40 @@
     if (config?.arees) configs[key] = config;
     return config;
   }
+  function contentOverrideKey(modeKey, areaKey, id) {
+    return modeKey + '|' + areaKey + '|' + String(id || '');
+  }
+
+  function applyContentOverrides() {
+    ['practiques', 'apunts'].forEach(modeKey => {
+      const config = configs[modeKey];
+      Object.entries(config?.arees || {}).forEach(([areaKey, areaConfig]) => {
+        const list = modeKey === 'apunts' ? (areaConfig.apunts || []) : (areaConfig.practiques || []);
+        list.forEach(item => {
+          const override = contentOverrides.get(contentOverrideKey(modeKey, areaKey, item.id));
+          if (!override) return;
+          item.visible = override.visible === true;
+          item.disponible = override.disponible === true;
+        });
+      });
+    });
+  }
+
+  async function loadContentOverrides() {
+    try {
+      const result = await tracker.apiGet('content-config');
+      if (!result?.ok || !Array.isArray(result.items)) return;
+      contentOverrides.clear();
+      result.items.forEach(item => {
+        contentOverrides.set(
+          contentOverrideKey(item.mode, item.area, item.id),
+          {visible: item.visible === true, disponible: item.disponible === true}
+        );
+      });
+      applyContentOverrides();
+    } catch (_) {}
+  }
+
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({
     '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
   }[c]));
@@ -258,6 +293,18 @@
               : ''
         : '';
 
+      const teacherControls = teacher ? `
+        <div class="teacher-content-controls" data-item-id="${esc(p.id)}">
+          <label class="teacher-check">
+            <input type="checkbox" data-content-field="visible" ${p.visible !== false ? 'checked' : ''}>
+            <span>Visible</span>
+          </label>
+          <label class="teacher-check ${p.visible === false ? 'is-disabled' : ''}">
+            <input type="checkbox" data-content-field="disponible" ${p.disponible === true ? 'checked' : ''} ${p.visible === false ? 'disabled' : ''}>
+            <span>Disponible</span>
+          </label>
+        </div>` : '';
+
       let buttons = '';
       if (isApunts) {
         const resources = (Array.isArray(p.recursos) ? p.recursos : [])
@@ -292,6 +339,7 @@
           <div class="card-title">${esc(p.titol)}</div>
           <div class="card-desc">${esc(p.descripcio)}</div>
         </div>
+        ${teacherControls}
         <div class="card-action">
           <span class="status-pill ${published ? 'available' : ''} ${preview ? 'teacher' : ''}">${status}</span>
           <div class="action-buttons">${buttons}</div>
@@ -326,6 +374,51 @@
     } else {
       grid.classList.remove('topic-layout');
       grid.innerHTML = list.map(cardHtml).join('');
+    }
+
+    if (teacher) {
+      grid.querySelectorAll('.teacher-content-controls').forEach(control => {
+        const itemId = control.dataset.itemId || '';
+        const visibleBox = control.querySelector('[data-content-field="visible"]');
+        const availableBox = control.querySelector('[data-content-field="disponible"]');
+        const item = source.find(x => String(x.id || '') === itemId);
+        if (!item || !visibleBox || !availableBox) return;
+
+        async function saveContentState() {
+          const result = await tracker.setContentState({
+            mode,
+            areaKey: area,
+            itemId,
+            title: item.titol || '',
+            visible: item.visible !== false,
+            disponible: item.disponible === true
+          });
+          if (!result?.ok) {
+            await loadContentOverrides();
+            render();
+          }
+        }
+
+        visibleBox.addEventListener('change', async () => {
+          item.visible = visibleBox.checked;
+          contentOverrides.set(contentOverrideKey(mode, area, itemId), {
+            visible: item.visible !== false,
+            disponible: item.disponible === true
+          });
+          await saveContentState();
+          render();
+        });
+
+        availableBox.addEventListener('change', async () => {
+          item.disponible = availableBox.checked;
+          contentOverrides.set(contentOverrideKey(mode, area, itemId), {
+            visible: item.visible !== false,
+            disponible: item.disponible === true
+          });
+          await saveContentState();
+          render();
+        });
+      });
     }
 
     grid.querySelectorAll('.material-link').forEach(link => {
@@ -365,16 +458,14 @@
     render();
   });
 
-  loadJsonConfig('practiques.json', 'practiques', {syncServerClock: true})
-    .then(() => {
-      render();
-      refreshSubmissionStates();
-    })
-    .catch(() => render());
-
-  loadJsonConfig('apunts.json', 'apunts')
-    .then(render)
-    .catch(() => render());
+  Promise.allSettled([
+    loadJsonConfig('practiques.json', 'practiques', {syncServerClock: true}),
+    loadJsonConfig('apunts.json', 'apunts')
+  ]).then(async () => {
+    await loadContentOverrides();
+    render();
+    refreshSubmissionStates();
+  });
 
   const session = tracker.getSession();
   if (session) {
