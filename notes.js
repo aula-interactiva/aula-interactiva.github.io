@@ -141,10 +141,7 @@
 
     $('notes-content').innerHTML = rows.map(n => `
       <div class="teacher-note-row">
-        <div>
-          <div class="teacher-note-name">${esc(n.student)}</div>
-          <div class="teacher-note-id">${esc(n.studentId)}</div>
-        </div>
+        <div class="teacher-note-name">${esc(n.student)}</div>
         <div class="note-grade">${esc(n.grade)}</div>
       </div>
     `).join('');
