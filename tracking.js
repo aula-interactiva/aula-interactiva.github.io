@@ -646,24 +646,7 @@
 
     try {
       await postPayload(payload);
-      const key = mode + '|' + areaKey + '|' + itemId;
-      const confirmation = await confirmWithRetry(
-        'content-config',
-        {},
-        result => {
-          const item = Array.isArray(result.items)
-            ? result.items.find(x => (x.mode + '|' + x.area + '|' + x.id) === key)
-            : null;
-          return !!item &&
-            item.visible === (visible === true) &&
-            item.disponible === (disponible === true);
-        },
-        {attempts: 6, delayMs: 600}
-      );
-      if (!confirmation.ok) {
-        return {ok: false, error: 'content-not-confirmed', confirmed: false};
-      }
-      return {ok: true, confirmed: true};
+      return {ok: true, confirmed: false};
     } catch (error) {
       return {ok: false, error, confirmed: false};
     }
