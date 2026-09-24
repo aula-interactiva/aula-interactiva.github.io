@@ -4,8 +4,17 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Aula Interactiva</title>
-<link rel="stylesheet" href="styles.css?v=13" />
-<link rel="stylesheet" href="theme.css?v=5" />
+<script>
+  (() => {
+    const bust = Date.now();
+    ['styles.css', 'theme.css'].forEach(href => {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = href + '?v=' + bust;
+      document.head.appendChild(link);
+    });
+  })();
+</script>
 </head>
 <body>
 <section id="login-view" class="login-view">
@@ -64,8 +73,23 @@
   </div>
 </section>
 
-<script src="tracking.js?v=33"></script>
-<script src="portal.js?v=20"></script>
-<script src="notes.js?v=8"></script>
+<script>
+  (() => {
+    const bust = Date.now();
+    const files = ['tracking.js', 'portal.js', 'notes.js'];
+
+    const loadNext = () => {
+      const file = files.shift();
+      if (!file) return;
+
+      const script = document.createElement('script');
+      script.src = file + '?v=' + bust;
+      script.onload = loadNext;
+      document.body.appendChild(script);
+    };
+
+    loadNext();
+  })();
+</script>
 </body>
 </html>
