@@ -49,9 +49,8 @@
   let mode = qs.get('mode') === 'apunts' ? 'apunts' : 'practiques';
   let serverTimeOffsetMs = 0;
   const submittedPracticeKeys = new Set();
-  const contentOverrides = new Map();
-  let contentControlReady = false;
-  let contentRetryTimer = null;
+  const publishingContentKeys = new Set();
+  const contentPublishErrors = new Set();
   let initialContentLoadDone = false;
 
   const $ = id => document.getElementById(id);
@@ -72,56 +71,50 @@
     if (config?.arees) configs[key] = config;
     return config;
   }
-  function contentOverrideKey(modeKey, areaKey, id) {
+  const RAW_CONFIG_URLS = {
+    practiques: 'https://raw.githubusercontent.com/aula-interactiva/aula-interactiva.github.io/main/practiques.json',
+    apunts: 'https://raw.githubusercontent.com/aula-interactiva/aula-interactiva.github.io/main/apunts.json'
+  };
+
+  function contentKey(modeKey, areaKey, id) {
     return modeKey + '|' + areaKey + '|' + String(id || '');
   }
 
-  function applyContentOverrides() {
-    ['practiques', 'apunts'].forEach(modeKey => {
-      const config = configs[modeKey];
-      Object.entries(config?.arees || {}).forEach(([areaKey, areaConfig]) => {
-        const list = modeKey === 'apunts' ? (areaConfig.apunts || []) : (areaConfig.practiques || []);
-        list.forEach(item => {
-          const override = contentOverrides.get(contentOverrideKey(modeKey, areaKey, item.id));
-          if (!override) return;
-          item.visible = override.visible === true;
-          item.disponible = override.disponible === true;
-        });
-      });
-    });
+  async function readPublishedContentState(modeKey, areaKey, itemId) {
+    const base = RAW_CONFIG_URLS[modeKey];
+    if (!base) return null;
+
+    const response = await fetch(base + '?_=' + Date.now(), {cache: 'no-store'});
+    if (!response.ok) throw new Error('published-config');
+
+    const config = await response.json();
+    const areaConfig = config?.arees?.[areaKey];
+    const list = modeKey === 'apunts'
+      ? (areaConfig?.apunts || [])
+      : (areaConfig?.practiques || []);
+    const item = list.find(x => String(x?.id || '') === String(itemId || ''));
+    if (!item) return null;
+
+    return {
+      visible: item.visible !== false,
+      disponible: item.disponible === true
+    };
   }
 
-  async function loadContentOverrides() {
-    try {
-      const result = await tracker.apiGet('content-config');
-      if (!result?.ok || !Array.isArray(result.items)) {
-        contentControlReady = false;
-        return false;
-      }
-      contentControlReady = true;
-      contentOverrides.clear();
-      result.items.forEach(item => {
-        contentOverrides.set(
-          contentOverrideKey(item.mode, item.area, item.id),
-          {visible: item.visible === true, disponible: item.disponible === true}
-        );
-      });
-      applyContentOverrides();
-      return true;
-    } catch (_) {
-      contentControlReady = false;
-      return false;
+  async function waitForPublishedContentState(modeKey, areaKey, itemId, desired) {
+    for (let i = 0; i < 30; i++) {
+      try {
+        const state = await readPublishedContentState(modeKey, areaKey, itemId);
+        if (
+          state &&
+          state.visible === desired.visible &&
+          state.disponible === desired.disponible
+        ) return state;
+      } catch (_) {}
+
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
-  }
-
-  function startContentControlRetry() {
-    if (contentRetryTimer) return;
-    contentRetryTimer = setInterval(async () => {
-      const session = tracker.getSession();
-      if (!session || session.role !== 'teacher' || contentControlReady) return;
-      const recovered = await loadContentOverrides();
-      if (recovered) render();
-    }, 5000);
+    return null;
   }
 
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({
@@ -319,17 +312,25 @@
               : ''
         : '';
 
+      const key = contentKey(mode, area, p.id);
+      const publishing = publishingContentKeys.has(key);
+      const publishError = contentPublishErrors.has(key);
       const teacherControls = teacher ? `
-        <div class="teacher-content-controls ${contentControlReady ? '' : 'sync-off'}" data-item-id="${esc(p.id)}">
-          <label class="teacher-check ${contentControlReady ? '' : 'is-disabled'}">
-            <input type="checkbox" data-content-field="visible" ${p.visible !== false ? 'checked' : ''} ${contentControlReady ? '' : 'disabled'}>
+        <div class="teacher-content-controls ${publishing ? 'sync-off' : ''}" data-item-id="${esc(p.id)}">
+          <label class="teacher-check ${publishing ? 'is-disabled' : ''}">
+            <input type="checkbox" data-content-field="visible"
+              ${p.visible !== false ? 'checked' : ''}
+              ${publishing ? 'disabled' : ''}>
             <span>Visible</span>
           </label>
-          <label class="teacher-check ${(!contentControlReady || p.visible === false) ? 'is-disabled' : ''}">
-            <input type="checkbox" data-content-field="disponible" ${p.disponible === true ? 'checked' : ''} ${(contentControlReady && p.visible !== false) ? '' : 'disabled'}>
+          <label class="teacher-check ${(publishing || p.visible === false) ? 'is-disabled' : ''}">
+            <input type="checkbox" data-content-field="disponible"
+              ${p.disponible === true ? 'checked' : ''}
+              ${(!publishing && p.visible !== false) ? '' : 'disabled'}>
             <span>Disponible</span>
           </label>
-          ${contentControlReady ? '' : '<span class="content-sync-status">Connectant…</span>'}
+          ${publishing ? '<span class="content-sync-status">Publicant…</span>' :
+            publishError ? '<span class="content-sync-status">No s’ha pogut publicar</span>' : ''}
         </div>` : '';
 
       let buttons = '';
@@ -411,28 +412,54 @@
         const item = source.find(x => String(x.id || '') === itemId);
         if (!item || !visibleBox || !availableBox) return;
 
-        async function saveContentState(previous) {
-          const result = await tracker.setContentState({
+        async function publishChange(previous) {
+          const key = contentKey(mode, area, itemId);
+          const desired = {
+            visible: item.visible !== false,
+            disponible: item.disponible === true
+          };
+
+          publishingContentKeys.add(key);
+          contentPublishErrors.delete(key);
+          render();
+
+          const sent = await tracker.setContentState({
             mode,
             areaKey: area,
             itemId,
             title: item.titol || '',
-            visible: item.visible !== false,
-            disponible: item.disponible === true
+            visible: desired.visible,
+            disponible: desired.disponible
           });
-          if (!result?.ok || result.confirmed !== true) {
+
+          if (!sent?.ok) {
             item.visible = previous.visible;
             item.disponible = previous.disponible;
-            contentControlReady = false;
-            contentOverrides.set(contentOverrideKey(mode, area, itemId), previous);
+            publishingContentKeys.delete(key);
+            contentPublishErrors.add(key);
             render();
-            startContentControlRetry();
-            return false;
+            return;
           }
 
-          await loadContentOverrides();
+          const confirmed = await waitForPublishedContentState(
+            mode,
+            area,
+            itemId,
+            desired
+          );
+
+          publishingContentKeys.delete(key);
+
+          if (!confirmed) {
+            item.visible = previous.visible;
+            item.disponible = previous.disponible;
+            contentPublishErrors.add(key);
+          } else {
+            item.visible = confirmed.visible;
+            item.disponible = confirmed.disponible;
+            contentPublishErrors.delete(key);
+          }
           render();
-          return true;
         }
 
         visibleBox.addEventListener('change', async () => {
@@ -441,12 +468,7 @@
             disponible: item.disponible === true
           };
           item.visible = visibleBox.checked;
-          contentOverrides.set(contentOverrideKey(mode, area, itemId), {
-            visible: item.visible !== false,
-            disponible: item.disponible === true
-          });
-          render();
-          await saveContentState(previous);
+          await publishChange(previous);
         });
 
         availableBox.addEventListener('change', async () => {
@@ -455,12 +477,7 @@
             disponible: item.disponible === true
           };
           item.disponible = availableBox.checked;
-          contentOverrides.set(contentOverrideKey(mode, area, itemId), {
-            visible: item.visible !== false,
-            disponible: item.disponible === true
-          });
-          render();
-          await saveContentState(previous);
+          await publishChange(previous);
         });
       });
     }
@@ -504,10 +521,8 @@
 
   Promise.allSettled([
     loadJsonConfig('practiques.json', 'practiques', {syncServerClock: true}),
-    loadJsonConfig('apunts.json', 'apunts'),
-    loadContentOverrides()
+    loadJsonConfig('apunts.json', 'apunts')
   ]).then(() => {
-    applyContentOverrides();
     initialContentLoadDone = true;
     render();
     refreshSubmissionStates();
@@ -516,7 +531,6 @@
   const session = tracker.getSession();
   if (session) {
     showPortal(session);
-    if (session.role === 'teacher') startContentControlRetry();
     if (session.role === 'student') {
       tracker.logActivity('OPEN_PORTAL', {practice: 'Portal', area: 'Sistema', title: 'Aula Interactiva'});
     }
