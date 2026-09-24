@@ -81,6 +81,11 @@ function savePayload_(payload) {
   if (!student || !student.active) return {ok: false, error: 'unknown-student'};
 
   const status = String(payload.status || '').trim();
+
+  // L'alumne de prova serveix per validar la web però no ha de generar registres.
+  if (String(payload.id || '').trim() === '142858') {
+    return {ok: true, skipped: true, test: true};
+  }
   const submissionId = String(payload.submissionId || '').trim();
   if (!submissionId) return {ok: false, error: 'missing-submission-id'};
 
