@@ -49,9 +49,6 @@
   let mode = qs.get('mode') === 'apunts' ? 'apunts' : 'practiques';
   let serverTimeOffsetMs = 0;
   const submittedPracticeKeys = new Set();
-  const publishingContentKeys = new Set();
-  const contentPublishErrors = new Set();
-  let initialContentLoadDone = false;
 
   const $ = id => document.getElementById(id);
 
@@ -71,52 +68,6 @@
     if (config?.arees) configs[key] = config;
     return config;
   }
-  const RAW_CONFIG_URLS = {
-    practiques: 'https://raw.githubusercontent.com/aula-interactiva/aula-interactiva.github.io/main/practiques.json',
-    apunts: 'https://raw.githubusercontent.com/aula-interactiva/aula-interactiva.github.io/main/apunts.json'
-  };
-
-  function contentKey(modeKey, areaKey, id) {
-    return modeKey + '|' + areaKey + '|' + String(id || '');
-  }
-
-  async function readPublishedContentState(modeKey, areaKey, itemId) {
-    const base = RAW_CONFIG_URLS[modeKey];
-    if (!base) return null;
-
-    const response = await fetch(base + '?_=' + Date.now(), {cache: 'no-store'});
-    if (!response.ok) throw new Error('published-config');
-
-    const config = await response.json();
-    const areaConfig = config?.arees?.[areaKey];
-    const list = modeKey === 'apunts'
-      ? (areaConfig?.apunts || [])
-      : (areaConfig?.practiques || []);
-    const item = list.find(x => String(x?.id || '') === String(itemId || ''));
-    if (!item) return null;
-
-    return {
-      visible: item.visible !== false,
-      disponible: item.disponible === true
-    };
-  }
-
-  async function waitForPublishedContentState(modeKey, areaKey, itemId, desired) {
-    for (let i = 0; i < 30; i++) {
-      try {
-        const state = await readPublishedContentState(modeKey, areaKey, itemId);
-        if (
-          state &&
-          state.visible === desired.visible &&
-          state.disponible === desired.disponible
-        ) return state;
-      } catch (_) {}
-
-      await new Promise(resolve => setTimeout(resolve, 1000));
-    }
-    return null;
-  }
-
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({
     '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
   }[c]));
@@ -268,17 +219,12 @@
 
     $('area-note').textContent = `${a.nom} · ${isApunts ? 'Apunts' : 'Pràctiques'} · ${a.simbol} canvia l’àrea · ${isApunts ? 'A' : 'P'} canvia Apunts/Pràctiques`;
 
-    const grid = $('practice-grid');
-    if (!initialContentLoadDone) {
-      grid.classList.remove('topic-layout');
-      grid.innerHTML = '<div class="portal-empty">Carregant continguts…</div>';
-      return;
-    }
-
     const source = isApunts ? (a.apunts || []) : (a.practiques || []);
     const list = source
       .filter(p => teacher || p.visible !== false)
       .sort((x, y) => (x.ordre || 0) - (y.ordre || 0));
+    const grid = $('practice-grid');
+
     if (!list.length) {
       grid.innerHTML = `<div class="portal-empty">${isApunts ? 'Encara no hi ha apunts publicats en aquesta àrea.' : 'No hi ha pràctiques visibles en aquesta àrea.'}</div>`;
       return;
@@ -311,27 +257,6 @@
               ? ` · Tancada ${formatAccessDate(availability.closesAt)}`
               : ''
         : '';
-
-      const key = contentKey(mode, area, p.id);
-      const publishing = publishingContentKeys.has(key);
-      const publishError = contentPublishErrors.has(key);
-      const teacherControls = teacher ? `
-        <div class="teacher-content-controls ${publishing ? 'sync-off' : ''}" data-item-id="${esc(p.id)}">
-          <label class="teacher-check ${publishing ? 'is-disabled' : ''}">
-            <input type="checkbox" data-content-field="visible"
-              ${p.visible !== false ? 'checked' : ''}
-              ${publishing ? 'disabled' : ''}>
-            <span>Visible</span>
-          </label>
-          <label class="teacher-check ${(publishing || p.visible === false) ? 'is-disabled' : ''}">
-            <input type="checkbox" data-content-field="disponible"
-              ${p.disponible === true ? 'checked' : ''}
-              ${(!publishing && p.visible !== false) ? '' : 'disabled'}>
-            <span>Disponible</span>
-          </label>
-          ${publishing ? '<span class="content-sync-status">Publicant…</span>' :
-            publishError ? '<span class="content-sync-status">No s’ha pogut publicar</span>' : ''}
-        </div>` : '';
 
       let buttons = '';
       if (isApunts) {
@@ -367,7 +292,6 @@
           <div class="card-title">${esc(p.titol)}</div>
           <div class="card-desc">${esc(p.descripcio)}</div>
         </div>
-        ${teacherControls}
         <div class="card-action">
           <span class="status-pill ${published ? 'available' : ''} ${preview ? 'teacher' : ''}">${status}</span>
           <div class="action-buttons">${buttons}</div>
@@ -402,84 +326,6 @@
     } else {
       grid.classList.remove('topic-layout');
       grid.innerHTML = list.map(cardHtml).join('');
-    }
-
-    if (teacher) {
-      grid.querySelectorAll('.teacher-content-controls').forEach(control => {
-        const itemId = control.dataset.itemId || '';
-        const visibleBox = control.querySelector('[data-content-field="visible"]');
-        const availableBox = control.querySelector('[data-content-field="disponible"]');
-        const item = source.find(x => String(x.id || '') === itemId);
-        if (!item || !visibleBox || !availableBox) return;
-
-        async function publishChange(previous) {
-          const key = contentKey(mode, area, itemId);
-          const desired = {
-            visible: item.visible !== false,
-            disponible: item.disponible === true
-          };
-
-          publishingContentKeys.add(key);
-          contentPublishErrors.delete(key);
-          render();
-
-          const sent = await tracker.setContentState({
-            mode,
-            areaKey: area,
-            itemId,
-            title: item.titol || '',
-            visible: desired.visible,
-            disponible: desired.disponible
-          });
-
-          if (!sent?.ok) {
-            item.visible = previous.visible;
-            item.disponible = previous.disponible;
-            publishingContentKeys.delete(key);
-            contentPublishErrors.add(key);
-            render();
-            return;
-          }
-
-          const confirmed = await waitForPublishedContentState(
-            mode,
-            area,
-            itemId,
-            desired
-          );
-
-          publishingContentKeys.delete(key);
-
-          if (!confirmed) {
-            item.visible = previous.visible;
-            item.disponible = previous.disponible;
-            contentPublishErrors.add(key);
-          } else {
-            item.visible = confirmed.visible;
-            item.disponible = confirmed.disponible;
-            contentPublishErrors.delete(key);
-          }
-          render();
-        }
-
-        visibleBox.addEventListener('change', async () => {
-          const previous = {
-            visible: item.visible !== false,
-            disponible: item.disponible === true
-          };
-          item.visible = visibleBox.checked;
-          await publishChange(previous);
-        });
-
-        availableBox.addEventListener('change', async () => {
-          const previous = {
-            visible: item.visible !== false,
-            disponible: item.disponible === true
-          };
-          item.disponible = availableBox.checked;
-          await publishChange(previous);
-        });
-      });
     }
 
     grid.querySelectorAll('.material-link').forEach(link => {
@@ -519,14 +365,16 @@
     render();
   });
 
-  Promise.allSettled([
-    loadJsonConfig('practiques.json', 'practiques', {syncServerClock: true}),
-    loadJsonConfig('apunts.json', 'apunts')
-  ]).then(() => {
-    initialContentLoadDone = true;
-    render();
-    refreshSubmissionStates();
-  });
+  loadJsonConfig('practiques.json', 'practiques', {syncServerClock: true})
+    .then(() => {
+      render();
+      refreshSubmissionStates();
+    })
+    .catch(() => render());
+
+  loadJsonConfig('apunts.json', 'apunts')
+    .then(render)
+    .catch(() => render());
 
   const session = tracker.getSession();
   if (session) {
