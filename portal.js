@@ -51,6 +51,7 @@
   const submittedPracticeKeys = new Set();
   const contentOverrides = new Map();
   let contentControlReady = false;
+  let contentRetryTimer = null;
 
   const $ = id => document.getElementById(id);
 
@@ -92,7 +93,10 @@
   async function loadContentOverrides() {
     try {
       const result = await tracker.apiGet('content-config');
-      if (!result?.ok || !Array.isArray(result.items)) return false;
+      if (!result?.ok || !Array.isArray(result.items)) {
+        contentControlReady = false;
+        return false;
+      }
       contentControlReady = true;
       contentOverrides.clear();
       result.items.forEach(item => {
@@ -107,6 +111,16 @@
       contentControlReady = false;
       return false;
     }
+  }
+
+  function startContentControlRetry() {
+    if (contentRetryTimer) return;
+    contentRetryTimer = setInterval(async () => {
+      const session = tracker.getSession();
+      if (!session || session.role !== 'teacher' || contentControlReady) return;
+      const recovered = await loadContentOverrides();
+      if (recovered) render();
+    }, 5000);
   }
 
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({
@@ -299,16 +313,17 @@
               : ''
         : '';
 
-      const teacherControls = teacher && contentControlReady ? `
-        <div class="teacher-content-controls" data-item-id="${esc(p.id)}">
-          <label class="teacher-check">
-            <input type="checkbox" data-content-field="visible" ${p.visible !== false ? 'checked' : ''}>
+      const teacherControls = teacher ? `
+        <div class="teacher-content-controls ${contentControlReady ? '' : 'sync-off'}" data-item-id="${esc(p.id)}">
+          <label class="teacher-check ${contentControlReady ? '' : 'is-disabled'}">
+            <input type="checkbox" data-content-field="visible" ${p.visible !== false ? 'checked' : ''} ${contentControlReady ? '' : 'disabled'}>
             <span>Visible</span>
           </label>
-          <label class="teacher-check ${p.visible === false ? 'is-disabled' : ''}">
-            <input type="checkbox" data-content-field="disponible" ${p.disponible === true ? 'checked' : ''} ${p.visible === false ? 'disabled' : ''}>
+          <label class="teacher-check ${(!contentControlReady || p.visible === false) ? 'is-disabled' : ''}">
+            <input type="checkbox" data-content-field="disponible" ${p.disponible === true ? 'checked' : ''} ${(contentControlReady && p.visible !== false) ? '' : 'disabled'}>
             <span>Disponible</span>
           </label>
+          ${contentControlReady ? '' : '<span class="content-sync-status">Connectant…</span>'}
         </div>` : '';
 
       let buttons = '';
@@ -390,7 +405,7 @@
         const item = source.find(x => String(x.id || '') === itemId);
         if (!item || !visibleBox || !availableBox) return;
 
-        async function saveContentState() {
+        async function saveContentState(previous) {
           const result = await tracker.setContentState({
             mode,
             areaKey: area,
@@ -399,32 +414,47 @@
             visible: item.visible !== false,
             disponible: item.disponible === true
           });
-          if (!result?.ok) {
-            await loadContentOverrides();
+          if (!result?.ok || result.confirmed !== true) {
+            item.visible = previous.visible;
+            item.disponible = previous.disponible;
+            contentControlReady = false;
+            contentOverrides.set(contentOverrideKey(mode, area, itemId), previous);
             render();
-            return;
+            startContentControlRetry();
+            return false;
           }
+
           await loadContentOverrides();
+          render();
+          return true;
         }
 
         visibleBox.addEventListener('change', async () => {
+          const previous = {
+            visible: item.visible !== false,
+            disponible: item.disponible === true
+          };
           item.visible = visibleBox.checked;
           contentOverrides.set(contentOverrideKey(mode, area, itemId), {
             visible: item.visible !== false,
             disponible: item.disponible === true
           });
-          await saveContentState();
           render();
+          await saveContentState(previous);
         });
 
         availableBox.addEventListener('change', async () => {
+          const previous = {
+            visible: item.visible !== false,
+            disponible: item.disponible === true
+          };
           item.disponible = availableBox.checked;
           contentOverrides.set(contentOverrideKey(mode, area, itemId), {
             visible: item.visible !== false,
             disponible: item.disponible === true
           });
-          await saveContentState();
           render();
+          await saveContentState(previous);
         });
       });
     }
@@ -478,6 +508,7 @@
   const session = tracker.getSession();
   if (session) {
     showPortal(session);
+    if (session.role === 'teacher') startContentControlRetry();
     if (session.role === 'student') {
       tracker.logActivity('OPEN_PORTAL', {practice: 'Portal', area: 'Sistema', title: 'Aula Interactiva'});
     }
