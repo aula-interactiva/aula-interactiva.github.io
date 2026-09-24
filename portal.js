@@ -50,6 +50,7 @@
   let serverTimeOffsetMs = 0;
   const submittedPracticeKeys = new Set();
   const contentOverrides = new Map();
+  let contentControlReady = false;
 
   const $ = id => document.getElementById(id);
 
@@ -91,7 +92,8 @@
   async function loadContentOverrides() {
     try {
       const result = await tracker.apiGet('content-config');
-      if (!result?.ok || !Array.isArray(result.items)) return;
+      if (!result?.ok || !Array.isArray(result.items)) return false;
+      contentControlReady = true;
       contentOverrides.clear();
       result.items.forEach(item => {
         contentOverrides.set(
@@ -100,7 +102,11 @@
         );
       });
       applyContentOverrides();
-    } catch (_) {}
+      return true;
+    } catch (_) {
+      contentControlReady = false;
+      return false;
+    }
   }
 
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({
@@ -293,7 +299,7 @@
               : ''
         : '';
 
-      const teacherControls = teacher ? `
+      const teacherControls = teacher && contentControlReady ? `
         <div class="teacher-content-controls" data-item-id="${esc(p.id)}">
           <label class="teacher-check">
             <input type="checkbox" data-content-field="visible" ${p.visible !== false ? 'checked' : ''}>
@@ -396,7 +402,9 @@
           if (!result?.ok) {
             await loadContentOverrides();
             render();
+            return;
           }
+          await loadContentOverrides();
         }
 
         visibleBox.addEventListener('change', async () => {
