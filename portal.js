@@ -172,18 +172,43 @@
     $('messages-teacher-compose').classList.toggle('hidden', !teacher);
 
     if (teacher) {
-      const select = $('messages-recipient');
-      const current = select.value;
-      const options = [
-        '<option value="TOTS">Tots els alumnes</option>',
-        ...(result.recipients || []).map(s =>
-          '<option value="' + esc(s.id) + '">' + esc(s.name) + '</option>'
-        )
+      const box = $('messages-recipient-list');
+      const current = new Set(
+        Array.from(box.querySelectorAll('input[type="checkbox"]:checked')).map(input => input.value)
+      );
+      if (!current.size) current.add('TOTS');
+
+      const recipients = [
+        {id: 'TOTS', name: 'Tots els alumnes'},
+        ...(result.recipients || [])
       ];
-      select.innerHTML = options.join('');
-      if (current && Array.from(select.options).some(o => o.value === current)) {
-        select.value = current;
-      }
+
+      box.innerHTML = recipients.map(r => {
+        const checked = current.has(String(r.id)) ? ' checked' : '';
+        return '<label class="messages-recipient-option">' +
+          '<input type="checkbox" value="' + esc(r.id) + '"' + checked + '>' +
+          '<span>' + esc(r.name) + '</span>' +
+        '</label>';
+      }).join('');
+
+      const inputs = Array.from(box.querySelectorAll('input[type="checkbox"]'));
+      const all = inputs.find(input => input.value === 'TOTS');
+
+      inputs.forEach(input => {
+        input.addEventListener('change', () => {
+          if (input.value === 'TOTS' && input.checked) {
+            inputs.forEach(other => {
+              if (other !== input) other.checked = false;
+            });
+          } else if (input.checked && all) {
+            all.checked = false;
+          }
+
+          if (!inputs.some(other => other.checked) && all) {
+            all.checked = true;
+          }
+        });
+      });
     }
 
     const list = $('messages-list');
@@ -252,25 +277,69 @@
     }
   }
 
-  async function confirmMessageSent(messageId) {
-    for (let i = 0; i < 7; i++) {
+  function selectedMessageRecipients() {
+    return Array.from(
+      document.querySelectorAll('#messages-recipient-list input[type="checkbox"]:checked')
+    ).map(input => input.value);
+  }
+
+  function messageIsPresent(saved, sent) {
+    const savedId = String(saved?.id || saved?.messageId || '');
+    if (savedId) return savedId === sent.messageId;
+
+    return String(saved?.recipient || '') === String(sent.recipient) &&
+      String(saved?.message || '') === String(sent.message);
+  }
+
+  async function confirmMessagesSent(sentMessages) {
+    const remaining = new Map(sentMessages.map(item => [item.messageId, item]));
+    let latest = null;
+
+    for (let attempt = 0; attempt < 7; attempt++) {
       try {
-        const result = await tracker.apiGet('message-status', {messageId});
-        if (result?.ok && result.exists) return true;
+        latest = await tracker.apiGet('messages');
+        if (latest?.ok && latest.role === 'teacher') {
+          const saved = latest.messages || [];
+          for (const [messageId, sent] of remaining) {
+            if (saved.some(message => messageIsPresent(message, sent))) {
+              remaining.delete(messageId);
+            }
+          }
+          if (!remaining.size) {
+            return {ok: true, confirmed: sentMessages.length, result: latest};
+          }
+        }
       } catch (_) {}
-      if (i < 6) await new Promise(resolve => setTimeout(resolve, 650));
+
+      if (attempt < 6) {
+        await new Promise(resolve => setTimeout(resolve, 650));
+      }
     }
-    return false;
+
+    return {
+      ok: false,
+      confirmed: sentMessages.length - remaining.size,
+      pending: Array.from(remaining.values()),
+      result: latest
+    };
   }
 
   async function sendTeacherMessage() {
     const session = tracker.getSession();
     if (!session || session.role !== 'teacher') return;
 
-    const recipient = $('messages-recipient').value || 'TOTS';
+    let recipients = selectedMessageRecipients();
     const message = $('messages-text').value.trim();
     const button = $('messages-send');
     const status = $('messages-send-status');
+
+    if (!recipients.length) {
+      status.textContent = 'Selecciona almenys un destinatari.';
+      status.className = 'messages-send-status bad';
+      return;
+    }
+
+    if (recipients.includes('TOTS')) recipients = ['TOTS'];
 
     if (!message) {
       status.textContent = 'Escriu un missatge.';
@@ -278,28 +347,59 @@
       return;
     }
 
-    const messageId = tracker.makeSubmissionId('message', session.id);
     button.disabled = true;
-    status.textContent = 'Enviant…';
+    status.textContent = recipients.length > 1 ? `Enviant 0/${recipients.length}…` : 'Enviant…';
     status.className = 'messages-send-status';
 
+    const sentMessages = [];
+
     try {
-      await tracker.apiPost({
-        status: 'MissatgeEnviar',
-        messageId,
-        recipient,
-        message
-      });
+      for (let index = 0; index < recipients.length; index++) {
+        const recipient = recipients[index];
+        const messageId = tracker.makeSubmissionId('message', session.id);
 
-      const confirmed = await confirmMessageSent(messageId);
-      if (!confirmed) throw new Error('not-confirmed');
+        await tracker.apiPost({
+          status: 'MissatgeEnviar',
+          messageId,
+          recipient,
+          message
+        });
 
-      $('messages-text').value = '';
-      status.textContent = 'Enviat.';
-      status.className = 'messages-send-status ok';
-      await refreshMessages({renderPanel: true});
+        sentMessages.push({messageId, recipient, message});
+
+        if (recipients.length > 1) {
+          status.textContent = `Enviant ${index + 1}/${recipients.length}…`;
+        }
+      }
+
+      const confirmation = await confirmMessagesSent(sentMessages);
+
+      if (confirmation.result?.ok) {
+        messagesData = confirmation.result;
+        renderMessagesPanel(confirmation.result);
+      } else {
+        await refreshMessages({renderPanel: true}).catch(() => {});
+      }
+
+      if (confirmation.ok) {
+        $('messages-text').value = '';
+        status.textContent = recipients[0] === 'TOTS'
+          ? 'Enviat a tots els alumnes.'
+          : recipients.length === 1
+            ? 'Enviat.'
+            : `Enviat a ${recipients.length} alumnes.`;
+        status.className = 'messages-send-status ok';
+      } else {
+        status.textContent = confirmation.confirmed
+          ? `Confirmats ${confirmation.confirmed} de ${recipients.length}. Revisa la llista abans de tornar a enviar.`
+          : 'No s’ha pogut confirmar l’enviament. Revisa la llista abans de tornar a enviar.';
+        status.className = 'messages-send-status bad';
+      }
     } catch (_) {
-      status.textContent = 'No s’ha pogut confirmar l’enviament.';
+      await refreshMessages({renderPanel: true}).catch(() => {});
+      status.textContent = sentMessages.length
+        ? 'L’enviament ha quedat incomplet. Revisa la llista abans de tornar a enviar.'
+        : 'No s’ha pogut enviar el missatge.';
       status.className = 'messages-send-status bad';
     } finally {
       button.disabled = false;
