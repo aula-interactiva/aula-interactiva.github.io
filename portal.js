@@ -43,7 +43,19 @@
     }
   };
 
-  const configs = {practiques: fallbackPractiques, apunts: fallbackApunts};
+  function cachedConfig(key, fallback) {
+    try {
+      const cached = JSON.parse(localStorage.getItem(`aula-config-${key}`) || 'null');
+      return cached?.arees ? cached : fallback;
+    } catch (_) {
+      return fallback;
+    }
+  }
+
+  const configs = {
+    practiques: cachedConfig('practiques', fallbackPractiques),
+    apunts: cachedConfig('apunts', fallbackApunts)
+  };
   const qs = new URLSearchParams(location.search);
   let area = qs.get('area') === 'estadistica' ? 'estadistica' : 'economia';
   let mode = qs.get('mode') === 'apunts' ? 'apunts' : 'practiques';
@@ -65,7 +77,10 @@
     }
 
     const config = await response.json();
-    if (config?.arees) configs[key] = config;
+    if (config?.arees) {
+      configs[key] = config;
+      try { localStorage.setItem(`aula-config-${key}`, JSON.stringify(config)); } catch (_) {}
+    }
     return config;
   }
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({
