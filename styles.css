@@ -278,3 +278,32 @@ a.back-btn{text-decoration:none;display:inline-block}
   .notes-head h2{font-size:21px}
   .teacher-note-row{grid-template-columns:minmax(0,1fr) 64px}
 }
+
+
+/* Missatges */
+.message-badge{display:inline-flex;min-width:18px;height:18px;padding:0 5px;margin-left:4px;align-items:center;justify-content:center;border-radius:999px;background:#d71920;color:#fff;font-size:9px;font-weight:850;line-height:1}
+.messages-panel{margin-top:14px;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:14px;box-shadow:var(--shadow)}
+.messages-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.messages-head h2{margin:3px 0 0;font-size:21px;letter-spacing:-.02em}
+.messages-compose{display:grid;grid-template-columns:120px minmax(0,1fr);gap:8px 10px;padding:14px 0;border-bottom:1px solid var(--line)}
+.messages-compose label{font-size:11px;font-weight:800;padding-top:8px}
+.messages-compose select,.messages-compose textarea{width:100%;border:1px solid var(--line);background:#fff;border-radius:7px;padding:8px 9px;color:var(--ink);font:inherit}
+.messages-compose textarea{resize:vertical;min-height:90px;line-height:1.4}
+.messages-compose-actions{grid-column:2;display:flex;justify-content:flex-end;align-items:center;gap:10px}
+.messages-compose-actions button{border:0;border-radius:7px;background:var(--charcoal);color:#fff;padding:8px 12px;font-size:11px;font-weight:800}
+.messages-compose-actions button:disabled{opacity:.55;cursor:default}
+.messages-send-status{margin-right:auto;font-size:10.5px;color:var(--muted)}
+.messages-send-status.ok{color:var(--green);font-weight:800}
+.messages-send-status.bad{color:var(--red);font-weight:800}
+.messages-list{display:grid;gap:8px;padding-top:12px}
+.message-item{background:#fff;border:1px solid var(--line-2);border-radius:8px;padding:10px 11px}
+.message-item.unread{border-color:#e2b4b7;background:#fffafa}
+.message-meta{display:flex;align-items:center;gap:7px;font-size:9.5px;color:var(--muted);margin-bottom:5px}
+.message-new{display:inline-flex;align-items:center;border-radius:999px;background:#d71920;color:#fff;padding:2px 6px;font-size:8.5px;font-weight:850;text-transform:uppercase;letter-spacing:.03em}
+.message-text{font-size:12px;line-height:1.45;white-space:pre-wrap}
+.messages-empty{padding:18px;border:1px dashed var(--line);border-radius:10px;color:var(--muted);background:rgba(255,255,255,.35)}
+@media(max-width:720px){
+  .messages-compose{grid-template-columns:1fr}
+  .messages-compose label{padding-top:0}
+  .messages-compose-actions{grid-column:1}
+}
