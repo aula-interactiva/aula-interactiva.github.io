@@ -117,6 +117,7 @@
     $('teacher-tools').classList.toggle('hidden', !teacher);
     $('notes-button').classList.toggle('hidden', !teacher);
     render();
+    refreshMessages().catch(() => {});
   }
 
   function showLogin() {
@@ -150,6 +151,159 @@
       return;
     }
     setTimeout(() => showPortal(result.session), 120);
+  }
+
+  let messagesData = null;
+
+  function setMessagesBadge(count) {
+    const badge = $('messages-badge');
+    const n = Math.max(0, Number(count) || 0);
+    badge.textContent = String(n);
+    badge.classList.toggle('hidden', n === 0);
+  }
+
+  function renderMessagesPanel(result) {
+    if (!result?.ok) return;
+
+    const teacher = result.role === 'teacher';
+    $('messages-title').textContent = teacher ? 'Missatges enviats' : 'Els meus missatges';
+    $('messages-teacher-compose').classList.toggle('hidden', !teacher);
+
+    if (teacher) {
+      const select = $('messages-recipient');
+      const current = select.value;
+      const options = [
+        '<option value="TOTS">Tots els alumnes</option>',
+        ...(result.recipients || []).map(s =>
+          '<option value="' + esc(s.id) + '">' + esc(s.name) + '</option>'
+        )
+      ];
+      select.innerHTML = options.join('');
+      if (current && Array.from(select.options).some(o => o.value === current)) {
+        select.value = current;
+      }
+    }
+
+    const list = $('messages-list');
+    const messages = result.messages || [];
+
+    if (!messages.length) {
+      list.innerHTML = '<div class="messages-empty">No hi ha cap missatge.</div>';
+      return;
+    }
+
+    list.innerHTML = messages.map(m => {
+      const meta = teacher
+        ? esc(m.date || '') + ' · ' + esc(m.recipientName || m.recipient || '')
+        : esc(m.date || '');
+      const unread = !teacher && m.read === false;
+      return '<article class="message-item' + (unread ? ' unread' : '') + '">' +
+        '<div class="message-meta">' + meta +
+          (unread ? '<span class="message-new">Nou</span>' : '') +
+        '</div>' +
+        '<div class="message-text">' + esc(m.message || '') + '</div>' +
+      '</article>';
+    }).join('');
+  }
+
+  async function refreshMessages({renderPanel = false} = {}) {
+    const result = await tracker.apiGet('messages');
+
+    if (!result?.ok) {
+      $('messages-button').classList.add('hidden');
+      return result;
+    }
+
+    messagesData = result;
+    $('messages-button').classList.remove('hidden');
+
+    if (result.role === 'student') {
+      setMessagesBadge(result.unreadCount || 0);
+    } else {
+      setMessagesBadge(0);
+    }
+
+    if (renderPanel) renderMessagesPanel(result);
+    return result;
+  }
+
+  async function openMessages() {
+    $('notes-panel').classList.add('hidden');
+    $('messages-panel').classList.remove('hidden');
+
+    const result = await refreshMessages({renderPanel: true});
+    if (!result?.ok || result.role !== 'student') return;
+
+    const unread = (result.messages || []).filter(m => m.read === false && m.id);
+    if (!unread.length) return;
+
+    await Promise.all(unread.map(m =>
+      tracker.apiPost({
+        status: 'MissatgeLlegit',
+        messageId: m.id
+      }).catch(() => null)
+    ));
+
+    if (messagesData?.messages) {
+      messagesData.messages = messagesData.messages.map(m => ({...m, read: true}));
+      messagesData.unreadCount = 0;
+      setMessagesBadge(0);
+      renderMessagesPanel(messagesData);
+    }
+  }
+
+  async function confirmMessageSent(messageId) {
+    for (let i = 0; i < 7; i++) {
+      try {
+        const result = await tracker.apiGet('message-status', {messageId});
+        if (result?.ok && result.exists) return true;
+      } catch (_) {}
+      if (i < 6) await new Promise(resolve => setTimeout(resolve, 650));
+    }
+    return false;
+  }
+
+  async function sendTeacherMessage() {
+    const session = tracker.getSession();
+    if (!session || session.role !== 'teacher') return;
+
+    const recipient = $('messages-recipient').value || 'TOTS';
+    const message = $('messages-text').value.trim();
+    const button = $('messages-send');
+    const status = $('messages-send-status');
+
+    if (!message) {
+      status.textContent = 'Escriu un missatge.';
+      status.className = 'messages-send-status bad';
+      return;
+    }
+
+    const messageId = tracker.makeSubmissionId('message', session.id);
+    button.disabled = true;
+    status.textContent = 'Enviant…';
+    status.className = 'messages-send-status';
+
+    try {
+      await tracker.apiPost({
+        status: 'MissatgeEnviar',
+        messageId,
+        recipient,
+        message
+      });
+
+      const confirmed = await confirmMessageSent(messageId);
+      if (!confirmed) throw new Error('not-confirmed');
+
+      $('messages-text').value = '';
+      status.textContent = 'Enviat.';
+      status.className = 'messages-send-status ok';
+      await refreshMessages({renderPanel: true});
+    } catch (_) {
+      status.textContent = 'No s’ha pogut confirmar l’enviament.';
+      status.className = 'messages-send-status bad';
+    } finally {
+      button.disabled = false;
+    }
   }
 
   function parseAccessTime(value) {
@@ -366,6 +520,15 @@
   $('logout-button').addEventListener('click', () => {
     tracker.logout();
     location.href = 'index.html';
+  });
+
+  $('messages-button').addEventListener('click', openMessages);
+  $('messages-close').addEventListener('click', () => {
+    $('messages-panel').classList.add('hidden');
+  });
+  $('messages-send').addEventListener('click', sendTeacherMessage);
+  $('notes-button').addEventListener('click', () => {
+    $('messages-panel').classList.add('hidden');
   });
 
   $('area-mark').addEventListener('click', () => {
