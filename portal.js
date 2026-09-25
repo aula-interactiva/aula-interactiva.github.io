@@ -283,24 +283,65 @@
     ).map(input => input.value);
   }
 
+  function renderConfirmedSentMessages(sentMessages) {
+    if (!messagesData?.ok || messagesData.role !== 'teacher') return;
+
+    const names = new Map(
+      (messagesData.recipients || []).map(r => [String(r.id), String(r.name || '')])
+    );
+
+    const existing = new Set((messagesData.messages || []).map(m => String(m.id || '')));
+    const now = new Intl.DateTimeFormat('ca-ES', {
+      dateStyle: 'short',
+      timeStyle: 'short',
+      timeZone: 'Europe/Madrid'
+    }).format(new Date());
+
+    const additions = sentMessages
+      .filter(item => !existing.has(String(item.messageId)))
+      .map(item => ({
+        id: item.messageId,
+        date: now,
+        recipient: item.recipient,
+        recipientName: item.recipient === 'TOTS'
+          ? 'Tots els alumnes'
+          : (names.get(String(item.recipient)) || item.recipient),
+        message: item.message
+      }));
+
+    if (!additions.length) return;
+
+    messagesData = {
+      ...messagesData,
+      messages: [...additions.reverse(), ...(messagesData.messages || [])]
+    };
+    renderMessagesPanel(messagesData);
+  }
+
   async function confirmMessagesSent(sentMessages) {
     const results = await Promise.all(
       sentMessages.map(item =>
         tracker.confirmOperation('message', item.messageId, {
-          attempts: 7,
-          delayMs: 650
+          attempts: 4,
+          delayMs: 300
         })
       )
     );
 
-    const confirmed = results.filter(result => result?.ok).length;
-    const latest = await refreshMessages({renderPanel: true}).catch(() => null);
+    const confirmedMessages = sentMessages.filter((_, index) => results[index]?.ok);
+    const confirmed = confirmedMessages.length;
+
+    if (confirmed) {
+      renderConfirmedSentMessages(confirmedMessages);
+    }
+
+    // Refresca des del servidor sense bloquejar la resposta visual.
+    refreshMessages({renderPanel: true}).catch(() => {});
 
     return {
       ok: confirmed === sentMessages.length,
       confirmed,
-      pending: sentMessages.filter((_, index) => !results[index]?.ok),
-      result: latest
+      pending: sentMessages.filter((_, index) => !results[index]?.ok)
     };
   }
 
@@ -353,13 +394,6 @@
       }
 
       const confirmation = await confirmMessagesSent(sentMessages);
-
-      if (confirmation.result?.ok) {
-        messagesData = confirmation.result;
-        renderMessagesPanel(confirmation.result);
-      } else {
-        await refreshMessages({renderPanel: true}).catch(() => {});
-      }
 
       if (confirmation.ok) {
         $('messages-text').value = '';
