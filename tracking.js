@@ -182,6 +182,24 @@
       ? {token: session.token}
       : {code: session.id}; // compatibilitat temporal amb sessions obertes abans de v36
 
+    const legacy = {
+      submission: {
+        action: 'submission-status',
+        params: {code: session.id, submissionId: operationId},
+        exists: result => result?.submitted === true
+      },
+      pdf: {
+        action: 'pdf-status',
+        params: {code: session.id, submissionId: operationId},
+        exists: result => result?.uploaded === true
+      },
+      message: {
+        action: 'message-status',
+        params: {code: session.id, messageId: operationId},
+        exists: result => result?.exists === true
+      }
+    };
+
     let last = null;
     for (let i = 0; i < attempts; i++) {
       try {
@@ -191,8 +209,22 @@
           kind,
           operationId
         });
+
         if (last?.ok && last.exists === true) {
           return {ok: true, result: last};
+        }
+
+        // Fallback temporal: manté la web compatible amb el desplegament anterior
+        // fins que el nou Code.gs estigui publicat.
+        if (last?.error === 'unknown-action' && legacy[kind]) {
+          const oldResult = await jsonp({
+            action: legacy[kind].action,
+            ...legacy[kind].params
+          });
+          if (oldResult?.ok && legacy[kind].exists(oldResult)) {
+            return {ok: true, result: oldResult, legacy: true};
+          }
+          last = oldResult;
         }
       } catch (_) {}
 
@@ -556,20 +588,22 @@
     const submissionId = stablePracticeSubmissionId(practicePath, session.id);
 
     try {
-      const auth = session.token
-        ? {token: session.token}
-        : {code: session.id};
-
-      const result = await jsonp({
-        action: 'operation-status',
-        ...auth,
-        kind: 'submission',
-        operationId: submissionId
+      const confirmation = await confirmOperation('submission', submissionId, {
+        attempts: 1,
+        delayMs: 0
       });
 
-      if (!result?.ok) return {ok: false, submitted: false, submissionId};
-      if (result.exists) rememberLocalSubmission(practicePath, session.id);
-      return {ok: true, submitted: result.exists === true, submissionId};
+      if (confirmation.ok) {
+        rememberLocalSubmission(practicePath, session.id);
+        return {ok: true, submitted: true, submissionId};
+      }
+
+      // Una resposta vàlida que no troba l'operació significa que encara no s'ha entregat.
+      if (confirmation.result?.ok) {
+        return {ok: true, submitted: false, submissionId};
+      }
+
+      return {ok: false, submitted: false, submissionId};
     } catch (error) {
       return {ok: false, submitted: false, submissionId, error};
     }
