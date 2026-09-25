@@ -116,6 +116,8 @@
     $('session-id').hidden = teacher;
     $('teacher-tools').classList.toggle('hidden', !teacher);
     $('notes-button').classList.toggle('hidden', !teacher);
+    $('messages-button').classList.remove('hidden');
+    setMessagesBadge(0);
     render();
     refreshMessages().catch(() => {});
   }
@@ -210,12 +212,10 @@
     const result = await tracker.apiGet('messages');
 
     if (!result?.ok) {
-      $('messages-button').classList.add('hidden');
       return result;
     }
 
     messagesData = result;
-    $('messages-button').classList.remove('hidden');
 
     if (result.role === 'student') {
       setMessagesBadge(result.unreadCount || 0);
