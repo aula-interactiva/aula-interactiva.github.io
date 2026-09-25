@@ -645,10 +645,14 @@
     }
   }
 
-  async function uploadPdf(file, {practice = 'Pràctica', area = 'Sistema', submissionId = ''} = {}) {
+  async function uploadPdf(file, {practice = 'Pràctica', area = 'Sistema', submissionId = '', testMode = false} = {}) {
     const session = getSession();
     if (!session || session.role !== 'student') return {ok: false, error: 'no-student-session'};
-    if (normalizeId(session.id) === '142858') return {ok: true, skipped: true, test: true};
+
+    const isTestStudent = normalizeId(session.id) === '142858';
+    if (isTestStudent && !testMode) return {ok: true, skipped: true, test: true};
+    if (testMode && !isTestStudent) return {ok: false, error: 'test-mode-forbidden'};
+
     if (!file || file.type !== 'application/pdf') return {ok: false, error: 'pdf-only'};
     if (file.size > 10 * 1024 * 1024) return {ok: false, error: 'file-too-large'};
 
@@ -665,7 +669,7 @@
       id: session.id,
       practice,
       area,
-      status: 'Fitxer',
+      status: testMode ? 'FitxerTest' : 'Fitxer',
       mimeType: 'application/pdf',
       fileName: file.name || 'resolucions.pdf',
       size: file.size,
