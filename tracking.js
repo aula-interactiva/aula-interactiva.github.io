@@ -1049,11 +1049,22 @@
       const session = getSession();
       if (!session) return {ok: false, error: 'no-session'};
 
-      if (action === 'notes' || action === 'submission-status' || action === 'pdf-status') {
+      if (
+        action === 'notes' ||
+        action === 'submission-status' ||
+        action === 'pdf-status' ||
+        action === 'messages' ||
+        action === 'message-status'
+      ) {
         return jsonp({action, code: session.id, ...params});
       }
 
       return jsonp({action, ...params});
+    },
+    async apiPost(payload, options = {}) {
+      const session = getSession();
+      if (!session) return {ok: false, error: 'no-session'};
+      return postPayload({...payload, id: session.id}, options);
     }
   });
 })();
