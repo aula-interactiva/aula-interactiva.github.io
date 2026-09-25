@@ -54,6 +54,7 @@
 <tr><td>Treball disponible</td><td><input class="model-input" id="ppc-labor" inputmode="decimal" value="100,00"/></td><td>unitats</td></tr>
 <tr><td>Eficiència de la pizza</td><td><input class="model-input" id="ppc-ex" inputmode="decimal" value="0,50"/></td><td>índex</td></tr>
 <tr><td>Eficiència de la pasta</td><td><input class="model-input" id="ppc-ey" inputmode="decimal" value="0,60"/></td><td>índex</td></tr>
+<tr><td><strong>Producció màxima de pasta</strong></td><td><strong id="ppc-pasta-max">—</strong></td><td>unitats</td></tr>
 </tbody></table>
 <div class="note">Canviar la pizza mou el punt al llarg de la FPP; canviar treball o eficiència desplaça la frontera.</div>
 <div class="model-actions"><button class="reset-model-btn" id="ppc-reset-model" type="button">Restablir valors inicials</button></div>
@@ -127,7 +128,7 @@
   </section>
 </div>
 <script src="../../tracking.js?v=40"></script>
-<script src="fpp.js?v=4"></script>
+<script src="fpp.js?v=5"></script>
 <script>
 window.EconomyPracticePilotConfig = {
   slug: "fpp",
