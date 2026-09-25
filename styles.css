@@ -288,6 +288,11 @@ a.back-btn{text-decoration:none;display:inline-block}
 .messages-compose{display:grid;grid-template-columns:120px minmax(0,1fr);gap:8px 10px;padding:14px 0;border-bottom:1px solid var(--line)}
 .messages-compose label{font-size:11px;font-weight:800;padding-top:8px}
 .messages-compose select,.messages-compose textarea{width:100%;border:1px solid var(--line);background:#fff;border-radius:7px;padding:8px 9px;color:var(--ink);font:inherit}
+.messages-recipient-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px 8px;max-height:150px;overflow:auto;border:1px solid var(--line);background:#fff;border-radius:7px;padding:7px}
+.messages-recipient-option{display:flex;align-items:center;gap:7px;padding:5px 6px!important;border-radius:5px;font-size:11px!important;font-weight:650!important;cursor:pointer}
+.messages-recipient-option:hover{background:#f5f5f5}
+.messages-recipient-option input{margin:0;accent-color:var(--charcoal)}
+.messages-recipient-hint{margin-top:5px;font-size:9.5px;color:var(--muted)}
 .messages-compose textarea{resize:vertical;min-height:90px;line-height:1.4}
 .messages-compose-actions{grid-column:2;display:flex;justify-content:flex-end;align-items:center;gap:10px}
 .messages-compose-actions button{border:0;border-radius:7px;background:var(--charcoal);color:#fff;padding:8px 12px;font-size:11px;font-weight:800}
@@ -304,6 +309,7 @@ a.back-btn{text-decoration:none;display:inline-block}
 .messages-empty{padding:18px;border:1px dashed var(--line);border-radius:10px;color:var(--muted);background:rgba(255,255,255,.35)}
 @media(max-width:720px){
   .messages-compose{grid-template-columns:1fr}
+  .messages-recipient-list{grid-template-columns:1fr}
   .messages-compose label{padding-top:0}
   .messages-compose-actions{grid-column:1}
 }
