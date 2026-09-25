@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  if (window.PracticeTracker?.version === 'v7') return;
+  if (window.PracticeTracker?.version === 'v8') return;
 
   if (!document.querySelector('link[data-aula-theme]')) {
     const theme = document.createElement('link');
@@ -395,7 +395,9 @@
   }
 
   function controlKey(el, index) {
+    const stableDataKey = String(el?.dataset?.draftKey || el?.dataset?.key || '').trim();
     return el.id ? 'id:' + el.id
+      : stableDataKey ? 'data-key:' + stableDataKey
       : el.name ? 'name:' + el.name + ':' + index
       : 'idx:' + index;
   }
@@ -518,14 +520,17 @@
     const draft = loadDraft();
     if (!draft || !Array.isArray(draft.values)) return false;
 
-    restoreCustomState(draft);
-
+    // Restore generic controls first. A practice-specific adapter is authoritative
+    // and runs last so generic draft values can never overwrite its rendered state.
     const restored = applyDraftValues(draft, document);
+    const customRestored = restoreCustomState(draft);
 
-    if (restored) {
-      document.dispatchEvent(new CustomEvent('aula:draft-restored', {detail: {savedAt: draft.savedAt || null}}));
+    if (restored || draft.customState != null) {
+      document.dispatchEvent(new CustomEvent('aula:draft-restored', {
+        detail: {savedAt: draft.savedAt || null, customRestored}
+      }));
     }
-    return restored > 0;
+    return restored > 0 || draft.customState != null;
   }
 
   function clearDraft(practicePath, id) {
@@ -1080,7 +1085,7 @@
   }
 
   window.PracticeTracker = Object.freeze({
-    version: 'v7',
+    version: 'v8',
     endpoint: ENDPOINT,
     normalizeId,
     validateId,
