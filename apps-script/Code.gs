@@ -86,11 +86,16 @@ function savePayload_(payload) {
     return {ok: false, error: 'invalid-payload'};
   }
 
-  const id = normalizeId_(payload.id);
-  if (!/^\d{6}$/.test(id)) return {ok: false, error: 'invalid-id'};
+  const auth = authFromRequest_(payload.token, payload.id);
+  if (!auth) return {ok: false, error: 'unauthorized'};
 
-  const student = findStudent_(id);
-  if (!student || !student.active) return {ok: false, error: 'unknown-student'};
+  const student = findStudent_(auth.id);
+  if (!student || !student.active || student.role !== auth.role) {
+    return {ok: false, error: 'unauthorized'};
+  }
+
+  // La identitat efectiva sempre la decideix el servidor, mai el navegador.
+  payload.id = student.id;
 
   const status = String(payload.status || '').trim();
 
@@ -103,7 +108,7 @@ function savePayload_(payload) {
   }
 
   // L'alumne de prova serveix per validar la web però no ha de generar registres de pràctiques.
-  if (String(payload.id || '').trim() === '142858') {
+  if (student.id === '142858') {
     return {ok: true, skipped: true, test: true};
   }
   const submissionId = String(payload.submissionId || '').trim();
@@ -353,18 +358,7 @@ function login_(code) {
 }
 
 function notes_(token, code) {
-  let auth = null;
-
-  const id = normalizeId_(code);
-  if (/^\d{6}$/.test(id)) {
-    const student = findStudent_(id);
-    if (student && student.active) {
-      auth = {id: student.id, role: student.role};
-    }
-  }
-
-  // Compatibilitat amb tokens emesos per versions anteriors del portal.
-  if (!auth) auth = authFromToken_(token);
+  const auth = authFromRequest_(token, code);
   if (!auth) return {ok: false, error: 'unauthorized'};
 
   const sh = sheet_(SHEETS.practiceGrades);
@@ -391,17 +385,7 @@ function notes_(token, code) {
 }
 
 function messages_(token, code) {
-  let auth = null;
-
-  const id = normalizeId_(code);
-  if (/^\d{6}$/.test(id)) {
-    const student = findStudent_(id);
-    if (student && student.active) {
-      auth = {id: student.id, role: student.role};
-    }
-  }
-
-  if (!auth) auth = authFromToken_(token);
+  const auth = authFromRequest_(token, code);
   if (!auth) return {ok: false, error: 'unauthorized'};
 
   const sh = sheet_(SHEETS.messages);
