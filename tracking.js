@@ -52,8 +52,13 @@
     }
   }
 
-  function saveSession(id, role) {
-    const session = {id: normalizeId(id), role, loggedAt: Date.now()};
+  function saveSession(id, role, token = '') {
+    const session = {
+      id: normalizeId(id),
+      role,
+      token: String(token || ''),
+      loggedAt: Date.now()
+    };
     sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
     return session;
   }
@@ -73,7 +78,13 @@
       }
 
       const role = result.role === 'teacher' ? 'teacher' : 'student';
-      return {ok: true, id: normalizeId(result.id || id), role, reason: ''};
+      return {
+        ok: true,
+        id: normalizeId(result.id || id),
+        role,
+        token: String(result.token || ''),
+        reason: ''
+      };
     } catch (_) {
       return {ok: false, id, role: '', reason: 'backend'};
     }
@@ -82,7 +93,7 @@
   async function login(value) {
     const result = await validateId(value);
     if (!result.ok) return result;
-    const session = saveSession(result.id, result.role || 'student');
+    const session = saveSession(result.id, result.role || 'student', result.token);
     if (session.role === 'student') {
       logActivity('LOGIN', {practice: 'Portal', area: 'Sistema', title: 'Aula Interactiva'});
     }
@@ -995,11 +1006,16 @@
       const session = getSession();
       if (!session) return {ok: false, error: 'no-session'};
 
+      if (action === 'notes' || action === 'messages') {
+        const auth = session.token
+          ? {token: session.token}
+          : {code: session.id}; // compatibilitat temporal amb sessions obertes abans de v36
+        return jsonp({action, ...auth, ...params});
+      }
+
       if (
-        action === 'notes' ||
         action === 'submission-status' ||
         action === 'pdf-status' ||
-        action === 'messages' ||
         action === 'message-status'
       ) {
         return jsonp({action, code: session.id, ...params});
