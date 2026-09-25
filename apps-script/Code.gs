@@ -41,6 +41,8 @@ function doGet(e) {
       result = messages_(p.token, p.code);
     } else if (action === 'message-status') {
       result = messageStatus_(p.code, p.messageId);
+    } else if (action === 'operation-status') {
+      result = operationStatus_(p.token, p.code, p.kind, p.operationId);
     } else if (action === 'ping') {
       result = {ok: true, serverTime: new Date().toISOString()};
     } else {
@@ -553,6 +555,98 @@ function messageStatus_(code, messageId) {
   }
 
   return {ok: true, exists: messageExists_(mid), messageId: mid};
+}
+
+function authFromRequest_(token, code) {
+  const tokenAuth = authFromToken_(token);
+  if (tokenAuth) return tokenAuth;
+
+  // Compatibilitat temporal durant la migració al token.
+  const id = normalizeId_(code);
+  if (!/^\d{6}$/.test(id)) return null;
+
+  const user = findStudent_(id);
+  if (!user || !user.active) return null;
+  return {id: user.id, role: user.role};
+}
+
+function operationStatus_(token, code, kind, operationId) {
+  const auth = authFromRequest_(token, code);
+  if (!auth) return {ok: false, error: 'unauthorized'};
+
+  const type = String(kind || '').trim().toLowerCase();
+  const oid = String(operationId || '').trim();
+  if (!oid) return {ok: false, error: 'invalid-operation-id'};
+
+  let exists = false;
+
+  if (type === 'submission') {
+    if (auth.role !== 'student') return {ok: false, error: 'unauthorized'};
+    exists = submissionExistsForStudent_(auth.id, oid);
+  } else if (type === 'pdf') {
+    if (auth.role !== 'student') return {ok: false, error: 'unauthorized'};
+    exists = pdfExistsForStudent_(auth.id, oid);
+  } else if (type === 'message') {
+    if (auth.role !== 'teacher') return {ok: false, error: 'unauthorized'};
+    exists = messageExists_(oid);
+  } else if (type === 'message-read') {
+    if (auth.role !== 'student') return {ok: false, error: 'unauthorized'};
+    exists = messageReadExists_(auth.id, oid);
+  } else {
+    return {ok: false, error: 'unknown-operation-kind'};
+  }
+
+  return {
+    ok: true,
+    exists,
+    kind: type,
+    operationId: oid
+  };
+}
+
+function submissionExistsForStudent_(studentId, submissionId) {
+  const sh = sheet_(SHEETS.submissions);
+  const headers = headers_(sh);
+  const idCol = headers.indexOf('ID');
+  const sidCol = headers.indexOf('ID entrega');
+
+  if (idCol < 0 || sidCol < 0 || sh.getLastRow() < 2) return false;
+
+  const rows = sh.getRange(2, 1, sh.getLastRow() - 1, sh.getLastColumn()).getDisplayValues();
+  return rows.some(r =>
+    normalizeId_(r[idCol]) === normalizeId_(studentId) &&
+    String(r[sidCol] || '').trim() === String(submissionId || '').trim()
+  );
+}
+
+function pdfExistsForStudent_(studentId, submissionId) {
+  const sh = sheet_(SHEETS.pdfUploads);
+  const headers = headers_(sh);
+  const idCol = headers.indexOf('ID');
+  const sidCol = headers.indexOf('ID entrega');
+
+  if (idCol < 0 || sidCol < 0 || sh.getLastRow() < 2) return false;
+
+  const rows = sh.getRange(2, 1, sh.getLastRow() - 1, sh.getLastColumn()).getDisplayValues();
+  return rows.some(r =>
+    normalizeId_(r[idCol]) === normalizeId_(studentId) &&
+    String(r[sidCol] || '').trim() === String(submissionId || '').trim()
+  );
+}
+
+function messageReadExists_(studentId, messageId) {
+  const sh = sheet_(SHEETS.messageReads);
+  const headers = headers_(sh);
+  const midCol = headers.indexOf('ID missatge');
+  const idCol = headers.indexOf('ID alumne');
+
+  if (midCol < 0 || idCol < 0 || sh.getLastRow() < 2) return false;
+
+  const rows = sh.getRange(2, 1, sh.getLastRow() - 1, sh.getLastColumn()).getDisplayValues();
+  return rows.some(r =>
+    String(r[midCol] || '').trim() === String(messageId || '').trim() &&
+    normalizeId_(r[idCol]) === normalizeId_(studentId)
+  );
 }
 
 function markMessageRead_(payload, student) {
