@@ -283,43 +283,23 @@
     ).map(input => input.value);
   }
 
-  function messageIsPresent(saved, sent) {
-    const savedId = String(saved?.id || saved?.messageId || '');
-    if (savedId) return savedId === sent.messageId;
-
-    return String(saved?.recipient || '') === String(sent.recipient) &&
-      String(saved?.message || '') === String(sent.message);
-  }
-
   async function confirmMessagesSent(sentMessages) {
-    const remaining = new Map(sentMessages.map(item => [item.messageId, item]));
-    let latest = null;
+    const results = await Promise.all(
+      sentMessages.map(item =>
+        tracker.confirmOperation('message', item.messageId, {
+          attempts: 7,
+          delayMs: 650
+        })
+      )
+    );
 
-    for (let attempt = 0; attempt < 7; attempt++) {
-      try {
-        latest = await tracker.apiGet('messages');
-        if (latest?.ok && latest.role === 'teacher') {
-          const saved = latest.messages || [];
-          for (const [messageId, sent] of remaining) {
-            if (saved.some(message => messageIsPresent(message, sent))) {
-              remaining.delete(messageId);
-            }
-          }
-          if (!remaining.size) {
-            return {ok: true, confirmed: sentMessages.length, result: latest};
-          }
-        }
-      } catch (_) {}
-
-      if (attempt < 6) {
-        await new Promise(resolve => setTimeout(resolve, 650));
-      }
-    }
+    const confirmed = results.filter(result => result?.ok).length;
+    const latest = await refreshMessages({renderPanel: true}).catch(() => null);
 
     return {
-      ok: false,
-      confirmed: sentMessages.length - remaining.size,
-      pending: Array.from(remaining.values()),
+      ok: confirmed === sentMessages.length,
+      confirmed,
+      pending: sentMessages.filter((_, index) => !results[index]?.ok),
       result: latest
     };
   }
