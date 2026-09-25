@@ -78,7 +78,7 @@
 const $=id=>document.getElementById(id);
 const fmt=n=>Number(n).toLocaleString('ca-ES',{maximumFractionDigits:2,minimumFractionDigits:0});
 const num=s=>{if(typeof s==='number')return s;let t=String(s??'').trim().replace(/\s/g,'').replace(/€/g,'');if(!t)return NaN;if(t.includes(',')&&t.includes('.'))t=t.lastIndexOf(',')>t.lastIndexOf('.')?t.replace(/\./g,'').replace(',','.'):t.replace(/,/g,'');else t=t.replace(',','.');return Number(t)};
-const answers={}; const completed=new Set(); let current=0, validationAttempts=0, submitted=false; const startedAt=Date.now();
+const answers={}; const completed=new Set(); let current=0, validationAttempts=0, submitted=false; let elapsedBeforeMs=0, startedAt=Date.now();
 
 const solverModal=$('solver-modal'), solverResult=$('solver-result');
 function solverOpen(){solverModal.classList.add('show');solverModal.setAttribute('aria-hidden','false');$('solver-objective').focus()}
@@ -182,7 +182,7 @@ $('submit-practice').addEventListener('click',async()=>{
     correct:total,
     attempts:validationAttempts,
     progress:100,
-    minutes:Math.max(1,Math.round((Date.now()-startedAt)/60000)),
+    minutes:Math.max(1,Math.round((elapsedBeforeMs+Math.max(0,Date.now()-startedAt))/60000)),
     version:'excel-zero-v2',
     detail:{blocksCompleted:completed.size,totalBlocks:stages.length},
     justifications:[]
@@ -205,7 +205,8 @@ window.AulaDraftState = {
       current,
       completed: Array.from(completed),
       answers: {...answers},
-      validationAttempts
+      validationAttempts,
+      elapsedMs: elapsedBeforeMs + Math.max(0, Date.now() - startedAt)
     };
   },
   restore(state) {
@@ -220,6 +221,8 @@ window.AulaDraftState = {
     const wanted = Number(state.current);
     current = Number.isInteger(wanted) ? Math.max(0, Math.min(stages.length - 1, wanted)) : 0;
     validationAttempts = Number(state.validationAttempts) || 0;
+    elapsedBeforeMs = Math.max(0, Number(state.elapsedMs) || 0);
+    startedAt = Date.now();
     render();
     if (completed.has(current)) {
       $('validate-stage').classList.add('hidden');
