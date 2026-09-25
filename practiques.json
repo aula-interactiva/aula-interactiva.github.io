@@ -102,7 +102,7 @@
         {
           "id": "freq-var",
           "ordre": 1,
-          "visible": false,
+          "visible": true,
           "disponible": false,
           "codi": "Pràctica 1a",
           "titol": "Unidimensional · guiada",
