@@ -15,8 +15,9 @@ Objectiu: mantenir el projecte simple, modular i fàcil de verificar. No afegir 
 - Les pràctiques només han d'afegir adaptadors propis quan realment tenen estat dinàmic que el guardat genèric no pot representar.
 
 ### Backend
-- `backend/Code.gs`: validació d'alumnes, idempotència d'entregues, adjunts i persistència al full de càlcul.
-- El full de càlcul és la font de veritat per entregues, correccions i notes.
+- `apps-script/Code.gs`: backend canònic i únic del projecte. Gestiona validació d'alumnes, idempotència d'entregues, adjunts, missatges i persistència al full de càlcul.
+- El full de càlcul és la font de veritat per entregues, correccions, notes, activitat i missatges.
+- No s'ha de mantenir cap segon backend paral·lel al repositori.
 
 ## Regles d'arquitectura
 
