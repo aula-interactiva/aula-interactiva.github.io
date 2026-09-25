@@ -107,6 +107,15 @@ function savePayload_(payload) {
     return markMessageRead_(payload, student);
   }
 
+  // Prova tècnica de PDF: només l'alumne de prova pot generar temporalment
+  // un PDF real per validar Drive + PDF_Entregues + confirmació.
+  if (status === 'FitxerTest') {
+    if (student.id !== '142858') return {ok: false, error: 'unauthorized-test-pdf'};
+    const testSubmissionId = String(payload.submissionId || '').trim();
+    if (!testSubmissionId) return {ok: false, error: 'missing-submission-id'};
+    return savePdf_(payload, student);
+  }
+
   // L'alumne de prova serveix per validar la web però no ha de generar registres de pràctiques.
   if (student.id === '142858') {
     return {ok: true, skipped: true, test: true};
