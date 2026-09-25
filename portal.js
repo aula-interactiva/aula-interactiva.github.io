@@ -345,7 +345,7 @@
     };
   }
 
-  async function sendTeacherMessage() {
+  function sendTeacherMessage() {
     const session = tracker.getSession();
     if (!session || session.role !== 'teacher') return;
 
@@ -368,66 +368,66 @@
       return;
     }
 
-    button.disabled = true;
-
     const sentMessages = recipients.map(recipient => ({
       messageId: tracker.makeSubmissionId('message', session.id),
       recipient,
       message
     }));
 
-    // Resposta visual immediata: el backend i la confirmació continuen en segon pla.
+    // La resposta visual és immediata. L'escriptura i la confirmació
+    // es fan després, sense bloquejar el botó ni el panell.
     renderConfirmedSentMessages(sentMessages);
-    status.textContent = recipients.length === 1
-      ? 'Enviant…'
-      : `Enviant a ${recipients.length} alumnes…`;
-    status.className = 'messages-send-status';
+    $('messages-text').value = '';
+    status.textContent = recipients[0] === 'TOTS'
+      ? 'Enviat a tots els alumnes. Confirmant…'
+      : recipients.length === 1
+        ? 'Enviat. Confirmant…'
+        : `Enviat a ${recipients.length} alumnes. Confirmant…`;
+    status.className = 'messages-send-status ok';
+    button.disabled = false;
 
-    try {
-      const postResults = await Promise.allSettled(
-        sentMessages.map(item =>
-          tracker.apiPost({
-            status: 'MissatgeEnviar',
-            messageId: item.messageId,
-            recipient: item.recipient,
-            message: item.message
-          })
-        )
-      );
+    (async () => {
+      try {
+        const postResults = await Promise.allSettled(
+          sentMessages.map(item =>
+            tracker.apiPost({
+              status: 'MissatgeEnviar',
+              messageId: item.messageId,
+              recipient: item.recipient,
+              message: item.message
+            })
+          )
+        );
 
-      const rejected = postResults.filter(r => r.status === 'rejected').length;
-      if (rejected === sentMessages.length) {
+        const rejected = postResults.filter(r => r.status === 'rejected').length;
+        if (rejected === sentMessages.length) {
+          await refreshMessages({renderPanel: true}).catch(() => {});
+          status.textContent = 'No s’ha pogut enviar el missatge.';
+          status.className = 'messages-send-status bad';
+          return;
+        }
+
+        const confirmation = await confirmMessagesSent(sentMessages);
+
+        if (confirmation.ok) {
+          status.textContent = recipients[0] === 'TOTS'
+            ? 'Enviat a tots els alumnes.'
+            : recipients.length === 1
+              ? 'Enviat.'
+              : `Enviat a ${recipients.length} alumnes.`;
+          status.className = 'messages-send-status ok';
+        } else {
+          status.textContent = confirmation.confirmed
+            ? `Confirmats ${confirmation.confirmed} de ${recipients.length}. Revisa la llista abans de tornar a enviar.`
+            : 'No s’ha pogut confirmar l’enviament. Revisa la llista abans de tornar a enviar.';
+          status.className = 'messages-send-status bad';
+        }
+      } catch (_) {
         await refreshMessages({renderPanel: true}).catch(() => {});
-        status.textContent = 'No s’ha pogut enviar el missatge.';
-        status.className = 'messages-send-status bad';
-        return;
-      }
-
-      status.textContent = 'Enviat. Confirmant…';
-
-      const confirmation = await confirmMessagesSent(sentMessages);
-
-      if (confirmation.ok) {
-        $('messages-text').value = '';
-        status.textContent = recipients[0] === 'TOTS'
-          ? 'Enviat a tots els alumnes.'
-          : recipients.length === 1
-            ? 'Enviat.'
-            : `Enviat a ${recipients.length} alumnes.`;
-        status.className = 'messages-send-status ok';
-      } else {
-        status.textContent = confirmation.confirmed
-          ? `Confirmats ${confirmation.confirmed} de ${recipients.length}. Revisa la llista abans de tornar a enviar.`
-          : 'No s’ha pogut confirmar l’enviament. Revisa la llista abans de tornar a enviar.';
+        status.textContent = 'No s’ha pogut confirmar l’enviament. Revisa la llista abans de tornar a enviar.';
         status.className = 'messages-send-status bad';
       }
-    } catch (_) {
-      await refreshMessages({renderPanel: true}).catch(() => {});
-      status.textContent = 'No s’ha pogut confirmar l’enviament. Revisa la llista abans de tornar a enviar.';
-      status.className = 'messages-send-status bad';
-    } finally {
-      button.disabled = false;
-    }
+    })();
   }
 
   function parseAccessTime(value) {
