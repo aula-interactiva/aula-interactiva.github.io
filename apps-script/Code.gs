@@ -151,51 +151,17 @@ function savePayload_(payload) {
 }
 
 function submissionStatus_(code, submissionId) {
-  const id = normalizeId_(code);
-  const sid = String(submissionId || '').trim();
-  if (!/^\d{6}$/.test(id) || !sid) return {ok: false, error: 'invalid-request'};
-
-  const student = findStudent_(id);
-  if (!student || !student.active) return {ok: false, error: 'unauthorized'};
-
-  const sh = sheet_(SHEETS.submissions);
-  const headers = headers_(sh);
-  const idCol = headers.indexOf('ID');
-  const sidCol = headers.indexOf('ID entrega');
-  if (idCol < 0 || sidCol < 0 || sh.getLastRow() < 2) {
-    return {ok: true, submitted: false, submissionId: sid};
-  }
-
-  const rows = sh.getRange(2, 1, sh.getLastRow() - 1, sh.getLastColumn()).getDisplayValues();
-  const submitted = rows.some(r =>
-    normalizeId_(r[idCol]) === id && String(r[sidCol] || '').trim() === sid
-  );
-
-  return {ok: true, submitted, submissionId: sid};
+  const result = operationStatus_('', code, 'submission', submissionId);
+  return result.ok
+    ? {ok: true, submitted: result.exists === true, submissionId: result.operationId}
+    : result;
 }
 
 function pdfStatus_(code, submissionId) {
-  const id = normalizeId_(code);
-  const sid = String(submissionId || '').trim();
-  if (!/^\d{6}$/.test(id) || !sid) return {ok: false, error: 'invalid-request'};
-
-  const student = findStudent_(id);
-  if (!student || !student.active) return {ok: false, error: 'unauthorized'};
-
-  const sh = sheet_(SHEETS.pdfUploads);
-  const headers = headers_(sh);
-  const idCol = headers.indexOf('ID');
-  const sidCol = headers.indexOf('ID entrega');
-  if (idCol < 0 || sidCol < 0 || sh.getLastRow() < 2) {
-    return {ok: true, uploaded: false, submissionId: sid};
-  }
-
-  const rows = sh.getRange(2, 1, sh.getLastRow() - 1, sh.getLastColumn()).getDisplayValues();
-  const uploaded = rows.some(r =>
-    normalizeId_(r[idCol]) === id && String(r[sidCol] || '').trim() === sid
-  );
-
-  return {ok: true, uploaded, submissionId: sid};
+  const result = operationStatus_('', code, 'pdf', submissionId);
+  return result.ok
+    ? {ok: true, uploaded: result.exists === true, submissionId: result.operationId}
+    : result;
 }
 
 function savePdf_(p, student) {
@@ -529,16 +495,10 @@ function sendMessage_(payload, student) {
 }
 
 function messageStatus_(code, messageId) {
-  const id = normalizeId_(code);
-  const mid = String(messageId || '').trim();
-  if (!/^\d{6}$/.test(id) || !mid) return {ok: false, error: 'invalid-request'};
-
-  const teacher = findStudent_(id);
-  if (!teacher || !teacher.active || teacher.role !== 'teacher') {
-    return {ok: false, error: 'unauthorized'};
-  }
-
-  return {ok: true, exists: messageExists_(mid), messageId: mid};
+  const result = operationStatus_('', code, 'message', messageId);
+  return result.ok
+    ? {ok: true, exists: result.exists === true, messageId: result.operationId}
+    : result;
 }
 
 function authFromRequest_(token, code) {
