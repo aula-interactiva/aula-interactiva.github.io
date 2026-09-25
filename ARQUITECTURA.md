@@ -18,6 +18,7 @@ Objectiu: mantenir el projecte simple, modular i fàcil de verificar. No afegir 
 - `apps-script/Code.gs`: backend canònic i únic del projecte. Gestiona validació d'alumnes, idempotència d'entregues, adjunts, missatges i persistència al full de càlcul.
 - El full de càlcul és la font de veritat per entregues, correccions, notes, activitat i missatges.
 - No s'ha de mantenir cap segon backend paral·lel al repositori.
+- Les operacions confirmables comparteixen una única consulta `operation-status`, identificada per tipus d'operació i ID únic. Les rutes antigues específiques es mantenen només durant la migració.
 
 ## Regles d'arquitectura
 
