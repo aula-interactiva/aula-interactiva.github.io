@@ -19,6 +19,7 @@
   const lastChecked = Array(NQ).fill(null);
   let validatedId = '';
   let startedAt = null;
+  let elapsedBeforeMs = 0;
   let submitted = false;
 
   const justifications = Array.isArray(cfg.justifications) ? cfg.justifications : [];
@@ -74,6 +75,7 @@
       if (el) el.value = '';
     });
 
+    elapsedBeforeMs = 0;
     submitted = false;
     submitBtn.textContent = 'Entrega la pràctica';
     submitStatus.className = 'pilot-submit-status';
@@ -212,7 +214,8 @@
 
     const submissionId = tracker.makeSubmissionId(cfg.slug, validatedId);
     const totalAttempts = attempts.reduce((a, b) => a + b, 0);
-    const minutes = startedAt ? Math.max(1, Math.round((Date.now() - startedAt) / 60000)) : '';
+    const elapsedMs = elapsedBeforeMs + (startedAt ? Math.max(0, Date.now() - startedAt) : 0);
+    const minutes = elapsedMs ? Math.max(1, Math.round(elapsedMs / 60000)) : '';
 
     const payload = {
       submissionId,
@@ -265,6 +268,35 @@
       if (c.tagName !== 'SELECT') c.addEventListener('blur', handler);
     }
   }
+
+  // Persist practice-local counters alongside the generic field draft.
+  // This keeps attempts and elapsed time coherent across "Desa i surt" / reopen.
+  window.AulaDraftState = {
+    get() {
+      return {
+        pilot: {
+          attempts: attempts.slice(),
+          lastChecked: lastChecked.slice(),
+          elapsedMs: elapsedBeforeMs + (startedAt ? Math.max(0, Date.now() - startedAt) : 0)
+        }
+      };
+    },
+    restore(state) {
+      const pilot = state && state.pilot;
+      if (!pilot) return true;
+
+      if (Array.isArray(pilot.attempts)) {
+        for (let i = 0; i < NQ; i++) attempts[i] = Math.max(0, Number(pilot.attempts[i]) || 0);
+      }
+      if (Array.isArray(pilot.lastChecked)) {
+        for (let i = 0; i < NQ; i++) lastChecked[i] = pilot.lastChecked[i] == null ? null : String(pilot.lastChecked[i]);
+      }
+
+      elapsedBeforeMs = Math.max(0, Number(pilot.elapsedMs) || 0);
+      if (validatedId) startedAt = Date.now();
+      return true;
+    }
+  };
 
   document.addEventListener('aula:draft-restored', () => {
     setTimeout(() => {
