@@ -14,33 +14,6 @@
 
   const ENDPOINT = 'https://script.google.com/macros/s/AKfycbxq88klu15RnDmp39XjfwuVhtZ36KrQWm-nbLh_v1aaFL-2tfxwl9HK5H5sKFqXyBzw/exec';
   const SESSION_KEY = 'aula-interactiva-session-v3';
-  const STUDENT_CODE_HASHES = new Set([
-    "48db4bb79104a07f5f6b31b2108080b7a5f623bba1d31df7b4495ce3dbe8d831",
-    "158fe307495a73ba00d2948566bee085914a9186f4455fd14733d6bc9aaa652d",
-    "f14bec4b1fb9ec0f53c1afa59d5822dd9b3182c4981efbbc7967504fbc90a874",
-    "c860430562a0371a7edfd441c42ae8cff48bbd48640c5f52a650bf8f61e30feb",
-    "3750ed2a7a82f760c10ec07482f512870967de3711a949fc90906201d950412a",
-    "e4715c4e7730ae01e959862c2fb75ba141f711004c11e392fc8c8d025629ed76",
-    "806326232c8129066b24c2e2e8d3bbd9e5ae09badd3d95a23db93f1d0c0f1678",
-    "0b1841a0b50461576daaa4cdd32e8f705fb8995eb0d52c3888089a1e35373882",
-    "20a7be8746c9d5e57afa3b419c046f46a53de41d0ee896b6a1b7f44e0257b83a",
-    "c38c2c129089a762802c251ba6560ae5caeda57e592b4506d3d15cb7625623d3",
-    "32f33cf75e59c020419f03cdd267d12e551a2115510eed8ca9ba8a52506050f6",
-    "0b894eeaf3c532ecedb245ca30eb15a970bb5f6325a92c01a974cde11ebab1fd",
-    "21eaca4fca2af0b0f9e8e84ae57396b45b9bad0a7d59ff975b56c874664fb6bb",
-    "878af48e79f6affeb88d34fdcdd544e0574d939b3e0b5e3282e8352fe23cfb65",
-    "3830554b4ca09371a6ccd59c5d6c94371028ed249dded5471debbfd681ee9942",
-    "7ea0c5f1c1bb56bf959a1b9a76df205c9039a85d2f394c85926b6203bc10e489",
-    "24d33f767fac408225261c878829daf800bbe48331bebc2ad5c1bede12d44d1d",
-    "0a7a0a7d62ef45c44f411126120f38fe8de9c8153b0cad5ee57a4ffb719727cb",
-    "dad3eea75e4692d65d2ea08eb265baa812e7d28fca312b9e3f6b40511adef934",
-    "ec80b6e7f0feb7ee6d7afd223f10576da6e052d2bd64be9fe28fd4b14ed4ce5c",
-    "9c7d9e9d08a714f65dd8b5167cd85205fad6f321d254c807e742267ed91e4275",
-    "2686429e53e8680e1269111aaeb4f87a9aa9a52347e24cb962508e724ea6b7a6",
-    "d8d841fc795fd86ab79abc171560c34c8fa693c7201c40bf9afeee6d969fdda7",
-    "fd541b0d6a8988cbf136ee1be6a758b3e0e398669663c21772f8eb3702b9fba5",
-    "eb9d85092e63d4550914bcb4a2f63d91a833b296a34409d36698f1551f359b1a"
-]);
   const LOCAL_SUBMISSION_PREFIX = 'aula-interactiva-submitted-v1:';
   const LOCAL_DRAFT_PREFIX = 'aula-interactiva-draft-v1:';
   let practiceStartedAt = Date.now();
@@ -64,33 +37,6 @@
 
   function normalizeId(value) {
     return String(value ?? '').replace(/\D/g, '').slice(0, 6);
-  }
-
-  function fnv1a(text) {
-    let h = 2166136261;
-    for (const ch of String(text)) {
-      h ^= ch.charCodeAt(0);
-      h = Math.imul(h, 16777619);
-    }
-    return h >>> 0;
-  }
-
-  function isTeacherCode(id) {
-    return fnv1a('aula-teacher-v3:' + String(id)) === 2813788514;
-  }
-
-  async function sha256Hex(text) {
-    const bytes = new TextEncoder().encode(String(text));
-    const digest = await crypto.subtle.digest('SHA-256', bytes);
-    return Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2, '0')).join('');
-  }
-
-  async function isKnownStudentCode(id) {
-    try {
-      return STUDENT_CODE_HASHES.has(await sha256Hex('aula-student-v1:' + String(id)));
-    } catch (_) {
-      return false;
-    }
   }
 
   function getSession() {
@@ -120,17 +66,17 @@
     const id = normalizeId(value);
     if (!/^\d{6}$/.test(id)) return {ok: false, id, reason: 'format'};
 
-    if (isTeacherCode(id)) {
-      return {ok: true, id, role: 'teacher', reason: ''};
-    }
+    try {
+      const result = await jsonp({action: 'login', code: id});
+      if (!result?.ok) {
+        return {ok: false, id, role: '', reason: 'not-found'};
+      }
 
-    if (await isKnownStudentCode(id)) {
-      return {ok: true, id, role: 'student', reason: ''};
+      const role = result.role === 'teacher' ? 'teacher' : 'student';
+      return {ok: true, id: normalizeId(result.id || id), role, reason: ''};
+    } catch (_) {
+      return {ok: false, id, role: '', reason: 'backend'};
     }
-
-    // Student login is intentionally independent of Google Apps Script.
-    // Roster changes must be bundled into STUDENT_CODE_HASHES before they can log in.
-    return {ok: false, id, role: '', reason: 'not-found'};
   }
 
   async function login(value) {
