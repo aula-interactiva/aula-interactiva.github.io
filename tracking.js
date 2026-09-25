@@ -88,6 +88,19 @@
     const id = normalizeId(value);
     if (!/^\d{6}$/.test(id)) return {ok: false, id, reason: 'format'};
 
+    // Dins d'una pràctica ja hi ha una sessió autenticada. No tornem
+    // a validar el mateix codi contra Apps Script ni generem un altre token.
+    const current = getSession();
+    if (current && current.id === id) {
+      return {
+        ok: true,
+        id: current.id,
+        role: current.role,
+        token: String(current.token || ''),
+        reason: ''
+      };
+    }
+
     try {
       const result = await jsonp({action: 'login', code: id});
       if (!result?.ok) {
