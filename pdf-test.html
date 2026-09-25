@@ -29,7 +29,7 @@
   <p id="status"></p>
   <p><a href="index.html">← Tornar al portal</a></p>
 </main>
-<script src="tracking.js?v=41"></script>
+<script src="tracking.js?v=42"></script>
 <script>
 (() => {
   const tracker = window.PracticeTracker;
@@ -68,7 +68,11 @@
 
     if (result.ok && result.confirmed) {
       status.className = 'ok';
-      status.textContent = 'PDF pujat i confirmat correctament.';
+      const tm = result.timing || {};
+      const uploadS = tm.uploadMs ? (tm.uploadMs / 1000).toFixed(1) : '?';
+      const confirmS = tm.confirmationMs ? (tm.confirmationMs / 1000).toFixed(1) : '?';
+      const totalS = tm.totalMs ? (tm.totalMs / 1000).toFixed(1) : '?';
+      status.textContent = 'PDF pujat i confirmat correctament. Pujada: ' + uploadS + ' s · Confirmació: ' + confirmS + ' s · Total: ' + totalS + ' s';
     } else {
       status.className = 'bad';
       status.textContent = 'La prova no s’ha pogut confirmar.';
