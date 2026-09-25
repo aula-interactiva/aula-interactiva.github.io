@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Aula Interactiva</title>
-<link rel="stylesheet" href="styles.css?v=13" />
+<link rel="stylesheet" href="styles.css?v=14" />
 <link rel="stylesheet" href="theme.css?v=5" />
 </head>
 <body>
@@ -30,6 +30,9 @@
         <a class="teacher-tool-link" href="https://docs.google.com/spreadsheets/d/1EEpkuCvVn-VBsLdfcz1L8QCs5pmxOhkDfGXyRyixhW4/edit#gid=310002" target="_blank" rel="noopener">Full de notes</a>
       </div>
       <button id="notes-button" class="session-action" type="button">Notes</button>
+      <button id="messages-button" class="session-action hidden" type="button">
+        Missatges <span id="messages-badge" class="message-badge hidden">0</span>
+      </button>
       <span id="session-role">Alumne</span>
       <strong id="session-id"></strong>
       <button id="logout-button" type="button">Sortir</button>
@@ -60,12 +63,32 @@
       <div id="notes-practices" class="notes-practices"></div>
       <div id="notes-content" class="notes-content"></div>
     </section>
+    <section id="messages-panel" class="messages-panel hidden" aria-live="polite">
+      <div class="messages-head">
+        <div>
+          <div class="hub-eyebrow">MISSATGES</div>
+          <h2 id="messages-title">Missatges</h2>
+        </div>
+        <button id="messages-close" class="notes-close" type="button">Tancar</button>
+      </div>
+      <div id="messages-teacher-compose" class="messages-compose hidden">
+        <label for="messages-recipient">Destinatari</label>
+        <select id="messages-recipient"></select>
+        <label for="messages-text">Missatge</label>
+        <textarea id="messages-text" rows="4" maxlength="2000" placeholder="Escriu el missatge..."></textarea>
+        <div class="messages-compose-actions">
+          <span id="messages-send-status" class="messages-send-status"></span>
+          <button id="messages-send" type="button">Enviar</button>
+        </div>
+      </div>
+      <div id="messages-list" class="messages-list"></div>
+    </section>
     <div class="practice-grid" id="practice-grid"></div>
   </div>
 </section>
 
-<script src="tracking.js?v=33"></script>
-<script src="portal.js?v=22"></script>
+<script src="tracking.js?v=34"></script>
+<script src="portal.js?v=23"></script>
 <script src="notes.js?v=8"></script>
 </body>
 </html>
