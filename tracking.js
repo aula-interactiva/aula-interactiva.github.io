@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  if (window.PracticeTracker?.version === 'v6') return;
+  if (window.PracticeTracker?.version === 'v7') return;
 
   if (!document.querySelector('link[data-aula-theme]')) {
     const theme = document.createElement('link');
@@ -149,7 +149,17 @@
   }
 
   async function postPayload(payload, {keepalive = false} = {}) {
-    const body = new URLSearchParams({payload: JSON.stringify(payload)});
+    const session = getSession();
+    if (!session) throw new Error('no-session');
+
+    const auth = session.token
+      ? {token: session.token}
+      : {id: session.id}; // compatibilitat temporal amb sessions obertes abans de v36
+
+    const body = new URLSearchParams({
+      payload: JSON.stringify({...payload, ...auth})
+    });
+
     return fetch(ENDPOINT, {
       method: 'POST',
       mode: 'no-cors',
@@ -164,15 +174,31 @@
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
-  async function confirmWithRetry(action, params, predicate, {attempts = 8, delayMs = 700} = {}) {
+  async function confirmOperation(kind, operationId, {attempts = 8, delayMs = 700} = {}) {
+    const session = getSession();
+    if (!session) return {ok: false, error: 'no-session', result: null};
+
+    const auth = session.token
+      ? {token: session.token}
+      : {code: session.id}; // compatibilitat temporal amb sessions obertes abans de v36
+
     let last = null;
     for (let i = 0; i < attempts; i++) {
       try {
-        last = await jsonp({action, ...params});
-        if (last?.ok && predicate(last)) return {ok: true, result: last};
+        last = await jsonp({
+          action: 'operation-status',
+          ...auth,
+          kind,
+          operationId
+        });
+        if (last?.ok && last.exists === true) {
+          return {ok: true, result: last};
+        }
       } catch (_) {}
+
       if (i < attempts - 1) await sleep(delayMs);
     }
+
     return {ok: false, result: last};
   }
 
@@ -530,14 +556,20 @@
     const submissionId = stablePracticeSubmissionId(practicePath, session.id);
 
     try {
+      const auth = session.token
+        ? {token: session.token}
+        : {code: session.id};
+
       const result = await jsonp({
-        action: 'submission-status',
-        code: session.id,
-        submissionId
+        action: 'operation-status',
+        ...auth,
+        kind: 'submission',
+        operationId: submissionId
       });
+
       if (!result?.ok) return {ok: false, submitted: false, submissionId};
-      if (result.submitted) rememberLocalSubmission(practicePath, session.id);
-      return {ok: true, submitted: result.submitted === true, submissionId};
+      if (result.exists) rememberLocalSubmission(practicePath, session.id);
+      return {ok: true, submitted: result.exists === true, submissionId};
     } catch (error) {
       return {ok: false, submitted: false, submissionId, error};
     }
@@ -572,11 +604,7 @@
 
     try {
       await postPayload(payload);
-      const confirmation = await confirmWithRetry(
-        'pdf-status',
-        {code: session.id, submissionId: payload.submissionId},
-        result => result.uploaded === true
-      );
+      const confirmation = await confirmOperation('pdf', payload.submissionId);
       if (!confirmation.ok) {
         return {ok: false, error: 'pdf-not-confirmed', confirmed: false};
       }
@@ -605,11 +633,7 @@
 
     try {
       await postPayload(payload);
-      const confirmation = await confirmWithRetry(
-        'submission-status',
-        {code: session.id, submissionId: payload.submissionId},
-        result => result.submitted === true
-      );
+      const confirmation = await confirmOperation('submission', payload.submissionId);
       if (!confirmation.ok) {
         return {ok: false, error: 'submission-not-confirmed', confirmed: false};
       }
@@ -1002,23 +1026,22 @@
     logActivity,
     saveDraftNow,
     restoreDraft,
+    confirmOperation,
     async apiGet(action, params = {}) {
       const session = getSession();
       if (!session) return {ok: false, error: 'no-session'};
 
-      if (action === 'notes' || action === 'messages') {
+      const privateActions = new Set([
+        'notes',
+        'messages',
+        'operation-status'
+      ]);
+
+      if (privateActions.has(action)) {
         const auth = session.token
           ? {token: session.token}
           : {code: session.id}; // compatibilitat temporal amb sessions obertes abans de v36
         return jsonp({action, ...auth, ...params});
-      }
-
-      if (
-        action === 'submission-status' ||
-        action === 'pdf-status' ||
-        action === 'message-status'
-      ) {
-        return jsonp({action, code: session.id, ...params});
       }
 
       return jsonp({action, ...params});
@@ -1026,7 +1049,7 @@
     async apiPost(payload, options = {}) {
       const session = getSession();
       if (!session) return {ok: false, error: 'no-session'};
-      return postPayload({...payload, id: session.id}, options);
+      return postPayload(payload, options);
     }
   });
 })();
