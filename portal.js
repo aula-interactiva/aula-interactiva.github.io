@@ -168,7 +168,8 @@
     if (!result?.ok) return;
 
     const teacher = result.role === 'teacher';
-    $('messages-title').textContent = teacher ? 'Missatges enviats' : 'Els meus missatges';
+    $('messages-title').textContent = teacher ? '' : 'Els meus missatges';
+    $('messages-title').hidden = teacher;
     $('messages-teacher-compose').classList.toggle('hidden', !teacher);
 
     if (teacher) {
