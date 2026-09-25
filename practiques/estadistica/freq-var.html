@@ -63,7 +63,7 @@ button{border:0;border-radius:8px;padding:9px 11px;font-weight:800;cursor:pointe
 (() => {
 'use strict';
 const $=id=>document.getElementById(id),tracker=window.PracticeTracker;
-let validatedId='',file=null,lastReport=null,checkAttempts=0,startedAt=null,submitted=false;
+let validatedId='',file=null,lastReport=null,checkAttempts=0,startedAt=null,elapsedBeforeMs=0,submitted=false;
 
 function setStatus(id,kind,text){const e=$(id);e.className='status '+(kind||'');e.textContent=text}
 function normalize(){const v=String($('student-id').value||'').replace(/\D/g,'').slice(0,6);$('student-id').value=v;return v}
@@ -171,6 +171,22 @@ function render(report){
   $('summary').textContent=`${report.correct} de ${report.total} comprovacions correctes.`;
   setStatus('submit-status',report.allOk?'ok':'bad',report.allOk?'Fitxer correcte. Ja el pots entregar.':'Encara hi ha elements per revisar.');
 }
+window.AulaDraftState = {
+  get(){
+    return {
+      checkAttempts,
+      elapsedMs: elapsedBeforeMs + (startedAt ? Math.max(0, Date.now() - startedAt) : 0)
+    };
+  },
+  restore(state){
+    if(!state || typeof state!=='object') return true;
+    checkAttempts=Math.max(0,Number(state.checkAttempts)||0);
+    elapsedBeforeMs=Math.max(0,Number(state.elapsedMs)||0);
+    if(validatedId) startedAt=Date.now();
+    return true;
+  }
+};
+
 $('submit').onclick=async()=>{
   if(!lastReport?.allOk||!validatedId||submitted)return;
   $('submit').disabled=true;$('submit').textContent='Enviant…';setStatus('submit-status','','Guardant l’entrega…');
@@ -178,7 +194,7 @@ $('submit').onclick=async()=>{
     submissionId:tracker.makeSubmissionId('freq-var',validatedId),id:validatedId,
     practice:'Pràctica 1a · Taules de freqüències i dispersió',area:'Estadística',status:'Entregada',
     total:lastReport.total,correct:lastReport.correct,attempts:checkAttempts,progress:100,
-    minutes:startedAt?Math.max(1,Math.round((Date.now()-startedAt)/60000)):'',
+    minutes:startedAt?Math.max(1,Math.round((elapsedBeforeMs+Math.max(0,Date.now()-startedAt))/60000)):'',
     version:'pilot-1',detail:{checks:lastReport.detail},justifications:lastReport.justifications
   };
   const r=await tracker.submit(payload);
