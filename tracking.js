@@ -14,6 +14,7 @@
 
   const ENDPOINT = 'https://script.google.com/macros/s/AKfycbxq88klu15RnDmp39XjfwuVhtZ36KrQWm-nbLh_v1aaFL-2tfxwl9HK5H5sKFqXyBzw/exec';
   const SESSION_KEY = 'aula-interactiva-session-v3';
+  const SESSION_TTL_MS = 6 * 60 * 60 * 1000;
   const LOCAL_SUBMISSION_PREFIX = 'aula-interactiva-submitted-v1:';
   const LOCAL_DRAFT_PREFIX = 'aula-interactiva-draft-v1:';
   let practiceStartedAt = Date.now();
@@ -41,11 +42,24 @@
 
   function getSession() {
     try {
-      const raw = sessionStorage.getItem(SESSION_KEY);
+      const raw =
+        sessionStorage.getItem(SESSION_KEY) ||
+        localStorage.getItem(SESSION_KEY);
+
       if (!raw) return null;
+
       const session = JSON.parse(raw);
       if (!session || !/^\d{6}$/.test(String(session.id || ''))) return null;
       if (!['student', 'teacher'].includes(session.role)) return null;
+
+      const loggedAt = Number(session.loggedAt || 0);
+      if (!loggedAt || Date.now() - loggedAt > SESSION_TTL_MS) {
+        clearSession();
+        return null;
+      }
+
+      // Si la sessió venia d'una altra pestanya, la recuperem també en aquesta.
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
       return session;
     } catch (_) {
       return null;
@@ -59,12 +73,15 @@
       token: String(token || ''),
       loggedAt: Date.now()
     };
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    const raw = JSON.stringify(session);
+    sessionStorage.setItem(SESSION_KEY, raw);
+    localStorage.setItem(SESSION_KEY, raw);
     return session;
   }
 
   function clearSession() {
     sessionStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(SESSION_KEY);
   }
 
   async function validateId(value) {
@@ -581,6 +598,12 @@
   async function checkPracticeSubmitted(practice) {
     const session = getSession();
     if (!session || session.role !== 'student') {
+      return {ok: true, submitted: false, submissionId: ''};
+    }
+
+    // L'alumne de prova no genera entregues reals; tampoc necessita
+    // una consulta al servidor per saber si la pràctica està entregada.
+    if (normalizeId(session.id) === '142858') {
       return {ok: true, submitted: false, submissionId: ''};
     }
 
