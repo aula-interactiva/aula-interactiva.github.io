@@ -284,7 +284,7 @@ a.back-btn{text-decoration:none;display:inline-block}
 .message-badge{display:inline-flex;min-width:18px;height:18px;padding:0 5px;margin-left:4px;align-items:center;justify-content:center;border-radius:999px;background:#d71920;color:#fff;font-size:9px;font-weight:850;line-height:1}
 .messages-panel{margin-top:14px;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:14px;box-shadow:var(--shadow)}
 .messages-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-bottom:10px;border-bottom:1px solid var(--line)}
-.messages-head h2{margin:3px 0 0;font-size:21px;letter-spacing:-.02em}
+.messages-head h2{display:none;margin:3px 0 0;font-size:21px;letter-spacing:-.02em}
 .messages-compose{display:grid;grid-template-columns:120px minmax(0,1fr);gap:8px 10px;padding:14px 0;border-bottom:1px solid var(--line)}
 .messages-compose label{font-size:11px;font-weight:800;padding-top:8px}
 .messages-compose select,.messages-compose textarea{width:100%;border:1px solid var(--line);background:#fff;border-radius:7px;padding:8px 9px;color:var(--ink);font:inherit}
