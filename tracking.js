@@ -645,14 +645,10 @@
     }
   }
 
-  async function uploadPdf(file, {practice = 'Pràctica', area = 'Sistema', submissionId = '', testMode = false} = {}) {
+  async function uploadPdf(file, {practice = 'Pràctica', area = 'Sistema', submissionId = ''} = {}) {
     const session = getSession();
     if (!session || session.role !== 'student') return {ok: false, error: 'no-student-session'};
-
-    const isTestStudent = normalizeId(session.id) === '142858';
-    if (isTestStudent && !testMode) return {ok: true, skipped: true, test: true};
-    if (testMode && !isTestStudent) return {ok: false, error: 'test-mode-forbidden'};
-
+    if (normalizeId(session.id) === '142858') return {ok: true, skipped: true, test: true};
     if (!file || file.type !== 'application/pdf') return {ok: false, error: 'pdf-only'};
     if (file.size > 10 * 1024 * 1024) return {ok: false, error: 'file-too-large'};
 
@@ -669,7 +665,7 @@
       id: session.id,
       practice,
       area,
-      status: testMode ? 'FitxerTest' : 'Fitxer',
+      status: 'Fitxer',
       mimeType: 'application/pdf',
       fileName: file.name || 'resolucions.pdf',
       size: file.size,
@@ -677,27 +673,12 @@
     };
 
     try {
-      const uploadStartedAt = performance.now();
       await postPayload(payload);
-      const uploadMs = Math.round(performance.now() - uploadStartedAt);
-
-      const confirmationStartedAt = performance.now();
       const confirmation = await confirmOperation('pdf', payload.submissionId);
-      const confirmationMs = Math.round(performance.now() - confirmationStartedAt);
-
       if (!confirmation.ok) {
-        return {
-          ok: false,
-          error: 'pdf-not-confirmed',
-          confirmed: false,
-          timing: {uploadMs, confirmationMs, totalMs: uploadMs + confirmationMs}
-        };
+        return {ok: false, error: 'pdf-not-confirmed', confirmed: false};
       }
-      return {
-        ok: true,
-        confirmed: true,
-        timing: {uploadMs, confirmationMs, totalMs: uploadMs + confirmationMs}
-      };
+      return {ok: true, confirmed: true};
     } catch (error) {
       return {ok: false, error, confirmed: false};
     }
