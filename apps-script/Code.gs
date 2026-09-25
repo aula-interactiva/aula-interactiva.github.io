@@ -14,7 +14,9 @@ const SHEETS = Object.freeze({
   corrections: 'Correccions',
   activity: 'Activitat',
   practiceGrades: 'Notes_Practiques',
-  pdfUploads: 'PDF_Entregues'
+  pdfUploads: 'PDF_Entregues',
+  messages: 'Missatges',
+  messageReads: 'Missatges_Llegits'
 });
 
 const TOKEN_TTL_SECONDS = 21600; // 6 hores
@@ -35,6 +37,10 @@ function doGet(e) {
       result = submissionStatus_(p.code, p.submissionId);
     } else if (action === 'pdf-status') {
       result = pdfStatus_(p.code, p.submissionId);
+    } else if (action === 'messages') {
+      result = messages_(p.token, p.code);
+    } else if (action === 'message-status') {
+      result = messageStatus_(p.code, p.messageId);
     } else if (action === 'ping') {
       result = {ok: true, serverTime: new Date().toISOString()};
     } else {
@@ -86,7 +92,15 @@ function savePayload_(payload) {
 
   const status = String(payload.status || '').trim();
 
-  // L'alumne de prova serveix per validar la web però no ha de generar registres.
+  // Missatgeria: va separada del sistema d'entregues i activitat.
+  if (status === 'MissatgeEnviar') {
+    return sendMessage_(payload, student);
+  }
+  if (status === 'MissatgeLlegit') {
+    return markMessageRead_(payload, student);
+  }
+
+  // L'alumne de prova serveix per validar la web però no ha de generar registres de pràctiques.
   if (String(payload.id || '').trim() === '142858') {
     return {ok: true, skipped: true, test: true};
   }
@@ -372,6 +386,269 @@ function notes_(token, code) {
     }));
 
   return {ok: true, notes};
+}
+
+function messages_(token, code) {
+  let auth = null;
+
+  const id = normalizeId_(code);
+  if (/^\d{6}$/.test(id)) {
+    const student = findStudent_(id);
+    if (student && student.active) {
+      auth = {id: student.id, role: student.role};
+    }
+  }
+
+  if (!auth) auth = authFromToken_(token);
+  if (!auth) return {ok: false, error: 'unauthorized'};
+
+  const sh = sheet_(SHEETS.messages);
+  const headers = headers_(sh);
+  const rows = sh.getLastRow() < 2
+    ? []
+    : sh.getRange(2, 1, sh.getLastRow() - 1, sh.getLastColumn()).getDisplayValues();
+
+  const idx = {
+    date: headers.indexOf('Data/hora'),
+    messageId: headers.indexOf('ID missatge'),
+    recipient: headers.indexOf('Destinatari'),
+    recipientName: headers.indexOf('Nom destinatari'),
+    message: headers.indexOf('Missatge'),
+    active: headers.indexOf('Actiu')
+  };
+
+  if (Object.values(idx).some(v => v < 0)) {
+    return {ok: false, error: 'messages-schema'};
+  }
+
+  const activeRows = rows.filter(r => {
+    const raw = String(r[idx.active] || '').trim().toLowerCase();
+    return raw === '' || raw === 'true' || raw === 'sí' || raw === 'si' || raw === '1';
+  });
+
+  if (auth.role === 'teacher') {
+    const studentsSheet = sheet_(SHEETS.students);
+    const studentRows = studentsSheet.getLastRow() < 2
+      ? []
+      : studentsSheet.getRange(2, 1, studentsSheet.getLastRow() - 1, 5).getValues();
+
+    const recipients = studentRows
+      .map(r => {
+        const studentId = normalizeId_(r[1]);
+        const roleRaw = String(r[4] || 'student').trim().toLowerCase();
+        const active =
+          r[3] === true ||
+          String(r[3]).toLowerCase() === 'true' ||
+          String(r[3]).toLowerCase() === 'sí' ||
+          String(r[3]).toLowerCase() === 'si' ||
+          String(r[3]) === '1';
+
+        return {
+          id: studentId,
+          name: String(r[0] || '').trim(),
+          active,
+          role: roleRaw === 'teacher' ? 'teacher' : 'student'
+        };
+      })
+      .filter(s => s.active && s.role === 'student' && /^\d{6}$/.test(s.id))
+      .sort((a, b) => a.name.localeCompare(b.name, 'ca'));
+
+    const messages = activeRows
+      .slice()
+      .reverse()
+      .slice(0, 100)
+      .map(r => ({
+        date: String(r[idx.date] || ''),
+        id: String(r[idx.messageId] || ''),
+        recipient: String(r[idx.recipient] || ''),
+        recipientName: String(r[idx.recipientName] || ''),
+        message: String(r[idx.message] || '')
+      }));
+
+    return {ok: true, role: 'teacher', recipients, messages};
+  }
+
+  const readIds = messageReadIds_(auth.id);
+  const messages = activeRows
+    .filter(r => {
+      const recipient = String(r[idx.recipient] || '').trim();
+      return recipient === 'TOTS' || normalizeId_(recipient) === auth.id;
+    })
+    .slice()
+    .reverse()
+    .map(r => {
+      const messageId = String(r[idx.messageId] || '');
+      return {
+        date: String(r[idx.date] || ''),
+        id: messageId,
+        message: String(r[idx.message] || ''),
+        read: readIds.has(messageId)
+      };
+    });
+
+  return {
+    ok: true,
+    role: 'student',
+    unreadCount: messages.filter(m => !m.read).length,
+    messages
+  };
+}
+
+function sendMessage_(payload, student) {
+  if (!student || student.role !== 'teacher') {
+    return {ok: false, error: 'unauthorized'};
+  }
+
+  const messageId = String(payload.messageId || '').trim();
+  const recipientRaw = String(payload.recipient || '').trim();
+  const message = String(payload.message || '').trim();
+
+  if (!messageId || messageId.length > 160) {
+    return {ok: false, error: 'invalid-message-id'};
+  }
+  if (!message || message.length > 2000) {
+    return {ok: false, error: 'invalid-message'};
+  }
+
+  let recipient = recipientRaw;
+  let recipientName = 'Tots els alumnes';
+
+  if (recipientRaw !== 'TOTS') {
+    recipient = normalizeId_(recipientRaw);
+    if (!/^\d{6}$/.test(recipient)) {
+      return {ok: false, error: 'invalid-recipient'};
+    }
+
+    const target = findStudent_(recipient);
+    if (!target || !target.active || target.role !== 'student') {
+      return {ok: false, error: 'invalid-recipient'};
+    }
+    recipientName = target.name;
+  }
+
+  if (messageExists_(messageId)) {
+    return {ok: true, duplicate: true, messageId};
+  }
+
+  appendByHeaders_(SHEETS.messages, {
+    'Data/hora': new Date(),
+    'ID missatge': messageId,
+    'Destinatari': recipient,
+    'Nom destinatari': recipientName,
+    'Missatge': message,
+    'Actiu': true
+  });
+
+  return {ok: true, messageId};
+}
+
+function messageStatus_(code, messageId) {
+  const id = normalizeId_(code);
+  const mid = String(messageId || '').trim();
+  if (!/^\d{6}$/.test(id) || !mid) return {ok: false, error: 'invalid-request'};
+
+  const teacher = findStudent_(id);
+  if (!teacher || !teacher.active || teacher.role !== 'teacher') {
+    return {ok: false, error: 'unauthorized'};
+  }
+
+  return {ok: true, exists: messageExists_(mid), messageId: mid};
+}
+
+function markMessageRead_(payload, student) {
+  if (!student || student.role !== 'student') {
+    return {ok: false, error: 'unauthorized'};
+  }
+
+  const messageId = String(payload.messageId || '').trim();
+  if (!messageId) return {ok: false, error: 'invalid-message-id'};
+  if (!studentCanReadMessage_(student.id, messageId)) {
+    return {ok: false, error: 'message-not-found'};
+  }
+
+  const sh = sheet_(SHEETS.messageReads);
+  const headers = headers_(sh);
+  const midCol = headers.indexOf('ID missatge');
+  const idCol = headers.indexOf('ID alumne');
+
+  if (midCol < 0 || idCol < 0) {
+    return {ok: false, error: 'message-reads-schema'};
+  }
+
+  if (sh.getLastRow() >= 2) {
+    const rows = sh.getRange(2, 1, sh.getLastRow() - 1, sh.getLastColumn()).getDisplayValues();
+    const exists = rows.some(r =>
+      String(r[midCol] || '').trim() === messageId &&
+      normalizeId_(r[idCol]) === student.id
+    );
+    if (exists) return {ok: true, duplicate: true, messageId};
+  }
+
+  appendByHeaders_(SHEETS.messageReads, {
+    'Data/hora': new Date(),
+    'ID missatge': messageId,
+    'ID alumne': idNumber_(student.id)
+  });
+
+  return {ok: true, messageId};
+}
+
+function messageReadIds_(studentId) {
+  const sh = sheet_(SHEETS.messageReads);
+  const headers = headers_(sh);
+  const midCol = headers.indexOf('ID missatge');
+  const idCol = headers.indexOf('ID alumne');
+  const result = new Set();
+
+  if (midCol < 0 || idCol < 0 || sh.getLastRow() < 2) return result;
+
+  const rows = sh.getRange(2, 1, sh.getLastRow() - 1, sh.getLastColumn()).getDisplayValues();
+  rows.forEach(r => {
+    if (normalizeId_(r[idCol]) === normalizeId_(studentId)) {
+      const mid = String(r[midCol] || '').trim();
+      if (mid) result.add(mid);
+    }
+  });
+
+  return result;
+}
+
+function messageExists_(messageId) {
+  const sh = sheet_(SHEETS.messages);
+  const headers = headers_(sh);
+  const idx = headers.indexOf('ID missatge');
+  if (idx < 0 || sh.getLastRow() < 2) return false;
+
+  return sh
+    .getRange(2, idx + 1, sh.getLastRow() - 1, 1)
+    .getDisplayValues()
+    .flat()
+    .some(v => String(v || '').trim() === String(messageId || '').trim());
+}
+
+function studentCanReadMessage_(studentId, messageId) {
+  const sh = sheet_(SHEETS.messages);
+  const headers = headers_(sh);
+  const midCol = headers.indexOf('ID missatge');
+  const recipientCol = headers.indexOf('Destinatari');
+  const activeCol = headers.indexOf('Actiu');
+
+  if (midCol < 0 || recipientCol < 0 || activeCol < 0 || sh.getLastRow() < 2) {
+    return false;
+  }
+
+  const rows = sh.getRange(2, 1, sh.getLastRow() - 1, sh.getLastColumn()).getDisplayValues();
+
+  return rows.some(r => {
+    if (String(r[midCol] || '').trim() !== String(messageId || '').trim()) return false;
+
+    const activeRaw = String(r[activeCol] || '').trim().toLowerCase();
+    const active = activeRaw === '' || activeRaw === 'true' || activeRaw === 'sí' || activeRaw === 'si' || activeRaw === '1';
+    if (!active) return false;
+
+    const recipient = String(r[recipientCol] || '').trim();
+    return recipient === 'TOTS' || normalizeId_(recipient) === normalizeId_(studentId);
+  });
 }
 
 function authFromToken_(token) {
