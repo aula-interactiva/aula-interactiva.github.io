@@ -369,29 +369,41 @@
     }
 
     button.disabled = true;
-    status.textContent = recipients.length > 1 ? `Enviant 0/${recipients.length}…` : 'Enviant…';
+
+    const sentMessages = recipients.map(recipient => ({
+      messageId: tracker.makeSubmissionId('message', session.id),
+      recipient,
+      message
+    }));
+
+    // Resposta visual immediata: el backend i la confirmació continuen en segon pla.
+    renderConfirmedSentMessages(sentMessages);
+    status.textContent = recipients.length === 1
+      ? 'Enviant…'
+      : `Enviant a ${recipients.length} alumnes…`;
     status.className = 'messages-send-status';
 
-    const sentMessages = [];
-
     try {
-      for (let index = 0; index < recipients.length; index++) {
-        const recipient = recipients[index];
-        const messageId = tracker.makeSubmissionId('message', session.id);
+      const postResults = await Promise.allSettled(
+        sentMessages.map(item =>
+          tracker.apiPost({
+            status: 'MissatgeEnviar',
+            messageId: item.messageId,
+            recipient: item.recipient,
+            message: item.message
+          })
+        )
+      );
 
-        await tracker.apiPost({
-          status: 'MissatgeEnviar',
-          messageId,
-          recipient,
-          message
-        });
-
-        sentMessages.push({messageId, recipient, message});
-
-        if (recipients.length > 1) {
-          status.textContent = `Enviant ${index + 1}/${recipients.length}…`;
-        }
+      const rejected = postResults.filter(r => r.status === 'rejected').length;
+      if (rejected === sentMessages.length) {
+        await refreshMessages({renderPanel: true}).catch(() => {});
+        status.textContent = 'No s’ha pogut enviar el missatge.';
+        status.className = 'messages-send-status bad';
+        return;
       }
+
+      status.textContent = 'Enviat. Confirmant…';
 
       const confirmation = await confirmMessagesSent(sentMessages);
 
@@ -411,9 +423,7 @@
       }
     } catch (_) {
       await refreshMessages({renderPanel: true}).catch(() => {});
-      status.textContent = sentMessages.length
-        ? 'L’enviament ha quedat incomplet. Revisa la llista abans de tornar a enviar.'
-        : 'No s’ha pogut enviar el missatge.';
+      status.textContent = 'No s’ha pogut confirmar l’enviament. Revisa la llista abans de tornar a enviar.';
       status.className = 'messages-send-status bad';
     } finally {
       button.disabled = false;
