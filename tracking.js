@@ -677,12 +677,27 @@
     };
 
     try {
+      const uploadStartedAt = performance.now();
       await postPayload(payload);
+      const uploadMs = Math.round(performance.now() - uploadStartedAt);
+
+      const confirmationStartedAt = performance.now();
       const confirmation = await confirmOperation('pdf', payload.submissionId);
+      const confirmationMs = Math.round(performance.now() - confirmationStartedAt);
+
       if (!confirmation.ok) {
-        return {ok: false, error: 'pdf-not-confirmed', confirmed: false};
+        return {
+          ok: false,
+          error: 'pdf-not-confirmed',
+          confirmed: false,
+          timing: {uploadMs, confirmationMs, totalMs: uploadMs + confirmationMs}
+        };
       }
-      return {ok: true, confirmed: true};
+      return {
+        ok: true,
+        confirmed: true,
+        timing: {uploadMs, confirmationMs, totalMs: uploadMs + confirmationMs}
+      };
     } catch (error) {
       return {ok: false, error, confirmed: false};
     }
