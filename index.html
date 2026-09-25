@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Aula Interactiva</title>
-<link rel="stylesheet" href="styles.css?v=14" />
+<link rel="stylesheet" href="styles.css?v=15" />
 <link rel="stylesheet" href="theme.css?v=5" />
 </head>
 <body>
@@ -72,8 +72,11 @@
         <button id="messages-close" class="notes-close" type="button">Tancar</button>
       </div>
       <div id="messages-teacher-compose" class="messages-compose hidden">
-        <label for="messages-recipient">Destinatari</label>
-        <select id="messages-recipient"></select>
+        <label>Destinatari</label>
+        <div>
+          <div id="messages-recipient-list" class="messages-recipient-list" role="group" aria-label="Destinataris"></div>
+          <div class="messages-recipient-hint">Pots seleccionar més d’un alumne.</div>
+        </div>
         <label for="messages-text">Missatge</label>
         <textarea id="messages-text" rows="4" maxlength="2000" placeholder="Escriu el missatge...">Bon dia. He vist que no em consta entrega de la pràctica 1 d'economia. Ja em diràs a classe si has tingut algun tipus de problema.</textarea>
         <div class="messages-compose-actions">
@@ -88,7 +91,7 @@
 </section>
 
 <script src="tracking.js?v=34"></script>
-<script src="portal.js?v=24"></script>
+<script src="portal.js?v=25"></script>
 <script src="notes.js?v=8"></script>
 </body>
 </html>
