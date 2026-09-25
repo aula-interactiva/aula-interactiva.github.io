@@ -447,7 +447,7 @@ function messages_(token, code) {
           id: studentId,
           name: String(r[0] || '').trim(),
           active,
-          role: roleRaw === 'teacher' ? 'teacher' : 'student'
+          role: roleRaw
         };
       })
       .filter(s => s.active && s.role === 'student' && /^\d{6}$/.test(s.id))
