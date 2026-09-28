@@ -44,55 +44,108 @@
     $('notes-content').innerHTML = '<div class="notes-empty">Carregant notes…</div>';
   }
 
+  const studentStructure = {
+    Economia: [
+      {title:'Tema 1 · FPP', practices:[
+        {id:'fpp', label:'Pràctica 1 · FPP'}
+      ]},
+      {title:'Tema 2 · Oferta i demanda', practices:[
+        {id:'oferta', label:'Pràctica 2a · Oferta'},
+        {id:'demanda', label:'Pràctica 2b · Demanda'},
+        {id:'equilibri', label:'Pràctica 2c · Equilibri'},
+        {id:'equilibri-exercicis', label:'Pràctica 2d · Exercicis'}
+      ]},
+      {title:'Tema 3 · Elasticitat', practices:[
+        {id:'elasticitat', label:'Pràctica 3 · Elasticitat'}
+      ]}
+    ],
+    Estadística: [
+      {title:'Tema 1 · Estadística descriptiva unidimensional', practices:[
+        {id:'freq-var', label:'Pràctica 1a · Taules de freqüències i dispersió'},
+        {id:'descriptiva-1d', label:'Pràctica 1b'},
+        {id:'descriptiva-1d-examen', label:'Pràctica 1c'}
+      ]},
+      {title:'Tema 2 · Estadística descriptiva bidimensional', practices:[
+        {id:'descriptiva-2d', label:'Pràctica 2a'},
+        {id:'descriptiva-2d-aplicada', label:'Pràctica 2b'},
+        {id:'descriptiva-2d-examen', label:'Pràctica 2c'}
+      ]},
+      {title:'Tema 3 · Sèries temporals', practices:[
+        {id:'series-temporals-1', label:'Pràctica 3a'},
+        {id:'series-temporals-2', label:'Pràctica 3b'},
+        {id:'series-temporals-3', label:'Pràctica 3c'}
+      ]}
+    ]
+  };
+
+  function parseGrade(value) {
+    const n = Number(String(value ?? '').trim().replace(',','.'));
+    return Number.isFinite(n) ? n : null;
+  }
+
+  function formatGrade(value) {
+    return Number(value).toLocaleString('ca-ES',{minimumFractionDigits:2,maximumFractionDigits:2});
+  }
+
   function studentView(notes) {
     const mark = $('notes-area-mark');
-    $('notes-practices').classList.toggle('hidden', Boolean(state.practiceId));
-    mark.classList.toggle('hidden', Boolean(state.practiceId));
-    $('notes-title').textContent = state.practiceId ? '' : 'Notes';
+    state.practiceId = '';
+    $('notes-practices').classList.add('hidden');
+    mark.classList.remove('hidden');
+    $('notes-title').textContent = 'Les meves notes';
     mark.textContent = state.area === 'Economia' ? 'E' : 'Σ';
     const other = state.area === 'Economia' ? 'Estadística' : 'Economia';
     mark.title = 'Canvia a ' + other;
     mark.setAttribute('aria-label', 'Canvia a ' + other);
 
     const areaNotes = notes.filter(n => n.area === state.area);
-    const practices = new Map();
-    areaNotes.forEach(n => {
-      if (!practices.has(n.practiceId)) practices.set(n.practiceId, n.practice);
-    });
+    const byId = new Map(areaNotes.map(n => [String(n.practiceId), n]));
+    const topics = studentStructure[state.area] || [];
 
-    const buttons = [...practices.entries()];
-    if (!buttons.length) {
-      state.practiceId = '';
-      $('notes-practices').innerHTML = '';
-      $('notes-content').innerHTML = '<div class="notes-empty">Encara no tens cap pràctica qualificada en aquesta assignatura.</div>';
+    if (!topics.length) {
+      $('notes-content').innerHTML = '<div class="notes-empty">Encara no hi ha estructura de notes per aquesta assignatura.</div>';
       return;
     }
 
-    $('notes-practices').innerHTML = buttons.map(([id, label]) => `
-      <button class="notes-practice-btn ${id === state.practiceId ? 'active' : ''}" type="button" data-practice-id="${esc(id)}">${esc(label)}</button>
-    `).join('');
+    $('notes-content').innerHTML = '<div class="student-notes-subject">' +
+      '<div class="student-notes-subject-head">' +
+        '<div><div class="student-notes-label">Assignatura</div><div class="student-notes-subject-title">' + esc(state.area) + '</div></div>' +
+      '</div>' +
+      topics.map(topic => {
+        const rows = topic.practices.map(p => {
+          const note = byId.get(p.id);
+          const grade = note ? parseGrade(note.grade) : null;
+          return {
+            ...p,
+            label: note?.practice || p.label,
+            grade
+          };
+        });
+        const complete = rows.length > 0 && rows.every(r => r.grade !== null);
+        const topicGrade = complete
+          ? rows.reduce((sum,r)=>sum+r.grade,0) / rows.length
+          : null;
 
-    $('notes-practices').querySelectorAll('.notes-practice-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        state.practiceId = btn.dataset.practiceId || '';
-        studentView(state.notes);
-      });
-    });
-
-    if (!state.practiceId) {
-      $('notes-title').textContent = 'Notes';
-      $('notes-content').innerHTML = '';
-      return;
-    }
-
-    const row = areaNotes.find(n => n.practiceId === state.practiceId);
-    $('notes-title').textContent = row?.practice || 'Notes';
-    $('notes-content').innerHTML = row
-      ? `<div class="student-note-row">
-          <div><div class="note-practice">${esc(row.practice)}</div></div>
-          <div class="note-grade">${esc(row.grade)}</div>
-        </div>`
-      : '<div class="notes-empty">No hi ha nota per aquesta pràctica.</div>';
+        return '<section class="student-notes-topic">' +
+          '<div class="student-notes-topic-head">' +
+            '<div class="student-notes-topic-title">' + esc(topic.title) + '</div>' +
+            '<div class="student-notes-topic-grade ' + (topicGrade===null?'pending':'') + '">' +
+              (topicGrade===null ? '—' : formatGrade(topicGrade)) +
+            '</div>' +
+          '</div>' +
+          '<div class="student-notes-topic-body">' +
+            rows.map(r =>
+              '<div class="student-notes-row">' +
+                '<div class="student-notes-practice">' + esc(r.label) + '</div>' +
+                '<div class="student-notes-grade ' + (r.grade===null?'pending':'') + '">' +
+                  (r.grade===null ? 'Encara sense nota' : formatGrade(r.grade)) +
+                '</div>' +
+              '</div>'
+            ).join('') +
+          '</div>' +
+        '</section>';
+      }).join('') +
+    '</div>';
   }
 
   function teacherPracticeButtons(notes) {
