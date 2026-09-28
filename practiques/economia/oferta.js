@@ -20,6 +20,11 @@
     return Number(s);
   }
   const roundN=(v,n)=>Number.isFinite(v)?Number(v.toFixed(n)):NaN;
+  const numericTolerance=(expected)=>Math.max(0.02,Math.abs(expected)*0.005);
+  const numericMatches=(value,expected)=>{
+    const v=roundN(value,2),e=roundN(expected,2);
+    return Number.isFinite(v)&&Number.isFinite(e)&&Math.abs(v-e)<=numericTolerance(e)+1e-9;
+  };
   const mod=(a,m)=>((a%m)+m)%m;
   function seedFromId(id){const s=String(id??'').trim(),last=s.slice(-4);return /^\d+$/.test(last)?Number(last)%10000:6380;}
   function pars(seed){
@@ -123,8 +128,8 @@
     else{
       const v=parseNum(raw);if(Number.isFinite(v)){
         const e=expected(d,p);
-        if(Array.isArray(e)) ok=e.some(x=>roundN(x,2)===roundN(v,2));
-        else ok=roundN(v,2)===roundN(e,2);
+        if(Array.isArray(e)) ok=e.some(x=>numericMatches(v,x));
+        else ok=numericMatches(v,e);
       }
     }
     box.className='q-check '+(ok?'correct':'wrong');box.textContent=ok?'Correcte':'Revisa-ho';
