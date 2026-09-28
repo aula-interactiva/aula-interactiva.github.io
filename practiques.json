@@ -103,7 +103,7 @@
           "id": "excel-zero",
           "ordre": 0,
           "visible": true,
-          "disponible": false,
+          "disponible": true,
           "codi": "Pràctica 0",
           "titol": "Primer contacte amb Excel",
           "descripcio": "Fórmules, referències relatives i absolutes, funcions bàsiques, ordenar, filtrar i crear un primer gràfic.",
