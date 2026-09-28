@@ -530,17 +530,15 @@
       const published = availability.open;
       const individuallySubmitted = !teacher && !isApunts &&
         submittedPracticeKeys.has(String(p.fitxer || p.id || ''));
-      const canOpen = (published && !individuallySubmitted) || teacher;
+      const canOpen = published || teacher;
       const preview = teacher && !published;
       const status = preview
         ? 'Professor'
         : availability.state === 'closed'
           ? 'Tancat'
-          : individuallySubmitted
-            ? 'Entregada'
-            : published
-              ? 'Disponible'
-              : 'Properament';
+          : published
+            ? 'Disponible'
+            : 'Properament';
       const statusClass = status === 'Disponible' ? 'available' : status === 'Tancat' ? 'closed' : '';
       const timing = !isApunts
         ? availability.state === 'upcoming' && availability.opensAt
