@@ -22,6 +22,7 @@ const SHEETS = Object.freeze({
 const TOKEN_TTL_SECONDS = 21600; // 6 hores
 const PDF_ROOT_FOLDER_ID = '19kL-nxDJxMDj8IF2t7dwyFsN_bdT5j0t';
 const MAX_PDF_BYTES = 10 * 1024 * 1024;
+const ALLOWED_UPLOAD_MIME_TYPES = ['application/pdf', 'image/png', 'image/jpeg'];
 
 function doGet(e) {
   try {
@@ -121,7 +122,7 @@ function savePayload_(payload) {
   }
 
   if (status === 'Fitxer') {
-    return savePdf_(payload, student);
+    return saveFile_(payload, student);
   }
 
   if (status !== 'Entregada') {
@@ -164,13 +165,13 @@ function pdfStatus_(code, submissionId) {
     : result;
 }
 
-function savePdf_(p, student) {
+function saveFile_(p, student) {
   const mimeType = String(p.mimeType || '').toLowerCase();
-  if (mimeType !== 'application/pdf') {
-    return {ok: false, error: 'pdf-only'};
+  if (ALLOWED_UPLOAD_MIME_TYPES.indexOf(mimeType) < 0) {
+    return {ok: false, error: 'file-type'};
   }
 
-  const base64 = String(p.fileBase64 || '').replace(/^data:application\/pdf;base64,/, '');
+  const base64 = String(p.fileBase64 || '').replace(/^data:[^;]+;base64,/, '');
   if (!base64) return {ok: false, error: 'missing-file'};
 
   let bytes;
@@ -186,19 +187,22 @@ function savePdf_(p, student) {
   const root = DriveApp.getFolderById(PDF_ROOT_FOLDER_ID);
   const areaFolder = getOrCreateFolder_(root, safeFilePart_(p.area || 'General'));
   const practiceFolder = getOrCreateFolder_(areaFolder, safeFilePart_(p.practice || 'Pràctica'));
+  const fileKind = safeFilePart_(p.fileKind || 'fitxer');
+  const ext = mimeType === 'application/pdf' ? '.pdf' : mimeType === 'image/png' ? '.png' : '.jpg';
 
   const filename =
     normalizeId_(p.id) + '_' +
     safeFilePart_(student.name || 'Alumne') + '_' +
-    safeFilePart_(p.practice || 'Pràctica') + '.pdf';
+    safeFilePart_(p.practice || 'Pràctica') + '_' +
+    fileKind + ext;
 
-  // Manté una sola versió activa per alumne i pràctica.
+  // Manté una sola versió activa per alumne, pràctica i tipus de fitxer.
   const oldFiles = practiceFolder.getFilesByName(filename);
   while (oldFiles.hasNext()) {
     oldFiles.next().setTrashed(true);
   }
 
-  const blob = Utilities.newBlob(bytes, 'application/pdf', filename);
+  const blob = Utilities.newBlob(bytes, mimeType, filename);
   const file = practiceFolder.createFile(blob);
 
   appendByHeaders_(SHEETS.pdfUploads, {
@@ -216,11 +220,16 @@ function savePdf_(p, student) {
 
   return {
     ok: true,
-    type: 'pdf',
+    type: 'file',
     fileId: file.getId(),
     url: file.getUrl(),
     name: filename
   };
+}
+
+function savePdf_(p, student) {
+  p.fileKind = p.fileKind || 'pdf';
+  return saveFile_(p, student);
 }
 
 function getOrCreateFolder_(parent, name) {
@@ -527,7 +536,7 @@ function operationStatus_(token, code, kind, operationId) {
   if (type === 'submission') {
     if (auth.role !== 'student') return {ok: false, error: 'unauthorized'};
     exists = submissionExistsForStudent_(auth.id, oid);
-  } else if (type === 'pdf') {
+  } else if (type === 'pdf' || type === 'file') {
     if (auth.role !== 'student') return {ok: false, error: 'unauthorized'};
     exists = pdfExistsForStudent_(auth.id, oid);
   } else if (type === 'message') {
