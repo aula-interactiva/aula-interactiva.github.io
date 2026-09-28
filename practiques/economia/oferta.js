@@ -25,6 +25,10 @@
     const v=roundN(value,2),e=roundN(expected,2);
     return Number.isFinite(v)&&Number.isFinite(e)&&Math.abs(v-e)<=numericTolerance(e)+1e-9;
   };
+  const priceMatches=(value,expected)=>{
+    const v=roundN(value,2),e=roundN(expected,2);
+    return Number.isFinite(v)&&Number.isFinite(e)&&Math.abs(v-e)<=0.05+1e-9;
+  };
   const mod=(a,m)=>((a%m)+m)%m;
   function seedFromId(id){const s=String(id??'').trim(),last=s.slice(-4);return /^\d+$/.test(last)?Number(last)%10000:6380;}
   function pars(seed){
@@ -129,6 +133,7 @@
       const v=parseNum(raw);if(Number.isFinite(v)){
         const e=expected(d,p);
         if(Array.isArray(e)) ok=e.some(x=>numericMatches(v,x));
+        else if(d.kind==='priceGoal'||d.kind==='priceIncrease') ok=priceMatches(v,e);
         else ok=numericMatches(v,e);
       }
     }
