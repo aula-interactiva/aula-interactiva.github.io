@@ -1064,16 +1064,6 @@
       return;
     }
 
-    const submitted = await checkPracticeSubmitted(practice);
-    if (!submitted.ok) {
-      showBlockedPractice('verification');
-      return;
-    }
-    if (submitted.submitted) {
-      showBlockedPractice('submitted');
-      return;
-    }
-
     practiceClosesAt = state.closesAt;
     startPractice(session);
   }
