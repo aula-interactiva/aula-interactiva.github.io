@@ -650,11 +650,13 @@
     }
   }
 
-  async function uploadPdf(file, {practice = 'Pràctica', area = 'Sistema', submissionId = ''} = {}) {
+  async function uploadFile(file, {practice = 'Pràctica', area = 'Sistema', submissionId = '', fileKind = 'fitxer'} = {}) {
     const session = getSession();
     if (!session || session.role !== 'student') return {ok: false, error: 'no-student-session'};
     if (normalizeId(session.id) === '142858') return {ok: true, skipped: true, test: true};
-    if (!file || file.type !== 'application/pdf') return {ok: false, error: 'pdf-only'};
+
+    const allowed = ['application/pdf', 'image/png', 'image/jpeg'];
+    if (!file || !allowed.includes(file.type)) return {ok: false, error: 'file-type'};
     if (file.size > 10 * 1024 * 1024) return {ok: false, error: 'file-too-large'};
 
     const buffer = await file.arrayBuffer();
@@ -666,27 +668,33 @@
     }
 
     const payload = {
-      submissionId: submissionId || stablePracticeSubmissionId(normalizeRepoPath(location.pathname), session.id),
+      submissionId: submissionId || stablePracticeSubmissionId(normalizeRepoPath(location.pathname), session.id) + '-' + fileKind,
       id: session.id,
       practice,
       area,
       status: 'Fitxer',
-      mimeType: 'application/pdf',
-      fileName: file.name || 'resolucions.pdf',
+      fileKind,
+      mimeType: file.type,
+      fileName: file.name || fileKind,
       size: file.size,
       fileBase64: btoa(binary)
     };
 
     try {
       await postPayload(payload);
-      const confirmation = await confirmOperation('pdf', payload.submissionId);
+      const confirmation = await confirmOperation('file', payload.submissionId);
       if (!confirmation.ok) {
-        return {ok: false, error: 'pdf-not-confirmed', confirmed: false};
+        return {ok: false, error: 'file-not-confirmed', confirmed: false};
       }
       return {ok: true, confirmed: true};
     } catch (error) {
       return {ok: false, error, confirmed: false};
     }
+  }
+
+  async function uploadPdf(file, options = {}) {
+    if (!file || file.type !== 'application/pdf') return {ok: false, error: 'pdf-only'};
+    return uploadFile(file, {...options, fileKind: options.fileKind || 'pdf'});
   }
 
   async function submit(payload) {
@@ -1095,6 +1103,7 @@
     isTeacher,
     makeSubmissionId,
     submit,
+    uploadFile,
     uploadPdf,
     checkPracticeSubmitted,
     stablePracticeSubmissionId,
