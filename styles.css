@@ -46,7 +46,7 @@ button{cursor:pointer}
 .status-pill{font-size:11px;font-weight:750;border-radius:999px;padding:5px 8px;background:#ece9e3;color:var(--muted)}
 .status-pill.available{background:#e7f0ec;color:#35695c}
 .card-status{color:var(--charcoal)}
-.card-status.available{color:#35695c}
+.card-status.available{color:#2f7d4a}
 .card-status.closed{color:#9a4f4f}
 .action-buttons{display:flex;align-items:center;gap:8px}
 .open-btn,.pdf-btn{border:0;border-radius:6px;padding:5px 8px;font-weight:700;font-size:11px}
