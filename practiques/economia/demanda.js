@@ -20,6 +20,11 @@
     return Number(s);
   }
   const roundN=(v,n)=>Number.isFinite(v)?Number(v.toFixed(n)):NaN;
+  const numericTolerance=(expected)=>Math.max(0.02,Math.abs(expected)*0.005);
+  const numericMatches=(value,expected)=>{
+    const v=roundN(value,2),e=roundN(expected,2);
+    return Number.isFinite(v)&&Number.isFinite(e)&&Math.abs(v-e)<=numericTolerance(e)+1e-9;
+  };
   const mod=(a,m)=>((a%m)+m)%m;
   function seedFromId(id){const s=String(id??'').trim(),last=s.slice(-4);return /^\d+$/.test(last)?Number(last)%10000:6380;}
   function pars(seed){
@@ -121,8 +126,13 @@
     if(d.options) ok=raw===expected(d,p);
     else{
       const v=parseNum(raw);if(Number.isFinite(v)){
-        if(d.kind==='incomeGoal'||d.kind==='wineGoal'||d.kind==='priceGoal') ok=goalMatchesVisibleTarget(d,p,v);
-        else{const e=expected(d,p);ok=roundN(v,2)===roundN(e,2);}
+        if(d.kind==='incomeGoal'||d.kind==='wineGoal'||d.kind==='priceGoal'){
+          const e=goalValue(d,p);
+          ok=numericMatches(v,e);
+        }else{
+          const e=expected(d,p);
+          ok=numericMatches(v,e);
+        }
       }
     }
     box.className='q-check '+(ok?'correct':'wrong');box.textContent=ok?'Correcte':'Revisa-ho';
