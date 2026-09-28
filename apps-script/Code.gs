@@ -271,7 +271,11 @@ function upsertSubmission_(p) {
 }
 
 function appendActivity_(p, student) {
-  appendByHeaders_(SHEETS.activity, {
+  const sh = sheet_(SHEETS.activity);
+  const headers = headers_(sh);
+  if (!headers.length) throw new Error('No headers in ' + SHEETS.activity);
+
+  const values = {
     'Data/hora': new Date(),
     'ID': idNumber_(p.id),
     'Nom': student.name,
@@ -286,7 +290,14 @@ function appendActivity_(p, student) {
     'Versió': clean_(p.version),
     'Detall JSON': safeJson_(p.detail || {}),
     'ID entrega': clean_(p.submissionId)
-  });
+  };
+
+  const row = headers.map(header =>
+    Object.prototype.hasOwnProperty.call(values, header) ? values[header] : ''
+  );
+
+  sh.insertRowBefore(2);
+  sh.getRange(2, 1, 1, headers.length).setValues([row]);
 }
 
 function appendCorrection_(p, justification) {
