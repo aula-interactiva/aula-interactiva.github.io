@@ -1,5 +1,5 @@
 {
-  "versio": 19,
+  "versio": 20,
   "ajuda": "visible controla la visibilitat per a l’alumnat; disponible és l’interruptor general d’accés. Opcionalment, obertura i tancament (ISO 8601 amb zona horària, p. ex. 2026-09-20T08:00:00+02:00) limiten automàticament l’accés. El professor pot previsualitzar les pràctiques fora de termini.",
   "arees": {
     "economia": {
@@ -41,6 +41,17 @@
           "descripcio": "Moviments i desplaçaments de la demanda, renda i preus de béns substitutius i complements.",
           "fitxer": "practiques/economia/demanda.html",
           "pdf": "assets/pdf/demanda.pdf"
+        },
+        {
+          "id": "oferta-demanda-repas",
+          "ordre": 3.5,
+          "visible": false,
+          "disponible": false,
+          "codi": "Exercici",
+          "titol": "Oferta i demanda",
+          "descripcio": "Activitat de consolidació d’oferta i demanda abans de començar l’equilibri de mercat.",
+          "fitxer": "practiques/economia/oferta-demanda-repas.html",
+          "pdf": null
         },
         {
           "id": "equilibri",
