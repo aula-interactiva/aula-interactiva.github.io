@@ -129,12 +129,10 @@ function savePayload_(payload) {
   }
 
   // L'entrega final va EXCLUSIVAMENT a Entregues.
-  // L'ID final és determinista: evita duplicats si es reintenta l'enviament.
-  if (submissionExists_(submissionId)) {
-    return {ok: true, duplicate: true, submissionId};
-  }
-
-  appendSubmission_(payload);
+  // L'ID final és determinista per alumne i pràctica.
+  // Si torna a entregar mentre la pràctica és oberta, substituïm l'entrega anterior.
+  upsertSubmission_(payload);
+  deleteCorrectionsBySubmissionId_(submissionId);
 
   const justifications = Array.isArray(payload.justifications)
     ? payload.justifications
@@ -201,7 +199,7 @@ function savePdf_(p, student) {
   const blob = Utilities.newBlob(bytes, 'application/pdf', filename);
   const file = practiceFolder.createFile(blob);
 
-  appendByHeaders_(SHEETS.pdfUploads, {
+  upsertByHeaderKey_(SHEETS.pdfUploads, 'ID entrega', clean_(p.submissionId), {
     'Data/hora': new Date(),
     'ID': idNumber_(p.id),
     'Nom': student.name,
@@ -236,8 +234,8 @@ function safeFilePart_(value) {
     .slice(0, 120) || 'Sense nom';
 }
 
-function appendSubmission_(p) {
-  appendByHeaders_(SHEETS.submissions, {
+function upsertSubmission_(p) {
+  const values = {
     'Data/hora': new Date(),
     'ID': idNumber_(p.id),
     'Pràctica': clean_(p.practice),
@@ -251,7 +249,25 @@ function appendSubmission_(p) {
     'Versió': clean_(p.version),
     'Detall JSON': safeJson_(p.detail || {}),
     'ID entrega': clean_(p.submissionId)
-  });
+  };
+
+  const sh = sheet_(SHEETS.submissions);
+  const headers = headers_(sh);
+  const sidCol = headers.indexOf('ID entrega');
+  const row = headers.map(header =>
+    Object.prototype.hasOwnProperty.call(values, header) ? values[header] : ''
+  );
+
+  if (sidCol >= 0 && sh.getLastRow() >= 2) {
+    const ids = sh.getRange(2, sidCol + 1, sh.getLastRow() - 1, 1).getDisplayValues().flat();
+    const idx = ids.findIndex(v => String(v || '').trim() === String(p.submissionId || '').trim());
+    if (idx >= 0) {
+      sh.getRange(idx + 2, 1, 1, headers.length).setValues([row]);
+      return;
+    }
+  }
+
+  sh.appendRow(row);
 }
 
 function appendActivity_(p, student) {
@@ -282,6 +298,20 @@ function appendCorrection_(p, justification) {
     'Justificació alumne': clean_(justification && justification.text),
     'ID entrega': clean_(p.submissionId)
   });
+}
+
+function deleteCorrectionsBySubmissionId_(submissionId) {
+  const sh = sheet_(SHEETS.corrections);
+  const headers = headers_(sh);
+  const sidCol = headers.indexOf('ID entrega');
+  if (sidCol < 0 || sh.getLastRow() < 2) return;
+
+  const ids = sh.getRange(2, sidCol + 1, sh.getLastRow() - 1, 1).getDisplayValues().flat();
+  for (let i = ids.length - 1; i >= 0; i--) {
+    if (String(ids[i] || '').trim() === String(submissionId || '').trim()) {
+      sh.deleteRow(i + 2);
+    }
+  }
 }
 
 function submissionExists_(submissionId) {
@@ -737,6 +767,30 @@ function findStudent_(id) {
   }
 
   return null;
+}
+
+function upsertByHeaderKey_(sheetName, keyHeader, keyValue, valuesByHeader) {
+  const sh = sheet_(sheetName);
+  const headers = headers_(sh);
+  if (!headers.length) throw new Error('No headers in ' + sheetName);
+
+  const keyCol = headers.indexOf(keyHeader);
+  const row = headers.map(header =>
+    Object.prototype.hasOwnProperty.call(valuesByHeader, header)
+      ? valuesByHeader[header]
+      : ''
+  );
+
+  if (keyCol >= 0 && sh.getLastRow() >= 2) {
+    const keys = sh.getRange(2, keyCol + 1, sh.getLastRow() - 1, 1).getDisplayValues().flat();
+    const idx = keys.findIndex(v => String(v || '').trim() === String(keyValue || '').trim());
+    if (idx >= 0) {
+      sh.getRange(idx + 2, 1, 1, headers.length).setValues([row]);
+      return;
+    }
+  }
+
+  sh.appendRow(row);
 }
 
 function appendByHeaders_(sheetName, valuesByHeader) {
