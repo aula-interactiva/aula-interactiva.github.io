@@ -1,5 +1,5 @@
 {
-  "versio": 18,
+  "versio": 19,
   "ajuda": "visible controla la visibilitat per a l’alumnat; disponible és l’interruptor general d’accés. Opcionalment, obertura i tancament (ISO 8601 amb zona horària, p. ex. 2026-09-20T08:00:00+02:00) limiten automàticament l’accés. El professor pot previsualitzar les pràctiques fora de termini.",
   "arees": {
     "economia": {
@@ -13,7 +13,7 @@
           "id": "fpp",
           "ordre": 1,
           "visible": true,
-          "disponible": true,
+          "disponible": false,
           "codi": "Pràctica 1",
           "titol": "Frontera de possibilitats de producció",
           "descripcio": "Escassetat, eficiència, moviments i desplaçaments de la FPP i cost d'oportunitat.",
@@ -24,7 +24,7 @@
           "id": "oferta",
           "ordre": 2,
           "visible": true,
-          "disponible": true,
+          "disponible": false,
           "codi": "Pràctica 2a",
           "titol": "Funció i corba d’oferta",
           "descripcio": "Moviments i desplaçaments de l’oferta, costos de producció, impostos i subvencions.",
@@ -90,7 +90,7 @@
           "id": "excel-zero",
           "ordre": 0,
           "visible": true,
-          "disponible": true,
+          "disponible": false,
           "codi": "Pràctica 0",
           "titol": "Primer contacte amb Excel",
           "descripcio": "Fórmules, referències relatives i absolutes, funcions bàsiques, ordenar, filtrar i crear un primer gràfic.",
