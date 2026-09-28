@@ -320,3 +320,22 @@ a.back-btn{text-decoration:none;display:inline-block}
   .messages-compose label{padding-top:0}
   .messages-compose-actions{grid-column:1}
 }
+
+
+/* Student notes preview (kept hidden from students until enabled in portal.js) */
+.student-notes-subject{display:flex;flex-direction:column;gap:12px}
+.student-notes-subject-head{display:flex;justify-content:space-between;align-items:end;padding:2px 0 6px}
+.student-notes-label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:800}
+.student-notes-subject-title{font-size:22px;font-weight:760;margin-top:2px}
+.student-notes-topic{border:1px solid var(--line);background:var(--paper);border-radius:10px;overflow:hidden}
+.student-notes-topic-head{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:11px 13px;background:#eeebe5;border-bottom:1px solid var(--line)}
+.student-notes-topic-title{font-size:13px;font-weight:800}
+.student-notes-topic-grade{font-size:17px;font-weight:850;min-width:54px;text-align:right}
+.student-notes-topic-grade.pending{color:var(--muted)}
+.student-notes-topic-body{display:flex;flex-direction:column}
+.student-notes-row{display:flex;justify-content:space-between;align-items:center;gap:18px;padding:11px 13px;border-bottom:1px solid var(--line-2)}
+.student-notes-row:last-child{border-bottom:0}
+.student-notes-practice{font-size:12.5px;font-weight:650}
+.student-notes-grade{font-size:13px;font-weight:800;white-space:nowrap}
+.student-notes-grade.pending{font-size:11px;font-weight:650;color:var(--muted)}
+
