@@ -20,8 +20,7 @@
   .task-list>li{margin:10px 0}
   .sub-list{margin:6px 0 0;padding-left:20px}
   .final-box{background:#fafafa;border:1px solid #ccc;border-radius:10px;padding:14px 16px;margin-top:18px}
-  .upload-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px}
-  .upload-box{border:1px solid #d9d9d9;border-radius:9px;padding:12px;background:#fff}
+  .upload-box{border:1px solid #d9d9d9;border-radius:9px;padding:12px;background:#fff;margin-top:12px}
   .upload-box label{display:block;font-size:13px;font-weight:800;margin-bottom:7px}
   .upload-box input{width:100%;font-size:12px}
   .upload-status{font-size:12px;color:#666;margin-top:7px;min-height:18px}
@@ -30,7 +29,7 @@
   .upload-action{margin-top:14px}
   .upload-action button{border:0;border-radius:8px;background:#444;color:#fff;padding:10px 14px;font-weight:800;cursor:pointer}
   .upload-action button:disabled{opacity:.5;cursor:default}
-  @media(max-width:650px){.data-table{min-width:0;width:100%}.upload-grid{grid-template-columns:1fr}}
+  @media(max-width:650px){.data-table{min-width:0;width:100%}}
 </style>
 </head>
 <body>
@@ -152,37 +151,28 @@
 <section class="bridge-card" style="margin-top:18px">
   <div class="bridge-head">Entrega per a la correcció</div>
   <div class="bridge-body">
-    <p>Puja els dos fitxers següents. Pots tornar-los a pujar si t’has equivocat: es conservarà l’última versió.</p>
-    <div class="upload-grid">
-      <div class="upload-box">
-        <label for="graph-upload">1 · Captura del gràfic d’Excel</label>
-        <input id="graph-upload" type="file" accept="image/png,image/jpeg,.png,.jpg,.jpeg">
-        <div id="graph-status" class="upload-status">PNG o JPG · màxim 10 MB</div>
-      </div>
-      <div class="upload-box">
-        <label for="work-upload">2 · Resta de l’exercici</label>
-        <input id="work-upload" type="file" accept="application/pdf,.pdf">
-        <div id="work-status" class="upload-status">PDF · màxim 10 MB</div>
-      </div>
+    <p>Fes tota l’activitat en un document. Enganxa-hi també la captura del gràfic d’Excel i, quan acabis, guarda o exporta el document com a <strong>PDF</strong>.</p>
+    <div class="upload-box">
+      <label for="work-upload">Puja l’exercici complet</label>
+      <input id="work-upload" type="file" accept="application/pdf,.pdf">
+      <div id="work-status" class="upload-status">PDF · màxim 10 MB</div>
     </div>
     <div class="upload-action">
-      <button id="upload-files" type="button">Puja els fitxers</button>
+      <button id="upload-file" type="button">Puja el PDF</button>
       <div id="upload-general-status" class="upload-status"></div>
     </div>
   </div>
 </section>
 </div>
-<script src="../../tracking.js?v=42"></script>
+<script src="../../tracking.js?v=43"></script>
 <script>
 (() => {
   const tracker = window.PracticeTracker;
-  const graphInput = document.getElementById('graph-upload');
-  const workInput = document.getElementById('work-upload');
-  const button = document.getElementById('upload-files');
-  const graphStatus = document.getElementById('graph-status');
-  const workStatus = document.getElementById('work-status');
+  const input = document.getElementById('work-upload');
+  const button = document.getElementById('upload-file');
+  const fileStatus = document.getElementById('work-status');
   const generalStatus = document.getElementById('upload-general-status');
-  if (!tracker || !graphInput || !workInput || !button) return;
+  if (!tracker || !input || !button) return;
 
   function setStatus(el, kind, text) {
     el.className = 'upload-status' + (kind ? ' ' + kind : '');
@@ -190,44 +180,32 @@
   }
 
   button.addEventListener('click', async () => {
-    const graph = graphInput.files?.[0] || null;
-    const work = workInput.files?.[0] || null;
-
-    if (!graph || !work) {
-      setStatus(generalStatus, 'bad', 'Cal seleccionar la captura del gràfic i el PDF.');
+    const file = input.files?.[0] || null;
+    if (!file) {
+      setStatus(generalStatus, 'bad', 'Cal seleccionar el PDF de l’exercici.');
       return;
     }
-
-    if (!['image/png','image/jpeg'].includes(graph.type)) {
-      setStatus(graphStatus, 'bad', 'La captura ha de ser PNG o JPG.');
-      return;
-    }
-    if (work.type !== 'application/pdf') {
-      setStatus(workStatus, 'bad', 'La resta de l’exercici ha de ser un PDF.');
+    if (file.type !== 'application/pdf') {
+      setStatus(fileStatus, 'bad', 'El fitxer ha de ser un PDF.');
       return;
     }
 
     button.disabled = true;
     button.textContent = 'Pujant…';
-    setStatus(generalStatus, '', 'Guardant els fitxers…');
+    setStatus(generalStatus, '', 'Guardant el fitxer…');
 
-    const session = tracker.getSession();
-    const baseId = tracker.stablePracticeSubmissionId('practiques/economia/oferta-demanda-repas.html', session?.id || '');
-    const common = {practice:'Exercici · Oferta i demanda', area:'Economia'};
+    const result = await tracker.uploadPdf(file, {
+      practice:'Exercici · Oferta i demanda',
+      area:'Economia'
+    });
 
-    const graphResult = await tracker.uploadFile(graph, {...common, submissionId: baseId + '-grafic', fileKind:'grafic'});
-    setStatus(graphStatus, graphResult.ok ? 'ok' : 'bad', graphResult.ok ? 'Captura pujada correctament.' : 'No s’ha pogut pujar la captura.');
+    setStatus(fileStatus, result.ok ? 'ok' : 'bad',
+      result.ok ? 'PDF pujat correctament.' : 'No s’ha pogut pujar el PDF.');
+    setStatus(generalStatus, result.ok ? 'ok' : 'bad',
+      result.ok ? 'L’exercici ha quedat registrat per a la correcció.' : 'No s’ha pogut confirmar la pujada. Torna-ho a provar.');
 
-    const workResult = await tracker.uploadFile(work, {...common, submissionId: baseId + '-exercici', fileKind:'exercici'});
-    setStatus(workStatus, workResult.ok ? 'ok' : 'bad', workResult.ok ? 'PDF pujat correctament.' : 'No s’ha pogut pujar el PDF.');
-
-    if (graphResult.ok && workResult.ok) {
-      setStatus(generalStatus, 'ok', 'Els dos fitxers han quedat registrats per a la correcció.');
-    } else {
-      setStatus(generalStatus, 'bad', 'Hi ha algun fitxer que no s’ha pogut confirmar. Torna-ho a provar.');
-    }
     button.disabled = false;
-    button.textContent = 'Puja els fitxers';
+    button.textContent = 'Puja el PDF';
   });
 })();
 </script>
