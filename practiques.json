@@ -45,8 +45,8 @@
         {
           "id": "oferta-demanda-repas",
           "ordre": 3.5,
-          "visible": false,
-          "disponible": false,
+          "visible": true,
+          "disponible": true,
           "codi": "Exercici",
           "titol": "Oferta i demanda",
           "descripcio": "Activitat de consolidació d’oferta i demanda abans de començar l’equilibri de mercat.",
