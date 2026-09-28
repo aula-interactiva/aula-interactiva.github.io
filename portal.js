@@ -535,12 +535,13 @@
       const status = preview
         ? 'Professor'
         : availability.state === 'closed'
-          ? 'Tancada'
+          ? 'Tancat'
           : individuallySubmitted
             ? 'Entregada'
             : published
               ? 'Disponible'
               : 'Properament';
+      const statusClass = status === 'Disponible' ? 'available' : status === 'Tancat' ? 'closed' : '';
       const timing = !isApunts
         ? availability.state === 'upcoming' && availability.opensAt
           ? ` · Obre ${formatAccessDate(availability.opensAt)}`
@@ -581,7 +582,7 @@
 
       return `<article class="practice-card ${canOpen ? 'active' : 'disabled'} ${preview ? 'teacher-preview' : ''}">
         <div>
-          <div class="card-kicker">${esc(p.codi)} · ${status}${esc(timing)}</div>
+          <div class="card-kicker">${esc(p.codi)} · <span class="card-status ${statusClass}">${esc(status)}</span>${esc(timing)}</div>
           <div class="card-title">${esc(p.titol)}</div>
           <div class="card-desc">${esc(p.descripcio)}</div>
         </div>
