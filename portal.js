@@ -252,29 +252,8 @@
     return result;
   }
 
-  async function openMessages() {
-    $('notes-panel').classList.add('hidden');
-    $('messages-panel').classList.remove('hidden');
-
-    const result = await refreshMessages({renderPanel: true});
-    if (!result?.ok || result.role !== 'student') return;
-
-    const unread = (result.messages || []).filter(m => m.read === false && m.id);
-    if (!unread.length) return;
-
-    await Promise.all(unread.map(m =>
-      tracker.apiPost({
-        status: 'MissatgeLlegit',
-        messageId: m.id
-      }).catch(() => null)
-    ));
-
-    if (messagesData?.messages) {
-      messagesData.messages = messagesData.messages.map(m => ({...m, read: true}));
-      messagesData.unreadCount = 0;
-      setMessagesBadge(0);
-      renderMessagesPanel(messagesData);
-    }
+  function openMessages() {
+    location.href = 'messages.html';
   }
 
   function selectedMessageRecipients() {
