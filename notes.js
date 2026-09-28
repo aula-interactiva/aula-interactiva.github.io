@@ -138,7 +138,7 @@
               '<div class="student-notes-row">' +
                 '<div class="student-notes-practice">' + esc(r.label) + '</div>' +
                 '<div class="student-notes-grade ' + (r.grade===null?'pending':'') + '">' +
-                  (r.grade===null ? 'Encara sense nota' : formatGrade(r.grade)) +
+                  (r.grade===null ? 'Pendent' : formatGrade(r.grade)) +
                 '</div>' +
               '</div>'
             ).join('') +
