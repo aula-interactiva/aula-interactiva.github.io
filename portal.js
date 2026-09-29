@@ -6,13 +6,13 @@
     versio: 2,
     arees: {
       economia: {
-        nom: 'Economia', simbol: 'E', eyebrow: "Introducció a l'economia i estadística",
+        nom: 'Economia', simbol: 'E', eyebrow: "Introducció a l'economia",
         titol: 'Pràctiques',
         subtitol: 'Activitats del curs. Les noves pràctiques s’aniran incorporant aquí.',
         practiques: []
       },
       estadistica: {
-        nom: 'Estadística', simbol: 'Σ', eyebrow: "Introducció a l'economia i estadística",
+        nom: 'Estadística', simbol: 'Σ', eyebrow: "Introducció a l'estadística",
         titol: 'Pràctiques',
         subtitol: 'Laboratoris de dades per calcular, visualitzar i interpretar estadístics amb suport d’Excel.',
         practiques: []
@@ -24,13 +24,13 @@
     versio: 1,
     arees: {
       economia: {
-        nom: 'Economia', simbol: 'E', eyebrow: "Introducció a l'economia i estadística",
+        nom: 'Economia', simbol: 'E', eyebrow: "Introducció a l'economia",
         titol: 'Apunts',
         subtitol: 'Materials de teoria de l’assignatura. Els temes s’aniran incorporant progressivament.',
         apunts: []
       },
       estadistica: {
-        nom: 'Estadística', simbol: 'Σ', eyebrow: "Introducció a l'economia i estadística",
+        nom: 'Estadística', simbol: 'Σ', eyebrow: "Introducció a l'estadística",
         titol: 'Apunts',
         subtitol: 'Materials de teoria per preparar les pràctiques i repassar els conceptes del curs.',
         apunts: [{
