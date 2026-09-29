@@ -5,9 +5,9 @@
     "economia": {
       "nom": "Economia",
       "simbol": "E",
-      "eyebrow": "Introducció a l'economia",
-      "titol": "Pràctiques interactives",
-      "subtitol": "Activitats del curs. Les noves pràctiques s’aniran incorporant aquí.",
+      "eyebrow": "Introducció a l'economia i estadística",
+      "titol": "Pràctiques",
+      "subtitol": "",
       "practiques": [
         {
           "id": "fpp",
@@ -95,9 +95,9 @@
     "estadistica": {
       "nom": "Estadística",
       "simbol": "Σ",
-      "eyebrow": "Estadística",
-      "titol": "Pràctiques interactives",
-      "subtitol": "Laboratoris de dades per calcular, visualitzar i interpretar estadístics amb suport d’Excel.",
+      "eyebrow": "Introducció a l'economia i estadística",
+      "titol": "Pràctiques",
+      "subtitol": "",
       "practiques": [
         {
           "id": "excel-zero",
