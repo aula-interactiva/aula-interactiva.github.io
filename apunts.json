@@ -5,9 +5,9 @@
     "economia": {
       "nom": "Economia",
       "simbol": "E",
-      "eyebrow": "Introducció a l'economia",
+      "eyebrow": "Introducció a l'economia i estadística",
       "titol": "Apunts",
-      "subtitol": "Materials de teoria de l’assignatura. Els temes s’aniran incorporant progressivament.",
+      "subtitol": "",
       "apunts": [
         {
           "id": "introduccio-economia",
@@ -62,9 +62,9 @@
     "estadistica": {
       "nom": "Estadística",
       "simbol": "Σ",
-      "eyebrow": "Estadística",
+      "eyebrow": "Introducció a l'economia i estadística",
       "titol": "Apunts",
-      "subtitol": "Materials de teoria per preparar les pràctiques i repassar els conceptes del curs.",
+      "subtitol": "",
       "apunts": [
         {
           "id": "tema-1-descriptiva-unidimensional",
