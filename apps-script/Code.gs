@@ -372,8 +372,8 @@ function notes_(token, code) {
   const lastRow = sh.getLastRow();
   if (lastRow < 2) return {ok: true, notes: []};
 
-  // A Àrea | B Pràctica ID | C Pràctica | D Alumne | E ID alumne | F Nota
-  const rows = sh.getRange(2, 1, lastRow - 1, 6).getDisplayValues();
+  // A Àrea | B Pràctica ID | C Pràctica | D Alumne | E ID alumne | F Nota | G Comentari
+  const rows = sh.getRange(2, 1, lastRow - 1, 7).getDisplayValues();
   const teacher = auth.role === 'teacher';
 
   const notes = rows
@@ -385,7 +385,8 @@ function notes_(token, code) {
       practice: String(r[2] || ''),
       student: String(r[3] || ''),
       studentId: normalizeId_(r[4]),
-      grade: String(r[5] || '')
+      grade: String(r[5] || ''),
+      comment: String(r[6] || '')
     }));
 
   return {ok: true, notes};
