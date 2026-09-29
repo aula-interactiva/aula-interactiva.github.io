@@ -60,6 +60,9 @@
       ]}
     ],
     Estadística: [
+      {title:'Introducció', practices:[
+        {id:'excel-zero', label:'Pràctica 0 · Primer contacte amb Excel'}
+      ]},
       {title:'Tema 1 · Estadística descriptiva unidimensional', practices:[
         {id:'freq-var', label:'Pràctica 1a · Taules de freqüències i dispersió'},
         {id:'descriptiva-1d', label:'Pràctica 1b'},
@@ -118,7 +121,8 @@
           return {
             ...p,
             label: note?.practice || p.label,
-            grade
+            grade,
+            comment: String(note?.comment || '').trim()
           };
         });
         const complete = rows.length > 0 && rows.every(r => r.grade !== null);
@@ -136,7 +140,9 @@
           '<div class="student-notes-topic-body">' +
             rows.map(r =>
               '<div class="student-notes-row">' +
-                '<div class="student-notes-practice">' + esc(r.label) + '</div>' +
+                '<div class="student-notes-practice-wrap"><div class="student-notes-practice">' + esc(r.label) + '</div>' +
+                  (r.comment ? '<div class="student-notes-comment">' + esc(r.comment) + '</div>' : '') +
+                '</div>' +
                 '<div class="student-notes-grade ' + (r.grade===null?'pending':'') + '">' +
                   (r.grade===null ? 'Pendent' : formatGrade(r.grade)) +
                 '</div>' +
@@ -194,7 +200,7 @@
 
     $('notes-content').innerHTML = rows.map(n => `
       <div class="teacher-note-row">
-        <div class="teacher-note-name">${esc(n.student)}</div>
+        <div><div class="teacher-note-name">${esc(n.student)}</div>${n.comment ? `<div class="teacher-note-comment">${esc(n.comment)}</div>` : ''}</div>
         <div class="note-grade">${esc(n.grade)}</div>
       </div>
     `).join('');
