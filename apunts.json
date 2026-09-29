@@ -5,7 +5,7 @@
     "economia": {
       "nom": "Economia",
       "simbol": "E",
-      "eyebrow": "Introducció a l'economia i estadística",
+      "eyebrow": "Introducció a l'economia",
       "titol": "Apunts",
       "subtitol": "",
       "apunts": [
@@ -62,7 +62,7 @@
     "estadistica": {
       "nom": "Estadística",
       "simbol": "Σ",
-      "eyebrow": "Introducció a l'economia i estadística",
+      "eyebrow": "Introducció a l'estadística",
       "titol": "Apunts",
       "subtitol": "",
       "apunts": [
