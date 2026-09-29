@@ -6,14 +6,14 @@
     versio: 2,
     arees: {
       economia: {
-        nom: 'Economia', simbol: 'E', eyebrow: "Introducció a l'economia",
-        titol: 'Pràctiques interactives',
+        nom: 'Economia', simbol: 'E', eyebrow: "Introducció a l'economia i estadística",
+        titol: 'Pràctiques',
         subtitol: 'Activitats del curs. Les noves pràctiques s’aniran incorporant aquí.',
         practiques: []
       },
       estadistica: {
-        nom: 'Estadística', simbol: 'Σ', eyebrow: 'Estadística',
-        titol: 'Pràctiques interactives',
+        nom: 'Estadística', simbol: 'Σ', eyebrow: "Introducció a l'economia i estadística",
+        titol: 'Pràctiques',
         subtitol: 'Laboratoris de dades per calcular, visualitzar i interpretar estadístics amb suport d’Excel.',
         practiques: []
       }
@@ -24,13 +24,13 @@
     versio: 1,
     arees: {
       economia: {
-        nom: 'Economia', simbol: 'E', eyebrow: "Introducció a l'economia",
+        nom: 'Economia', simbol: 'E', eyebrow: "Introducció a l'economia i estadística",
         titol: 'Apunts',
         subtitol: 'Materials de teoria de l’assignatura. Els temes s’aniran incorporant progressivament.',
         apunts: []
       },
       estadistica: {
-        nom: 'Estadística', simbol: 'Σ', eyebrow: 'Estadística',
+        nom: 'Estadística', simbol: 'Σ', eyebrow: "Introducció a l'economia i estadística",
         titol: 'Apunts',
         subtitol: 'Materials de teoria per preparar les pràctiques i repassar els conceptes del curs.',
         apunts: [{
@@ -476,8 +476,8 @@
     if (!a) return;
 
     $('hub-eyebrow').textContent = a.eyebrow || a.nom || '';
-    $('hub-title').textContent = a.titol || (isApunts ? 'Apunts' : 'Pràctiques interactives');
-    $('hub-sub').textContent = a.subtitol || '';
+    $('hub-title').textContent = a.titol || (isApunts ? 'Apunts' : 'Pràctiques');
+    $('hub-sub').textContent = '';
 
     $('area-mark').textContent = a.simbol || (area === 'economia' ? 'E' : 'Σ');
     const otherArea = area === 'economia' ? 'Estadística' : 'Economia';
@@ -489,7 +489,7 @@
     $('content-mark').title = `Canvia a ${otherMode}`;
     $('content-mark').setAttribute('aria-label', `Canvia a ${otherMode}`);
 
-    $('area-note').textContent = `${a.nom} · ${isApunts ? 'Apunts' : 'Pràctiques'} · ${a.simbol} canvia l’àrea · ${isApunts ? 'A' : 'P'} canvia Apunts/Pràctiques`;
+    $('area-note').textContent = '';
 
     const source = isApunts ? (a.apunts || []) : (a.practiques || []);
     const list = source
