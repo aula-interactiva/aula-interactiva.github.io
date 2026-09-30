@@ -653,25 +653,33 @@
   async function getPracticeSubmission(practicePath = location.pathname) {
     const session = getSession();
     if (!session || session.role !== 'student') {
-      return {ok: false, error: 'no-student-session', submitted: false};
+      return {ok: false, submitted: false, error: 'no-student-session'};
     }
     if (normalizeId(session.id) === '142858') {
       return {ok: true, submitted: false, test: true};
     }
 
     const submissionId = stablePracticeSubmissionId(practicePath, session.id);
-    const auth = session.token
-      ? {token: session.token}
-      : {code: session.id};
+    const auth = session.token ? {token: session.token} : {code: session.id};
 
     try {
-      return await jsonp({
-        action: 'submission',
+      const result = await jsonp({
+        action: 'submission-data',
         ...auth,
         submissionId
       });
+
+      if (!result?.ok) {
+        return {ok: false, submitted: false, submissionId, error: result?.error || 'backend'};
+      }
+
+      return {
+        ...result,
+        submitted: result.exists === true,
+        submissionId
+      };
     } catch (error) {
-      return {ok: false, error: 'submission-read-failed', submitted: false};
+      return {ok: false, submitted: false, submissionId, error};
     }
   }
 
