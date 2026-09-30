@@ -126,13 +126,27 @@
       if (item) el.value = String(item.text ?? '');
     });
 
-    submitted = true;
-    startedAt = null;
-    submitBtn.textContent = 'Pràctica entregada';
-    submitBtn.disabled = true;
+    savedQuestions.forEach(item => {
+      const n = Number(item?.question);
+      if (!Number.isFinite(n) || n < 1 || n > NQ) return;
+      const i = n - 1;
+      attempts[i] = Math.max(0, Number(item?.attempts) || 0);
+      const control = $(answerId(i));
+      lastChecked[i] = String(control?.value ?? '').trim() || null;
+    });
+
+    const previousMinutes = Number(String(final.minutes || '').replace(',', '.'));
+    elapsedBeforeMs = Number.isFinite(previousMinutes) && previousMinutes > 0
+      ? previousMinutes * 60000
+      : 0;
+
+    submitted = false;
+    startedAt = Date.now();
+    setAnswersEnabled(true);
+    submitBtn.textContent = 'Torna a entregar';
+    submitBtn.disabled = false;
     submitStatus.className = 'pilot-submit-status ok';
-    submitStatus.textContent = 'Aquesta és l’entrega registrada al servidor. Es mostra en mode només lectura.';
-    setFinalReadOnly();
+    submitStatus.textContent = 'S’ha carregat la teva última entrega. Pots modificar-la i tornar-la a entregar mentre la pràctica estigui oberta.';
     return true;
   }
 
