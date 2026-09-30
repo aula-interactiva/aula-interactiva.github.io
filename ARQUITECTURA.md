@@ -40,3 +40,7 @@ La capa de notes s'ha de mantenir separada del runtime de les pràctiques:
 - `Correccions`: detall de justificacions, puntuació, valoració i comentari.
 
 La correcció automàtica de justificacions ha d'utilitzar una rúbrica fixa i auditable. La puntuació de cada justificació pot ser 0, 0,5, 1, 1,5 o 2.
+
+- `Criteris_Correccio`: registre únic de les pautes específiques de cada pràctica, amb mode de correcció, versió, components, punts/pes, criteris, límits i política de termini.
+- `Configuració`: conserva només criteris globals, excepcions i paràmetres comuns.
+- Quan entra una entrega final, el backend sincronitza `Notes_Practiques`: crea la fila si encara no existeix o substitueix un fals estat pendent per «Entrega rebuda. Pendent de correcció.». Una nota ja existent no es modifica mai automàticament.
