@@ -675,7 +675,7 @@
 
       return {
         ...result,
-        submitted: result.exists === true,
+        submitted: result.submitted === true || result.exists === true,
         submissionId
       };
     } catch (error) {
