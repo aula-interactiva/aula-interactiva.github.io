@@ -74,7 +74,24 @@
     if (!tracker.getPracticeSubmission) return false;
 
     const final = await tracker.getPracticeSubmission(location.pathname);
-    if (!final?.ok || !final.submitted) return false;
+
+    // Compatibilitat amb el desplegament anterior de l'Apps Script:
+    // si encara no pot retornar el detall però sí confirmar l'entrega,
+    // bloquegem igualment la pràctica per evitar crear una còpia nova buida.
+    if (!final?.ok || !final.submitted) {
+      const status = await tracker.checkPracticeSubmitted({fitxer: location.pathname});
+      if (!status?.ok || !status.submitted) return false;
+
+      resetWork();
+      submitted = true;
+      startedAt = null;
+      submitBtn.textContent = 'Pràctica entregada';
+      submitBtn.disabled = true;
+      submitStatus.className = 'pilot-submit-status ok';
+      submitStatus.textContent = 'Aquesta pràctica ja consta com a entregada. No es pot modificar.';
+      setFinalReadOnly();
+      return true;
+    }
 
     resetWork();
 
