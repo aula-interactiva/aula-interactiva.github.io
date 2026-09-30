@@ -34,6 +34,8 @@ function doGet(e) {
       result = login_(p.code);
     } else if (action === 'notes') {
       result = notes_(p.token, p.code);
+    } else if (action === 'submission-data') {
+      result = submissionData_(p.token, p.code, p.submissionId);
     } else if (action === 'submission-status') {
       result = submissionStatus_(p.code, p.submissionId);
     } else if (action === 'submission-data') {
@@ -155,6 +157,86 @@ function savePayload_(payload) {
     submissionId,
     corrections: justifications.length,
     gradeSync
+  };
+}
+
+function submissionData_(token, code, submissionId) {
+  const auth = authFromRequest_(token, code);
+  if (!auth || auth.role !== 'student') return {ok: false, error: 'unauthorized'};
+
+  const sid = String(submissionId || '').trim();
+  if (!sid) return {ok: false, error: 'invalid-submission-id'};
+
+  const sh = sheet_(SHEETS.submissions);
+  const headers = headers_(sh);
+  const idCol = headers.indexOf('ID');
+  const sidCol = headers.indexOf('ID entrega');
+  if (idCol < 0 || sidCol < 0) return {ok: false, error: 'submissions-schema'};
+
+  const rows = sh.getLastRow() < 2
+    ? []
+    : sh.getRange(2, 1, sh.getLastRow() - 1, sh.getLastColumn()).getDisplayValues();
+
+  const row = rows.find(r =>
+    normalizeId_(r[idCol]) === auth.id &&
+    String(r[sidCol] || '').trim() === sid
+  );
+
+  if (!row) return {ok: true, submitted: false, submissionId: sid};
+
+  const at = name => {
+    const i = headers.indexOf(name);
+    return i >= 0 ? String(row[i] || '') : '';
+  };
+
+  let detail = {};
+  try {
+    detail = JSON.parse(at('Detall JSON') || '{}');
+  } catch (_) {
+    detail = {};
+  }
+
+  const correctionsSheet = sheet_(SHEETS.corrections);
+  const correctionHeaders = headers_(correctionsSheet);
+  const cSid = correctionHeaders.indexOf('ID entrega');
+  const cId = correctionHeaders.indexOf('ID');
+  const cQuestion = correctionHeaders.indexOf('Pregunta');
+  const cText = correctionHeaders.indexOf('Justificació alumne');
+
+  let justifications = [];
+  if (
+    cSid >= 0 && cId >= 0 && cQuestion >= 0 && cText >= 0 &&
+    correctionsSheet.getLastRow() >= 2
+  ) {
+    const correctionRows = correctionsSheet
+      .getRange(2, 1, correctionsSheet.getLastRow() - 1, correctionsSheet.getLastColumn())
+      .getDisplayValues();
+
+    justifications = correctionRows
+      .filter(r =>
+        normalizeId_(r[cId]) === auth.id &&
+        String(r[cSid] || '').trim() === sid
+      )
+      .map(r => ({
+        question: String(r[cQuestion] || ''),
+        text: String(r[cText] || '')
+      }));
+  }
+
+  return {
+    ok: true,
+    submitted: true,
+    submissionId: sid,
+    practice: at('Pràctica'),
+    area: at('Àrea'),
+    total: at('Preguntes totals'),
+    correct: at('Correctes'),
+    attempts: at('Intents totals'),
+    progress: at('Progrés %'),
+    minutes: at('Temps (min)'),
+    version: at('Versió'),
+    detail,
+    justifications
   };
 }
 
