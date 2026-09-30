@@ -34,12 +34,8 @@ function doGet(e) {
       result = login_(p.code);
     } else if (action === 'notes') {
       result = notes_(p.token, p.code);
-    } else if (action === 'submission-data') {
-      result = submissionData_(p.token, p.code, p.submissionId);
     } else if (action === 'submission-status') {
       result = submissionStatus_(p.code, p.submissionId);
-    } else if (action === 'submission-data') {
-      result = submissionData_(p.token, p.code, p.submissionId);
     } else if (action === 'submission') {
       result = submission_(p.token, p.code, p.submissionId);
     } else if (action === 'pdf-status') {
@@ -160,159 +156,11 @@ function savePayload_(payload) {
   };
 }
 
-function submissionData_(token, code, submissionId) {
-  const auth = authFromRequest_(token, code);
-  if (!auth || auth.role !== 'student') return {ok: false, error: 'unauthorized'};
-
-  const sid = String(submissionId || '').trim();
-  if (!sid) return {ok: false, error: 'invalid-submission-id'};
-
-  const sh = sheet_(SHEETS.submissions);
-  const headers = headers_(sh);
-  const idCol = headers.indexOf('ID');
-  const sidCol = headers.indexOf('ID entrega');
-  if (idCol < 0 || sidCol < 0) return {ok: false, error: 'submissions-schema'};
-
-  const rows = sh.getLastRow() < 2
-    ? []
-    : sh.getRange(2, 1, sh.getLastRow() - 1, sh.getLastColumn()).getDisplayValues();
-
-  const row = rows.find(r =>
-    normalizeId_(r[idCol]) === auth.id &&
-    String(r[sidCol] || '').trim() === sid
-  );
-
-  if (!row) return {ok: true, submitted: false, submissionId: sid};
-
-  const at = name => {
-    const i = headers.indexOf(name);
-    return i >= 0 ? String(row[i] || '') : '';
-  };
-
-  let detail = {};
-  try {
-    detail = JSON.parse(at('Detall JSON') || '{}');
-  } catch (_) {
-    detail = {};
-  }
-
-  const correctionsSheet = sheet_(SHEETS.corrections);
-  const correctionHeaders = headers_(correctionsSheet);
-  const cSid = correctionHeaders.indexOf('ID entrega');
-  const cId = correctionHeaders.indexOf('ID');
-  const cQuestion = correctionHeaders.indexOf('Pregunta');
-  const cText = correctionHeaders.indexOf('Justificació alumne');
-
-  let justifications = [];
-  if (
-    cSid >= 0 && cId >= 0 && cQuestion >= 0 && cText >= 0 &&
-    correctionsSheet.getLastRow() >= 2
-  ) {
-    const correctionRows = correctionsSheet
-      .getRange(2, 1, correctionsSheet.getLastRow() - 1, correctionsSheet.getLastColumn())
-      .getDisplayValues();
-
-    justifications = correctionRows
-      .filter(r =>
-        normalizeId_(r[cId]) === auth.id &&
-        String(r[cSid] || '').trim() === sid
-      )
-      .map(r => ({
-        question: String(r[cQuestion] || ''),
-        text: String(r[cText] || '')
-      }));
-  }
-
-  return {
-    ok: true,
-    submitted: true,
-    submissionId: sid,
-    practice: at('Pràctica'),
-    area: at('Àrea'),
-    total: at('Preguntes totals'),
-    correct: at('Correctes'),
-    attempts: at('Intents totals'),
-    progress: at('Progrés %'),
-    minutes: at('Temps (min)'),
-    version: at('Versió'),
-    detail,
-    justifications
-  };
-}
-
 function submissionStatus_(code, submissionId) {
   const result = operationStatus_('', code, 'submission', submissionId);
   return result.ok
     ? {ok: true, submitted: result.exists === true, submissionId: result.operationId}
     : result;
-}
-
-function submissionData_(token, code, submissionId) {
-  const auth = authFromRequest_(token, code);
-  if (!auth || auth.role !== 'student') {
-    return {ok: false, error: 'unauthorized'};
-  }
-
-  const sid = String(submissionId || '').trim();
-  if (!sid) return {ok: false, error: 'invalid-submission-id'};
-
-  const sh = sheet_(SHEETS.submissions);
-  const headers = headers_(sh);
-  const idCol = headers.indexOf('ID');
-  const sidCol = headers.indexOf('ID entrega');
-  const detailCol = headers.indexOf('Detall JSON');
-  const attemptsCol = headers.indexOf('Intents totals');
-  const minutesCol = headers.indexOf('Temps (min)');
-  const practiceCol = headers.indexOf('Pràctica');
-  const areaCol = headers.indexOf('Àrea');
-
-  if ([idCol, sidCol, detailCol].some(v => v < 0) || sh.getLastRow() < 2) {
-    return {ok: true, exists: false, submissionId: sid};
-  }
-
-  const rows = sh.getRange(2, 1, sh.getLastRow() - 1, sh.getLastColumn()).getDisplayValues();
-  const row = rows.find(r =>
-    normalizeId_(r[idCol]) === auth.id &&
-    String(r[sidCol] || '').trim() === sid
-  );
-
-  if (!row) return {ok: true, exists: false, submissionId: sid};
-
-  let detail = {};
-  try {
-    detail = JSON.parse(String(row[detailCol] || '{}')) || {};
-  } catch (_) {
-    detail = {};
-  }
-
-  const csh = sheet_(SHEETS.corrections);
-  const cheaders = headers_(csh);
-  const csidCol = cheaders.indexOf('ID entrega');
-  const cqCol = cheaders.indexOf('Pregunta');
-  const ctCol = cheaders.indexOf('Justificació alumne');
-  let justifications = [];
-
-  if ([csidCol, cqCol, ctCol].every(v => v >= 0) && csh.getLastRow() >= 2) {
-    const crows = csh.getRange(2, 1, csh.getLastRow() - 1, csh.getLastColumn()).getDisplayValues();
-    justifications = crows
-      .filter(r => String(r[csidCol] || '').trim() === sid)
-      .map(r => ({
-        question: String(r[cqCol] || ''),
-        text: String(r[ctCol] || '')
-      }));
-  }
-
-  return {
-    ok: true,
-    exists: true,
-    submissionId: sid,
-    practice: practiceCol >= 0 ? String(row[practiceCol] || '') : '',
-    area: areaCol >= 0 ? String(row[areaCol] || '') : '',
-    attempts: attemptsCol >= 0 ? Number(String(row[attemptsCol] || '').replace(',', '.')) || 0 : 0,
-    minutes: minutesCol >= 0 ? Number(String(row[minutesCol] || '').replace(',', '.')) || 0 : 0,
-    detail,
-    justifications
-  };
 }
 
 function pdfStatus_(code, submissionId) {
