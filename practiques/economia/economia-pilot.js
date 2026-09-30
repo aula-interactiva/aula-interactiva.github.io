@@ -58,6 +58,67 @@
     idStatus.textContent = text;
   }
 
+  function setFinalReadOnly() {
+    document.querySelectorAll('input,select,textarea,button').forEach(el => {
+      if (el === idInput || el === validateBtn) return;
+      if (el.closest('.app-topbar') && el.tagName === 'BUTTON') return;
+      if (el.id === 'aula-save-exit') return;
+      if (el.matches('.back-btn')) return;
+      el.disabled = true;
+    });
+    const saveExit = document.getElementById('aula-save-exit');
+    if (saveExit) saveExit.hidden = true;
+  }
+
+  async function restoreFinalSubmission() {
+    if (!tracker.getPracticeSubmission) return false;
+
+    const final = await tracker.getPracticeSubmission(location.pathname);
+    if (!final?.ok || !final.submitted) return false;
+
+    resetWork();
+
+    const savedQuestions = Array.isArray(final.detail?.questions)
+      ? final.detail.questions
+      : [];
+
+    savedQuestions.forEach(item => {
+      const n = Number(item?.question);
+      if (!Number.isFinite(n) || n < 1 || n > NQ) return;
+      const control = $(answerId(n - 1));
+      const box = $(checkId(n - 1));
+      if (control) control.value = String(item?.answer ?? '');
+      if (box) {
+        const ok = item?.correct === true || String(item?.correct).toLowerCase() === 'true';
+        box.className = 'q-check ' + (ok ? 'correct' : 'wrong');
+        box.textContent = ok ? 'Correcte' : 'Revisa-ho';
+      }
+    });
+
+    const savedJustifications = Array.isArray(final.justifications)
+      ? final.justifications
+      : [];
+
+    justifications.forEach((j, index) => {
+      const el = $(j.id);
+      if (!el) return;
+      const byQuestion = savedJustifications.find(x =>
+        String(x?.question || '').trim() === String(j.question || '').trim()
+      );
+      const item = byQuestion || savedJustifications[index];
+      if (item) el.value = String(item.text ?? '');
+    });
+
+    submitted = true;
+    startedAt = null;
+    submitBtn.textContent = 'Pràctica entregada';
+    submitBtn.disabled = true;
+    submitStatus.className = 'pilot-submit-status ok';
+    submitStatus.textContent = 'Aquesta és l’entrega registrada al servidor. Es mostra en mode només lectura.';
+    setFinalReadOnly();
+    return true;
+  }
+
   function resetWork() {
     answerControls().forEach((el, i) => {
       el.value = '';
@@ -108,6 +169,13 @@
     if (result.ok) {
       validatedId = result.id;
       startedAt = Date.now();
+
+      setIdState('checking', 'Comprovant si ja hi ha una entrega registrada…');
+      if (await restoreFinalSubmission()) {
+        setIdState('ok', 'ID correcte · mostrant l’entrega registrada.');
+        return;
+      }
+
       resetWork();
       setAnswersEnabled(true);
       setIdState('ok', 'ID correcte · ja pots començar.');
