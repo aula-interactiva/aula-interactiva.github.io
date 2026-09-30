@@ -663,21 +663,11 @@
     const auth = session.token ? {token: session.token} : {code: session.id};
 
     try {
-      const result = await jsonp({
-        action: 'submission-data',
+      return await jsonp({
+        action: 'submission',
         ...auth,
         submissionId
       });
-
-      if (!result?.ok) {
-        return {ok: false, submitted: false, submissionId, error: result?.error || 'backend'};
-      }
-
-      return {
-        ...result,
-        submitted: result.submitted === true || result.exists === true,
-        submissionId
-      };
     } catch (error) {
       return {ok: false, submitted: false, submissionId, error};
     }
