@@ -21,6 +21,7 @@
   let startedAt = null;
   let elapsedBeforeMs = 0;
   let submitted = false;
+  let loadedSubmission = null;
 
   const justifications = Array.isArray(cfg.justifications) ? cfg.justifications : [];
 
@@ -58,40 +59,11 @@
     idStatus.textContent = text;
   }
 
-  function setFinalReadOnly() {
-    document.querySelectorAll('input,select,textarea,button').forEach(el => {
-      if (el === idInput || el === validateBtn) return;
-      if (el.closest('.app-topbar') && el.tagName === 'BUTTON') return;
-      if (el.id === 'aula-save-exit') return;
-      if (el.matches('.back-btn')) return;
-      el.disabled = true;
-    });
-    const saveExit = document.getElementById('aula-save-exit');
-    if (saveExit) saveExit.hidden = true;
-  }
-
-  async function restoreFinalSubmission() {
-    if (!tracker.getPracticeSubmission) return false;
-
-    const final = await tracker.getPracticeSubmission(location.pathname);
-
-    // Si el backend antic encara només pot confirmar l'entrega però no retornar-ne
-    // el contingut, no mostrem una còpia buida com si fos la pràctica original.
-    if (!final?.ok || !final.submitted) {
-      const status = await tracker.checkPracticeSubmitted({fitxer: location.pathname});
-      if (!status?.ok || !status.submitted) return false;
-
-      resetWork();
-      submitted = true;
-      startedAt = null;
-      submitBtn.textContent = 'Entrega ja registrada';
-      submitBtn.disabled = true;
-      submitStatus.className = 'pilot-submit-status bad';
-      submitStatus.textContent = 'Hi ha una entrega registrada, però no se n’ha pogut recuperar el contingut. Torna-ho a provar més tard.';
-      return true;
-    }
+  function applyFinalSubmission(final) {
+    if (!final?.ok || final.submitted !== true) return false;
 
     resetWork();
+    loadedSubmission = final;
 
     const savedQuestions = Array.isArray(final.detail?.questions)
       ? final.detail.questions
@@ -101,20 +73,13 @@
       const n = Number(item?.question);
       if (!Number.isFinite(n) || n < 1 || n > NQ) return;
 
-      const i = n - 1;
-      const control = $(answerId(i));
-      const box = $(checkId(i));
-      const value = String(item?.answer ?? '');
+      const control = $(answerId(n - 1));
+      if (!control) return;
 
-      if (control) control.value = value;
-      attempts[i] = Math.max(0, Number(item?.attempts) || 0);
-      lastChecked[i] = value || null;
-
-      if (box) {
-        const ok = item?.correct === true || String(item?.correct).toLowerCase() === 'true';
-        box.className = 'q-check ' + (ok ? 'correct' : 'wrong');
-        box.textContent = ok ? 'Correcte' : 'Revisa-ho';
-      }
+      control.value = String(item?.answer ?? '');
+      attempts[n - 1] = Math.max(0, Number(item?.attempts) || 0);
+      lastChecked[n - 1] = String(control.value ?? '').trim() || null;
+      control.dispatchEvent(new Event('change', {bubbles: true}));
     });
 
     const savedJustifications = Array.isArray(final.justifications)
@@ -132,21 +97,25 @@
       if (item) el.value = String(item.text ?? '');
     });
 
-    elapsedBeforeMs = Math.max(0, Number(final.minutes) || 0) * 60000;
-    submitted = false;
+    const previousMinutes = Number(String(final.minutes || '').replace(',', '.'));
+    elapsedBeforeMs = Number.isFinite(previousMinutes) && previousMinutes > 0
+      ? previousMinutes * 60000
+      : 0;
     startedAt = Date.now();
-    setAnswersEnabled(true);
 
+    submitted = false;
+    setAnswersEnabled(true);
     submitBtn.textContent = 'Torna a entregar';
     submitBtn.disabled = false;
     submitStatus.className = 'pilot-submit-status ok';
-    submitStatus.textContent = 'Hem carregat l’última entrega registrada. Pots modificar-la i tornar-la a entregar mentre la pràctica continuï oberta.';
-
-    // L'entrega del servidor és el punt de partida autoritatiu: substitueix qualsevol
-    // esborrany local antic perquè no reaparegui una còpia diferent en recarregar.
-    tracker.saveDraftNow?.();
-
+    submitStatus.textContent = 'S’ha carregat la teva última entrega. Pots modificar-la i tornar-la a entregar mentre la pràctica estigui oberta.';
     return true;
+  }
+
+  async function restoreFinalSubmission() {
+    if (!tracker.getPracticeSubmission) return false;
+    const final = await tracker.getPracticeSubmission(location.pathname);
+    return applyFinalSubmission(final);
   }
 
   function resetWork() {
@@ -398,6 +367,11 @@
 
   document.addEventListener('aula:draft-restored', () => {
     setTimeout(() => {
+      if (loadedSubmission) {
+        applyFinalSubmission(loadedSubmission);
+        return;
+      }
+
       answerControls().forEach(control => {
         if (String(control.value ?? '').trim()) {
           control.dispatchEvent(new Event('change', {bubbles: true}));
