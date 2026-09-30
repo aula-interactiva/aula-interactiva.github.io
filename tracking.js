@@ -653,14 +653,16 @@
   async function getPracticeSubmission(practicePath = location.pathname) {
     const session = getSession();
     if (!session || session.role !== 'student') {
-      return {ok: false, submitted: false, error: 'no-student-session'};
+      return {ok: false, error: 'no-student-session', submitted: false};
     }
     if (normalizeId(session.id) === '142858') {
       return {ok: true, submitted: false, test: true};
     }
 
     const submissionId = stablePracticeSubmissionId(practicePath, session.id);
-    const auth = session.token ? {token: session.token} : {code: session.id};
+    const auth = session.token
+      ? {token: session.token}
+      : {code: session.id};
 
     try {
       return await jsonp({
@@ -669,7 +671,7 @@
         submissionId
       });
     } catch (error) {
-      return {ok: false, submitted: false, submissionId, error};
+      return {ok: false, error: 'submission-read-failed', submitted: false};
     }
   }
 
