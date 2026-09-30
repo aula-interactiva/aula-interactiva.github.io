@@ -14,6 +14,7 @@ const SHEETS = Object.freeze({
   corrections: 'Correccions',
   activity: 'Activitat',
   practiceGrades: 'Notes_Practiques',
+  correctionCriteria: 'Criteris_Correccio',
   pdfUploads: 'PDF_Entregues',
   messages: 'Missatges',
   messageReads: 'Missatges_Llegits'
@@ -140,11 +141,16 @@ function savePayload_(payload) {
 
   justifications.forEach(j => appendCorrection_(payload, j));
 
+  // Manté Notes_Practiques sincronitzat amb l'estat real d'Entregues.
+  // No calcula ni sobreescriu cap nota: només crea/actualitza l'estat pendent de correcció.
+  const gradeSync = syncGradeStatusAfterSubmission_(payload, student);
+
   return {
     ok: true,
     type: 'submission',
     submissionId,
-    corrections: justifications.length
+    corrections: justifications.length,
+    gradeSync
   };
 }
 
@@ -268,6 +274,103 @@ function upsertSubmission_(p) {
   }
 
   sh.appendRow(row);
+}
+
+function practiceIdFromPayload_(p) {
+  const detail = p && p.detail && typeof p.detail === 'object'
+    ? p.detail
+    : {};
+
+  const practiceKey = String(detail._practiceKey || '').trim().split('?')[0];
+  if (practiceKey) {
+    const file = practiceKey.split('/').pop() || '';
+    const fromKey = file.replace(/\.html$/i, '').trim();
+    if (fromKey) return fromKey;
+  }
+
+  const submissionId = String(p && p.submissionId || '').trim();
+  const match = submissionId.match(/^final-\d{6}-[^-]+-(.+)$/i);
+  return match ? String(match[1] || '').trim() : '';
+}
+
+function syncGradeStatusAfterSubmission_(p, student) {
+  try {
+    const practiceId = practiceIdFromPayload_(p);
+    if (!practiceId) return {updated: false, reason: 'missing-practice-id'};
+
+    const sh = sheet_(SHEETS.practiceGrades);
+    const headers = headers_(sh);
+    const idx = {
+      area: headers.indexOf('Àrea'),
+      practiceId: headers.indexOf('Pràctica ID'),
+      practice: headers.indexOf('Pràctica'),
+      student: headers.indexOf('Alumne'),
+      studentId: headers.indexOf('ID alumne'),
+      grade: headers.indexOf('Nota'),
+      comment: headers.indexOf('Comentari')
+    };
+
+    if (Object.values(idx).some(v => v < 0)) {
+      return {updated: false, reason: 'practice-grades-schema'};
+    }
+
+    const lastRow = sh.getLastRow();
+    const rows = lastRow < 2
+      ? []
+      : sh.getRange(2, 1, lastRow - 1, headers.length).getDisplayValues();
+
+    const rowIndex = rows.findIndex(r =>
+      normalizeId_(r[idx.studentId]) === normalizeId_(p.id) &&
+      String(r[idx.practiceId] || '').trim() === practiceId
+    );
+
+    const pendingComment = 'Entrega rebuda. Pendent de correcció.';
+
+    if (rowIndex < 0) {
+      const values = {
+        'Àrea': clean_(p.area),
+        'Pràctica ID': practiceId,
+        'Pràctica': clean_(p.practice),
+        'Alumne': clean_(student && student.name),
+        'ID alumne': idNumber_(p.id),
+        'Nota': '',
+        'Comentari': pendingComment
+      };
+
+      sh.appendRow(headers.map(header =>
+        Object.prototype.hasOwnProperty.call(values, header) ? values[header] : ''
+      ));
+
+      return {updated: true, created: true, practiceId};
+    }
+
+    const row = rows[rowIndex];
+    const grade = String(row[idx.grade] || '').trim();
+    if (grade) {
+      return {updated: false, reason: 'grade-already-set', practiceId};
+    }
+
+    const comment = String(row[idx.comment] || '').trim();
+    const stalePending =
+      comment === '' ||
+      /pendent/i.test(comment) ||
+      /no consta/i.test(comment) ||
+      /no entregad/i.test(comment);
+
+    if (!stalePending || comment === pendingComment) {
+      return {updated: false, reason: 'no-change', practiceId};
+    }
+
+    sh.getRange(rowIndex + 2, idx.comment + 1).setValue(pendingComment);
+    return {updated: true, created: false, practiceId};
+  } catch (err) {
+    // Una incidència de sincronització no ha de desfer una entrega ja guardada.
+    return {
+      updated: false,
+      reason: 'sync-error',
+      message: String(err && err.message || err)
+    };
+  }
 }
 
 function appendActivity_(p, student) {
