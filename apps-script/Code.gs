@@ -36,6 +36,8 @@ function doGet(e) {
       result = notes_(p.token, p.code);
     } else if (action === 'submission-status') {
       result = submissionStatus_(p.code, p.submissionId);
+    } else if (action === 'submission') {
+      result = submission_(p.token, p.code, p.submissionId);
     } else if (action === 'pdf-status') {
       result = pdfStatus_(p.code, p.submissionId);
     } else if (action === 'messages') {
@@ -166,6 +168,83 @@ function pdfStatus_(code, submissionId) {
   return result.ok
     ? {ok: true, uploaded: result.exists === true, submissionId: result.operationId}
     : result;
+}
+
+function submission_(token, code, submissionId) {
+  const auth = authFromRequest_(token, code);
+  if (!auth || auth.role !== 'student') return {ok: false, error: 'unauthorized'};
+
+  const sid = String(submissionId || '').trim();
+  if (!sid) return {ok: false, error: 'invalid-submission-id'};
+
+  const sh = sheet_(SHEETS.submissions);
+  const headers = headers_(sh);
+  const idx = {
+    studentId: headers.indexOf('ID'),
+    practice: headers.indexOf('Pràctica'),
+    area: headers.indexOf('Àrea'),
+    total: headers.indexOf('Preguntes totals'),
+    correct: headers.indexOf('Correctes'),
+    attempts: headers.indexOf('Intents totals'),
+    progress: headers.indexOf('Progrés %'),
+    minutes: headers.indexOf('Temps (min)'),
+    version: headers.indexOf('Versió'),
+    detail: headers.indexOf('Detall JSON'),
+    submissionId: headers.indexOf('ID entrega')
+  };
+
+  if (idx.studentId < 0 || idx.submissionId < 0 || sh.getLastRow() < 2) {
+    return {ok: true, submitted: false, submissionId: sid};
+  }
+
+  const rows = sh.getRange(2, 1, sh.getLastRow() - 1, sh.getLastColumn()).getDisplayValues();
+  const row = rows.find(r =>
+    normalizeId_(r[idx.studentId]) === auth.id &&
+    String(r[idx.submissionId] || '').trim() === sid
+  );
+
+  if (!row) return {ok: true, submitted: false, submissionId: sid};
+
+  let detail = {};
+  try {
+    detail = JSON.parse(String(row[idx.detail] || '{}'));
+  } catch (_) {
+    detail = {};
+  }
+
+  const corrections = sheet_(SHEETS.corrections);
+  const correctionHeaders = headers_(corrections);
+  const cSid = correctionHeaders.indexOf('ID entrega');
+  const cQuestion = correctionHeaders.indexOf('Pregunta');
+  const cText = correctionHeaders.indexOf('Justificació alumne');
+  let justifications = [];
+
+  if (cSid >= 0 && cQuestion >= 0 && cText >= 0 && corrections.getLastRow() >= 2) {
+    justifications = corrections
+      .getRange(2, 1, corrections.getLastRow() - 1, corrections.getLastColumn())
+      .getDisplayValues()
+      .filter(r => String(r[cSid] || '').trim() === sid)
+      .map(r => ({
+        question: String(r[cQuestion] || ''),
+        text: String(r[cText] || '')
+      }));
+  }
+
+  return {
+    ok: true,
+    submitted: true,
+    submissionId: sid,
+    practice: idx.practice >= 0 ? String(row[idx.practice] || '') : '',
+    area: idx.area >= 0 ? String(row[idx.area] || '') : '',
+    total: idx.total >= 0 ? String(row[idx.total] || '') : '',
+    correct: idx.correct >= 0 ? String(row[idx.correct] || '') : '',
+    attempts: idx.attempts >= 0 ? String(row[idx.attempts] || '') : '',
+    progress: idx.progress >= 0 ? String(row[idx.progress] || '') : '',
+    minutes: idx.minutes >= 0 ? String(row[idx.minutes] || '') : '',
+    version: idx.version >= 0 ? String(row[idx.version] || '') : '',
+    detail,
+    justifications
+  };
 }
 
 function savePdf_(p, student) {
