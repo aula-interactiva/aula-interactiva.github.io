@@ -21,7 +21,6 @@
   let startedAt = null;
   let elapsedBeforeMs = 0;
   let submitted = false;
-  let loadedSubmission = null;
 
   const justifications = Array.isArray(cfg.justifications) ? cfg.justifications : [];
 
@@ -59,11 +58,42 @@
     idStatus.textContent = text;
   }
 
-  function applyFinalSubmission(final) {
-    if (!final?.ok || final.submitted !== true) return false;
+  function setFinalReadOnly() {
+    document.querySelectorAll('input,select,textarea,button').forEach(el => {
+      if (el === idInput || el === validateBtn) return;
+      if (el.closest('.app-topbar') && el.tagName === 'BUTTON') return;
+      if (el.id === 'aula-save-exit') return;
+      if (el.matches('.back-btn')) return;
+      el.disabled = true;
+    });
+    const saveExit = document.getElementById('aula-save-exit');
+    if (saveExit) saveExit.hidden = true;
+  }
+
+  async function restoreFinalSubmission() {
+    if (!tracker.getPracticeSubmission) return false;
+
+    const final = await tracker.getPracticeSubmission(location.pathname);
+
+    // Compatibilitat amb el desplegament anterior de l'Apps Script:
+    // si encara no pot retornar el detall però sí confirmar l'entrega,
+    // bloquegem igualment la pràctica per evitar crear una còpia nova buida.
+    if (!final?.ok || !final.submitted) {
+      const status = await tracker.checkPracticeSubmitted({fitxer: location.pathname});
+      if (!status?.ok || !status.submitted) return false;
+
+      resetWork();
+      submitted = true;
+      startedAt = null;
+      submitBtn.textContent = 'Pràctica entregada';
+      submitBtn.disabled = true;
+      submitStatus.className = 'pilot-submit-status ok';
+      submitStatus.textContent = 'Aquesta pràctica ja consta com a entregada. No es pot modificar.';
+      setFinalReadOnly();
+      return true;
+    }
 
     resetWork();
-    loadedSubmission = final;
 
     const savedQuestions = Array.isArray(final.detail?.questions)
       ? final.detail.questions
@@ -72,14 +102,14 @@
     savedQuestions.forEach(item => {
       const n = Number(item?.question);
       if (!Number.isFinite(n) || n < 1 || n > NQ) return;
-
       const control = $(answerId(n - 1));
-      if (!control) return;
-
-      control.value = String(item?.answer ?? '');
-      attempts[n - 1] = Math.max(0, Number(item?.attempts) || 0);
-      lastChecked[n - 1] = String(control.value ?? '').trim() || null;
-      control.dispatchEvent(new Event('change', {bubbles: true}));
+      const box = $(checkId(n - 1));
+      if (control) control.value = String(item?.answer ?? '');
+      if (box) {
+        const ok = item?.correct === true || String(item?.correct).toLowerCase() === 'true';
+        box.className = 'q-check ' + (ok ? 'correct' : 'wrong');
+        box.textContent = ok ? 'Correcte' : 'Revisa-ho';
+      }
     });
 
     const savedJustifications = Array.isArray(final.justifications)
@@ -89,7 +119,6 @@
     justifications.forEach((j, index) => {
       const el = $(j.id);
       if (!el) return;
-
       const byQuestion = savedJustifications.find(x =>
         String(x?.question || '').trim() === String(j.question || '').trim()
       );
@@ -97,25 +126,14 @@
       if (item) el.value = String(item.text ?? '');
     });
 
-    const previousMinutes = Number(String(final.minutes || '').replace(',', '.'));
-    elapsedBeforeMs = Number.isFinite(previousMinutes) && previousMinutes > 0
-      ? previousMinutes * 60000
-      : 0;
-    startedAt = Date.now();
-
-    submitted = false;
-    setAnswersEnabled(true);
-    submitBtn.textContent = 'Torna a entregar';
-    submitBtn.disabled = false;
+    submitted = true;
+    startedAt = null;
+    submitBtn.textContent = 'Pràctica entregada';
+    submitBtn.disabled = true;
     submitStatus.className = 'pilot-submit-status ok';
-    submitStatus.textContent = 'S’ha carregat la teva última entrega. Pots modificar-la i tornar-la a entregar mentre la pràctica estigui oberta.';
+    submitStatus.textContent = 'Aquesta és l’entrega registrada al servidor. Es mostra en mode només lectura.';
+    setFinalReadOnly();
     return true;
-  }
-
-  async function restoreFinalSubmission() {
-    if (!tracker.getPracticeSubmission) return false;
-    const final = await tracker.getPracticeSubmission(location.pathname);
-    return applyFinalSubmission(final);
   }
 
   function resetWork() {
@@ -367,11 +385,6 @@
 
   document.addEventListener('aula:draft-restored', () => {
     setTimeout(() => {
-      if (loadedSubmission) {
-        applyFinalSubmission(loadedSubmission);
-        return;
-      }
-
       answerControls().forEach(control => {
         if (String(control.value ?? '').trim()) {
           control.dispatchEvent(new Event('change', {bubbles: true}));
