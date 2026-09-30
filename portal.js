@@ -115,7 +115,7 @@
     $('session-id').textContent = teacher ? '' : `••••${String(session.id).slice(-2)}`;
     $('session-id').hidden = teacher;
     $('teacher-tools').classList.toggle('hidden', !teacher);
-    $('notes-button').classList.toggle('hidden', !teacher);
+    $('notes-button').classList.remove('hidden');
     $('messages-button').classList.remove('hidden');
     setMessagesBadge(0);
     render();
