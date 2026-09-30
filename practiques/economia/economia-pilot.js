@@ -75,9 +75,8 @@
 
     const final = await tracker.getPracticeSubmission(location.pathname);
 
-    // Compatibilitat amb el desplegament anterior de l'Apps Script:
-    // si encara no pot retornar el detall però sí confirmar l'entrega,
-    // bloquegem igualment la pràctica per evitar crear una còpia nova buida.
+    // Si el backend antic encara només pot confirmar l'entrega però no retornar-ne
+    // el contingut, no mostrem una còpia buida com si fos la pràctica original.
     if (!final?.ok || !final.submitted) {
       const status = await tracker.checkPracticeSubmitted({fitxer: location.pathname});
       if (!status?.ok || !status.submitted) return false;
@@ -85,11 +84,10 @@
       resetWork();
       submitted = true;
       startedAt = null;
-      submitBtn.textContent = 'Pràctica entregada';
+      submitBtn.textContent = 'Entrega ja registrada';
       submitBtn.disabled = true;
-      submitStatus.className = 'pilot-submit-status ok';
-      submitStatus.textContent = 'Aquesta pràctica ja consta com a entregada. No es pot modificar.';
-      setFinalReadOnly();
+      submitStatus.className = 'pilot-submit-status bad';
+      submitStatus.textContent = 'Hi ha una entrega registrada, però no se n’ha pogut recuperar el contingut. Torna-ho a provar més tard.';
       return true;
     }
 
@@ -102,9 +100,16 @@
     savedQuestions.forEach(item => {
       const n = Number(item?.question);
       if (!Number.isFinite(n) || n < 1 || n > NQ) return;
-      const control = $(answerId(n - 1));
-      const box = $(checkId(n - 1));
-      if (control) control.value = String(item?.answer ?? '');
+
+      const i = n - 1;
+      const control = $(answerId(i));
+      const box = $(checkId(i));
+      const value = String(item?.answer ?? '');
+
+      if (control) control.value = value;
+      attempts[i] = Math.max(0, Number(item?.attempts) || 0);
+      lastChecked[i] = value || null;
+
       if (box) {
         const ok = item?.correct === true || String(item?.correct).toLowerCase() === 'true';
         box.className = 'q-check ' + (ok ? 'correct' : 'wrong');
@@ -119,6 +124,7 @@
     justifications.forEach((j, index) => {
       const el = $(j.id);
       if (!el) return;
+
       const byQuestion = savedJustifications.find(x =>
         String(x?.question || '').trim() === String(j.question || '').trim()
       );
@@ -126,13 +132,20 @@
       if (item) el.value = String(item.text ?? '');
     });
 
-    submitted = true;
-    startedAt = null;
-    submitBtn.textContent = 'Pràctica entregada';
-    submitBtn.disabled = true;
+    elapsedBeforeMs = Math.max(0, Number(final.minutes) || 0) * 60000;
+    submitted = false;
+    startedAt = Date.now();
+    setAnswersEnabled(true);
+
+    submitBtn.textContent = 'Torna a entregar';
+    submitBtn.disabled = false;
     submitStatus.className = 'pilot-submit-status ok';
-    submitStatus.textContent = 'Aquesta és l’entrega registrada al servidor. Es mostra en mode només lectura.';
-    setFinalReadOnly();
+    submitStatus.textContent = 'Hem carregat l’última entrega registrada. Pots modificar-la i tornar-la a entregar mentre la pràctica continuï oberta.';
+
+    // L'entrega del servidor és el punt de partida autoritatiu: substitueix qualsevol
+    // esborrany local antic perquè no reaparegui una còpia diferent en recarregar.
+    tracker.saveDraftNow?.();
+
     return true;
   }
 
