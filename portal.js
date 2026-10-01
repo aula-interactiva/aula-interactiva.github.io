@@ -472,15 +472,36 @@
     return Date.now() + serverTimeOffsetMs;
   }
 
+  function studentAccessException(p, studentId) {
+    const id = tracker.normalizeId(studentId);
+    const exceptions = Array.isArray(p?.excepcionsAcces) ? p.excepcionsAcces : [];
+    const entry = exceptions.find(item => {
+      const value = typeof item === 'object' && item !== null ? item.id : item;
+      return tracker.normalizeId(value) === id;
+    });
+    if (entry === undefined) return null;
+    if (typeof entry !== 'object' || entry === null) return {id, fins:null};
+    return {id, fins:parseAccessTime(entry.fins)};
+  }
+
   function practiceAvailability(p) {
     const opensAt = parseAccessTime(p.obertura);
     const closesAt = parseAccessTime(p.tancament);
     const now = currentAccessTime();
+    const session = tracker.getSession();
+    const exception = session?.role === 'student' ? studentAccessException(p, session.id) : null;
+    const exceptionOpen = !!exception && (exception.fins === null || now < exception.fins);
 
     if (p.disponible !== true) return {open:false, state:'closed', opensAt, closesAt};
     if (opensAt !== null && now < opensAt) return {open:false, state:'upcoming', opensAt, closesAt};
-    if (closesAt !== null && now >= closesAt) return {open:false, state:'closed', opensAt, closesAt};
-    return {open:true, state:'open', opensAt, closesAt};
+    if (closesAt !== null && now >= closesAt && !exceptionOpen) return {open:false, state:'closed', opensAt, closesAt};
+    return {
+      open:true,
+      state:'open',
+      opensAt,
+      closesAt: exceptionOpen && exception.fins !== null ? exception.fins : closesAt,
+      exception: exceptionOpen
+    };
   }
 
   function formatAccessDate(ms) {
