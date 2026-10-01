@@ -61,7 +61,16 @@
           "descripcio": "Moviments i desplaçaments de la demanda, renda i preus de béns substitutius i complements.",
           "fitxer": "practiques/economia/demanda.html",
           "pdf": "assets/pdf/demanda.pdf",
-          "tancament": "2026-10-01T22:00:00+02:00"
+          "tancament": "2026-10-01T22:00:00+02:00",
+          "excepcionsAcces": [
+            "417563",
+            "864192",
+            "530741",
+            "976254",
+            "356901",
+            "483726",
+            "591304"
+          ]
         },
         {
           "id": "oferta-demanda-repas",
@@ -75,7 +84,16 @@
           "pdf": null,
           "solucionari": "practiques/economia/oferta-demanda-repas-solucionari.html",
           "solucionariTitol": "Solucionari",
-          "tancament": "2026-10-01T22:00:00+02:00"
+          "tancament": "2026-10-01T22:00:00+02:00",
+          "excepcionsAcces": [
+            "417563",
+            "864192",
+            "530741",
+            "976254",
+            "356901",
+            "483726",
+            "591304"
+          ]
         },
         {
           "id": "equilibri",
