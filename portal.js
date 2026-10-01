@@ -596,11 +596,10 @@
       const timing = !isApunts
         ? availability.state === 'upcoming' && availability.opensAt
           ? ` · Obre ${formatAccessDate(availability.opensAt)}`
-          : availability.state === 'open' && availability.closesAt
-            ? ` · Fins ${formatAccessDate(availability.closesAt)}`
-            : availability.state === 'closed' && availability.closesAt
-              ? ` · Tancada ${formatAccessDate(availability.closesAt)}`
-              : ''
+          : ''
+        : '';
+      const closingTime = !isApunts && availability.closesAt
+        ? `<span class="practice-closing">${availability.state === 'closed' ? 'Tancada' : 'Tanca'} ${esc(formatAccessDate(availability.closesAt))}</span>`
         : '';
 
       let buttons = '';
@@ -634,6 +633,7 @@
       return `<article class="practice-card ${canOpen ? 'active' : 'disabled'} ${preview ? 'teacher-preview' : ''}">
         <div>
           <div class="card-kicker">${esc(p.codi)} · <span class="card-status ${statusClass}">${esc(status)}</span>${esc(timing)}</div>
+          ${closingTime}
           <div class="card-title">${esc(p.titol)}</div>
           <div class="card-desc">${esc(p.descripcio)}</div>
         </div>
