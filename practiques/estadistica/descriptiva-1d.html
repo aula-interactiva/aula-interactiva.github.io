@@ -251,7 +251,7 @@ window.AulaDraftState = {
 })();
 </script>
 
-<script src="../../tracking.js?v=44"></script>
+<script src="../../tracking.js?v=46"></script>
 <script>
 (() => {
   'use strict';
@@ -452,6 +452,10 @@ window.AulaDraftState = {
     .comment-status{margin-top:8px}
     .comment-status.ok{color:var(--green);font-weight:800}
     .comment-status.bad{color:var(--red);font-weight:800}
+    .comment-upload{margin-top:14px;padding:11px 12px;border:1px solid var(--line);border-radius:9px;background:#f8f6f1}
+    .comment-upload label{display:block;font-size:11px;font-weight:850;margin-bottom:7px}
+    .comment-upload input{width:100%;font-size:11px}
+    .comment-filemsg{display:block;margin-top:6px;font-size:10px;color:var(--muted)}
   `;
   document.head.appendChild(style);
 
@@ -477,6 +481,11 @@ window.AulaDraftState = {
         <div style="margin-top:8px"><strong>No responguis les preguntes una per una.</strong> Utilitza-les com a guia per redactar un únic comentari coherent.</div>
       </div>
       <textarea id="final-comment" maxlength="1400" placeholder="Escriu aquí el teu comentari estadístic..." aria-label="Comentari final"></textarea>
+      <div class="comment-upload">
+        <label for="excel-upload">Excel de la pràctica · obligatori per entregar</label>
+        <input id="excel-upload" type="file" accept=".xlsx,.xlsm,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel.sheet.macroenabled.12">
+        <span class="comment-filemsg" id="excel-filemsg">Cap fitxer seleccionat.</span>
+      </div>
       <div class="comment-actions">
         <span class="comment-count" id="comment-count">0 caràcters · mínim 180</span>
         <button class="primary" id="submit-comment" type="button" disabled>Entrega el comentari</button>
@@ -489,6 +498,14 @@ window.AulaDraftState = {
   const ta = $('final-comment');
   const btn = $('submit-comment');
   const status = $('comment-status');
+  const excelInput = $('excel-upload');
+  const excelFileMsg = $('excel-filemsg');
+  let selectedExcel = null;
+  excelInput.addEventListener('change', () => {
+    selectedExcel = excelInput.files?.[0] || null;
+    excelFileMsg.textContent = selectedExcel ? selectedExcel.name : 'Cap fitxer seleccionat.';
+    updateState();
+  });
   const count = $('comment-count');
   const startedAt = Date.now();
   let submitted = false;
@@ -564,6 +581,11 @@ window.AulaDraftState = {
     if (submitted || completedBlocks() !== 8) return;
 
     const comment = ta.value.trim();
+    if (!selectedExcel) {
+      status.className = 'comment-status bad';
+      status.textContent = 'Adjunta l’Excel que has treballat abans d’entregar.';
+      return;
+    }
     if (comment.length < 180) {
       updateState();
       return;
@@ -619,9 +641,24 @@ window.AulaDraftState = {
       ]
     };
 
-    btn.textContent = 'Enviant…';
-    status.textContent = 'Guardant l’entrega…';
+    btn.textContent = 'Guardant Excel…';
+    status.textContent = 'Guardant el fitxer abans de registrar l’entrega…';
 
+    const fileSave = await tracker.uploadFile(selectedExcel, {
+      practice: payload.practice,
+      area: payload.area,
+      submissionId: tracker.stablePracticeSubmissionId(location.pathname, idCheck.id)
+    });
+    if (!fileSave.ok) {
+      btn.disabled = false;
+      btn.textContent = 'Entrega el comentari';
+      status.className = 'comment-status bad';
+      status.textContent = 'No s’ha pogut guardar l’Excel. L’entrega no s’ha registrat. Torna-ho a provar.';
+      return;
+    }
+
+    btn.textContent = 'Enviant…';
+    status.textContent = 'Excel guardat. Registrant l’entrega…';
     const res = await tracker.submit(payload);
     if (res.ok) {
       submitted = true;
@@ -629,7 +666,7 @@ window.AulaDraftState = {
       btn.disabled = true;
       btn.textContent = 'Comentari entregat';
       status.className = 'comment-status ok';
-      status.textContent = 'Entrega registrada correctament. El comentari queda pendent de correcció.';
+      status.textContent = 'Entrega registrada i Excel guardat correctament. El comentari queda pendent de correcció.';
     } else {
       btn.disabled = false;
       btn.textContent = 'Entrega el comentari';
