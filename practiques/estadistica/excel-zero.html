@@ -71,7 +71,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="../../tracking.js?v=44"></script>
+<script src="../../tracking.js?v=46"></script>
 <script>
 (() => {
 'use strict';
@@ -170,8 +170,27 @@ $('submit-practice').addEventListener('click',async()=>{
   if(!tracker||!session)return;
   const total=stages.reduce((sum,s)=>sum+s.tasks.length,0);
   $('submit-practice').disabled=true;
+  $('submit-practice').textContent='Preparant fitxer…';
+  $('submit-status').textContent='Guardant el fitxer i registrant la pràctica…';
+  let attachments=[];
+  if(chosenFile){
+    try{
+      if(chosenFile.size>10*1024*1024) throw new Error('file-too-large');
+      const base64=await new Promise((resolve,reject)=>{
+        const reader=new FileReader();
+        reader.onload=()=>resolve(String(reader.result).split(',')[1]||'');
+        reader.onerror=()=>reject(reader.error);
+        reader.readAsDataURL(chosenFile);
+      });
+      attachments=[{name:chosenFile.name,mimeType:chosenFile.type||'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',size:chosenFile.size,base64}];
+    }catch(_){
+      $('submit-practice').disabled=false;
+      $('submit-practice').textContent='Finalitza i entrega la pràctica';
+      $('submit-status').textContent='No s’ha pogut preparar l’Excel. Torna-ho a provar.';
+      return;
+    }
+  }
   $('submit-practice').textContent='Enviant…';
-  $('submit-status').textContent='Registrant la pràctica…';
   const result=await tracker.submit({
     submissionId:tracker.makeSubmissionId('excel-zero',session.id),
     id:session.id,
@@ -184,13 +203,14 @@ $('submit-practice').addEventListener('click',async()=>{
     progress:100,
     minutes:Math.max(1,Math.round((elapsedBeforeMs+Math.max(0,Date.now()-startedAt))/60000)),
     version:'excel-zero-v2',
-    detail:{blocksCompleted:completed.size,totalBlocks:stages.length},
+    detail:{blocksCompleted:completed.size,totalBlocks:stages.length,selectedFiles:attachments.map(f=>({name:f.name,size:f.size,mimeType:f.mimeType}))},
+    attachments,
     justifications:[]
   });
   if(result.ok){
     submitted=true;
     $('submit-practice').textContent='Pràctica entregada';
-    $('submit-status').textContent='Entrega registrada correctament.';
+    $('submit-status').textContent=attachments.length?'Entrega registrada i Excel guardat correctament.':'Entrega registrada correctament.';
   }else{
     $('submit-practice').disabled=false;
     $('submit-practice').textContent='Finalitza i entrega la pràctica';
