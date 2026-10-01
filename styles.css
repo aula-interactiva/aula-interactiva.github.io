@@ -360,4 +360,4 @@ a.back-btn{text-decoration:none;display:inline-block}
 @media(max-width:720px){.online-popover{left:0;width:min(230px,calc(100vw - 32px))}}
 
 /* Data límit de les pràctiques */
-.practice-closing{display:block;margin-top:5px;font-size:10px;line-height:1.2;font-weight:750;letter-spacing:.025em;color:#a94f49}
+.practice-closing{display:block;margin-top:5px;font-size:10px;line-height:1.2;font-weight:750;letter-spacing:.025em;color:#b8453f}
