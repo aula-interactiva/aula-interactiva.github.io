@@ -27,6 +27,7 @@
   const ACTIVE_IDLE_MS = 3 * 60 * 1000;
   const ACTIVE_SAMPLE_MS = 5000;
   const SESSION_PULSE_MS = 5 * 60 * 1000;
+  const PRESENCE_IDLE_MS = 15 * 60 * 1000;
   let practiceSessionId = '';
   let practiceActiveMs = 0;
   let practiceInitialProgress = null;
@@ -1017,6 +1018,7 @@
     // the final pagehide request is lost. These remain technical rows in Activitat.
     sessionPulseTimer = setInterval(() => {
       if (leaveLogged) return;
+      if (Date.now() - lastInteractionAt > PRESENCE_IDLE_MS) return;
       logActivity('SESSION_PULSE', {
         practice: meta.practice,
         area: meta.area,
@@ -1093,11 +1095,41 @@
     startPractice(session);
   }
 
+  function startPortalPresence() {
+    if (location.pathname.includes('/practiques/')) return;
+
+    const session = getSession();
+    if (!session || session.role !== 'student') return;
+
+    const markPortalInteraction = () => {
+      lastInteractionAt = Date.now();
+    };
+
+    ['pointerdown', 'keydown', 'input', 'change', 'scroll', 'touchstart'].forEach(type => {
+      document.addEventListener(type, markPortalInteraction, {capture: true, passive: true});
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') lastInteractionAt = Date.now();
+    });
+
+    setInterval(() => {
+      if (Date.now() - lastInteractionAt > PRESENCE_IDLE_MS) return;
+      logActivity('SESSION_PULSE', {
+        practice: 'Portal',
+        area: 'Sistema',
+        title: 'Aula Interactiva'
+      });
+    }, SESSION_PULSE_MS);
+  }
+
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', guardPractice);
   } else {
     setTimeout(guardPractice, 0);
   }
+
+  startPortalPresence();
 
   window.PracticeTracker = Object.freeze({
     version: 'v8',
