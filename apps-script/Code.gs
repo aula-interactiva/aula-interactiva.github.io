@@ -34,6 +34,10 @@ function doGet(e) {
       result = login_(p.code);
     } else if (action === 'notes') {
       result = notes_(p.token, p.code);
+    } else if (action === 'presence-ping') {
+      result = presencePing_(p.token, p.code);
+    } else if (action === 'online-students') {
+      result = onlineStudents_(p.token, p.code);
     } else if (action === 'submission-status') {
       result = submissionStatus_(p.code, p.submissionId);
     } else if (action === 'submission') {
@@ -547,6 +551,69 @@ function login_(code) {
     role: student.role,
     id: student.id
   };
+}
+
+const PRESENCE_TTL_SECONDS = 180; // 3 minuts
+
+function presencePing_(token, code) {
+  const auth = authFromRequest_(token, code);
+  if (!auth || auth.role !== 'student') return {ok: false, error: 'unauthorized'};
+
+  // L'alumne de prova no compta com a alumne connectat real.
+  if (auth.id === '142858') return {ok: true, skipped: true};
+
+  CacheService.getScriptCache().put(
+    'presence:' + auth.id,
+    String(Date.now()),
+    PRESENCE_TTL_SECONDS
+  );
+
+  return {ok: true};
+}
+
+function onlineStudents_(token, code) {
+  const auth = authFromRequest_(token, code);
+  if (!auth || auth.role !== 'teacher') return {ok: false, error: 'unauthorized'};
+
+  const sh = sheet_(SHEETS.students);
+  const lastRow = sh.getLastRow();
+  if (lastRow < 2) return {ok: true, count: 0, students: []};
+
+  // A Nom | B ID | C ... | D Actiu | E Rol
+  const rows = sh.getRange(2, 1, lastRow - 1, 5).getValues();
+  const students = rows
+    .map(r => {
+      const id = normalizeId_(r[1]);
+      const active =
+        r[3] === true ||
+        String(r[3]).toLowerCase() === 'true' ||
+        String(r[3]).toLowerCase() === 'sí' ||
+        String(r[3]).toLowerCase() === 'si' ||
+        String(r[3]) === '1';
+      const role = String(r[4] || 'student').trim().toLowerCase();
+      return {id, name: String(r[0] || '').trim(), active, role};
+    })
+    .filter(s =>
+      /^\d{6}$/.test(s.id) &&
+      s.id !== '142858' &&
+      s.active &&
+      s.role !== 'teacher'
+    );
+
+  const cache = CacheService.getScriptCache();
+  const keys = students.map(s => 'presence:' + s.id);
+  const present = keys.length ? cache.getAll(keys) : {};
+  const now = Date.now();
+
+  const online = students
+    .filter(s => {
+      const seen = Number(present['presence:' + s.id] || 0);
+      return seen > 0 && now - seen <= PRESENCE_TTL_SECONDS * 1000;
+    })
+    .map(s => ({id: s.id, name: s.name}))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  return {ok: true, count: online.length, students: online};
 }
 
 function notes_(token, code) {
