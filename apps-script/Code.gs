@@ -551,7 +551,8 @@ function login_(code) {
   };
 }
 
-const ONLINE_WINDOW_MS = 5 * 60 * 1000; // 5 minuts
+const ONLINE_PULSE_WINDOW_MS = 6 * 60 * 1000; // marge sobre el pulse de 5 minuts
+const ONLINE_ENTRY_WINDOW_MS = 6 * 60 * 1000; // entrada fins al primer pulse
 
 function onlineStudents_(token, code) {
   const auth = authFromRequest_(token, code);
@@ -572,13 +573,7 @@ function onlineStudents_(token, code) {
       String(r[3]).toLowerCase() === 'si' ||
       String(r[3]) === '1';
     const role = String(r[4] || 'student').trim().toLowerCase();
-
-    if (
-      /^\d{6}$/.test(id) &&
-      id !== '142858' &&
-      active &&
-      role !== 'teacher'
-    ) {
+    if (/^\d{6}$/.test(id) && id !== '142858' && active && role !== 'teacher') {
       activeStudents.set(id, String(r[0] || '').trim());
     }
   });
@@ -589,37 +584,46 @@ function onlineStudents_(token, code) {
   const headers = headers_(activitySh);
   const dateCol = headers.indexOf('Data/hora');
   const idCol = headers.indexOf('ID');
+  const detailCol = headers.indexOf('Detall JSON');
 
-  if (dateCol < 0 || idCol < 0) {
+  if (dateCol < 0 || idCol < 0 || detailCol < 0) {
     return {ok: false, error: 'activity-schema'};
   }
 
   const lastRow = activitySh.getLastRow();
   if (lastRow < 2) return {ok: true, count: 0, students: []};
 
-  // Activitat s'insereix sempre a la fila 2: les files estan de més nova a més antiga.
-  // Llegim totes les files reals (sense límits arbitraris) i ens quedem amb l'activitat
-  // dels últims 3 minuts. Qualsevol activitat recent —inclòs SESSION_PULSE,
-  // LOGIN, ENTRA PORTAL o ENTRA PRÀCTICA— indica que l'alumne continua connectat.
   const rows = activitySh
     .getRange(2, 1, lastRow - 1, activitySh.getLastColumn())
     .getValues();
 
-  const cutoff = Date.now() - ONLINE_WINDOW_MS;
+  const now = Date.now();
+  const oldestRelevant = now - Math.max(ONLINE_PULSE_WINDOW_MS, ONLINE_ENTRY_WINDOW_MS);
   const seen = new Map();
 
   for (const row of rows) {
     const rawDate = row[dateCol];
-    const time = rawDate instanceof Date
-      ? rawDate.getTime()
-      : new Date(rawDate).getTime();
-
+    const time = rawDate instanceof Date ? rawDate.getTime() : new Date(rawDate).getTime();
     if (!Number.isFinite(time)) continue;
-    if (time < cutoff) break;
+    if (time < oldestRelevant) break;
 
     const id = normalizeId_(row[idCol]);
     if (!activeStudents.has(id) || seen.has(id)) continue;
-    seen.set(id, time);
+
+    let detail = {};
+    try {
+      detail = JSON.parse(String(row[detailCol] || '{}'));
+    } catch (_) {}
+    const event = String(detail.event || '').trim().toUpperCase();
+
+    const recentPulse =
+      event === 'SESSION_PULSE' &&
+      now - time <= ONLINE_PULSE_WINDOW_MS;
+    const recentEntry =
+      ['LOGIN', 'OPEN_PORTAL', 'OPEN_PRACTICE'].includes(event) &&
+      now - time <= ONLINE_ENTRY_WINDOW_MS;
+
+    if (recentPulse || recentEntry) seen.set(id, time);
   }
 
   const online = Array.from(seen.entries())
