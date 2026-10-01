@@ -18,7 +18,17 @@
           "titol": "Frontera de possibilitats de producció",
           "descripcio": "Escassetat, eficiència, moviments i desplaçaments de la FPP i cost d'oportunitat.",
           "fitxer": "practiques/economia/fpp.html",
-          "pdf": "assets/pdf/fpp.pdf"
+          "pdf": "assets/pdf/fpp.pdf",
+          "tancament": "2026-10-01T00:00:00+02:00",
+          "excepcionsAcces": [
+            "417563",
+            "864192",
+            "530741",
+            "976254",
+            "356901",
+            "483726",
+            "591304"
+          ]
         },
         {
           "id": "oferta",
@@ -29,7 +39,17 @@
           "titol": "Funció i corba d’oferta",
           "descripcio": "Moviments i desplaçaments de l’oferta, costos de producció, impostos i subvencions.",
           "fitxer": "practiques/economia/oferta.html",
-          "pdf": "assets/pdf/oferta.pdf"
+          "pdf": "assets/pdf/oferta.pdf",
+          "tancament": "2026-10-01T00:00:00+02:00",
+          "excepcionsAcces": [
+            "417563",
+            "864192",
+            "530741",
+            "976254",
+            "356901",
+            "483726",
+            "591304"
+          ]
         },
         {
           "id": "demanda",
@@ -40,7 +60,8 @@
           "titol": "Funció i corba de demanda",
           "descripcio": "Moviments i desplaçaments de la demanda, renda i preus de béns substitutius i complements.",
           "fitxer": "practiques/economia/demanda.html",
-          "pdf": "assets/pdf/demanda.pdf"
+          "pdf": "assets/pdf/demanda.pdf",
+          "tancament": "2026-10-01T22:00:00+02:00"
         },
         {
           "id": "oferta-demanda-repas",
@@ -53,7 +74,8 @@
           "fitxer": "practiques/economia/oferta-demanda-repas.html",
           "pdf": null,
           "solucionari": "practiques/economia/oferta-demanda-repas-solucionari.html",
-          "solucionariTitol": "Solucionari"
+          "solucionariTitol": "Solucionari",
+          "tancament": "2026-10-01T22:00:00+02:00"
         },
         {
           "id": "equilibri",
@@ -110,7 +132,17 @@
           "fitxer": "practiques/estadistica/excel-zero.html",
           "pdf": null,
           "tema": 0,
-          "temaTitol": "Introducció · Excel"
+          "temaTitol": "Introducció · Excel",
+          "tancament": "2026-10-01T00:00:00+02:00",
+          "excepcionsAcces": [
+            "417563",
+            "864192",
+            "530741",
+            "976254",
+            "356901",
+            "483726",
+            "591304"
+          ]
         },
         {
           "id": "freq-var",
@@ -123,7 +155,8 @@
           "fitxer": "practiques/estadistica/freq-var.html",
           "pdf": null,
           "tema": 1,
-          "temaTitol": "Tema 1 · Estadística descriptiva unidimensional"
+          "temaTitol": "Tema 1 · Estadística descriptiva unidimensional",
+          "tancament": "2026-10-02T22:00:00+02:00"
         },
         {
           "id": "descriptiva-1d",
