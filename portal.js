@@ -108,6 +108,7 @@
   }
 
   let presenceTimer = null;
+  const PRESENCE_CACHE_KEY = 'aula-online-students-v1';
 
   function renderOnlineStudents(result) {
     if (!result?.ok) return;
@@ -117,6 +118,9 @@
     $('online-list').innerHTML = count
       ? students.map(s => '<div class="online-student">' + esc(s.name) + '</div>').join('')
       : '<div class="online-empty">Cap alumne connectat ara mateix.</div>';
+    try {
+      localStorage.setItem(PRESENCE_CACHE_KEY, JSON.stringify({students}));
+    } catch (_) {}
   }
 
   async function refreshPresence(session) {
@@ -133,6 +137,14 @@
 
     const teacher = session.role === 'teacher';
     $('online-wrap').classList.toggle('hidden', !teacher);
+    if (teacher) {
+      try {
+        const cached = JSON.parse(localStorage.getItem(PRESENCE_CACHE_KEY) || 'null');
+        if (cached && Array.isArray(cached.students)) {
+          renderOnlineStudents({ok: true, students: cached.students});
+        }
+      } catch (_) {}
+    }
     if (!teacher) {
       $('online-popover').classList.add('hidden');
       $('online-button').setAttribute('aria-expanded', 'false');
