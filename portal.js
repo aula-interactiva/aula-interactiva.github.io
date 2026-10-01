@@ -123,8 +123,6 @@
     try {
       if (session.role === 'teacher') {
         renderOnlineStudents(await tracker.apiGet('online-students'));
-      } else {
-        await tracker.apiGet('presence-ping');
       }
     } catch (_) {}
   }
