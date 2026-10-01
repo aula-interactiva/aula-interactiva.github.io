@@ -588,7 +588,7 @@
       const status = preview
         ? 'Professor'
         : availability.state === 'closed'
-          ? 'Tancat'
+          ? ''
           : published
             ? 'Disponible'
             : 'Properament';
