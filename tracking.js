@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  if (window.PracticeTracker?.version === 'v8') return;
+  if (window.PracticeTracker?.version === 'v9') return;
 
   if (!document.querySelector('link[data-aula-theme]')) {
     const theme = document.createElement('link');
@@ -676,6 +676,49 @@
     }
   }
 
+  async function uploadFile(file, {practice = 'Pràctica', area = 'Sistema', submissionId = ''} = {}) {
+    const session = getSession();
+    if (!session || session.role !== 'student') return {ok: false, error: 'no-student-session'};
+    if (normalizeId(session.id) === '142858') return {ok: true, skipped: true, test: true};
+    if (!file) return {ok: false, error: 'missing-file'};
+    if (file.size > 10 * 1024 * 1024) return {ok: false, error: 'file-too-large'};
+
+    const allowed = new Set([
+      'application/pdf',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-excel.sheet.macroEnabled.12',
+      'application/vnd.ms-excel.sheet.macroenabled.12'
+    ]);
+    const ext = String(file.name || '').toLowerCase().split('.').pop();
+    let mimeType = String(file.type || '').toLowerCase();
+    if (!mimeType && ext === 'xlsx') mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    if (!mimeType && ext === 'xlsm') mimeType = 'application/vnd.ms-excel.sheet.macroenabled.12';
+    if (!allowed.has(mimeType) && !['xlsx','xlsm','pdf'].includes(ext)) return {ok: false, error: 'unsupported-file-type'};
+
+    const buffer = await file.arrayBuffer();
+    const bytes = new Uint8Array(buffer);
+    let binary = '';
+    const chunk = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunk) {
+      binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+    }
+
+    const payload = {
+      submissionId: submissionId || stablePracticeSubmissionId(normalizeRepoPath(location.pathname), session.id),
+      id: session.id, practice, area, status: 'Fitxer',
+      mimeType, fileName: file.name || ('entrega.' + ext), size: file.size, fileBase64: btoa(binary)
+    };
+
+    try {
+      await postPayload(payload);
+      const confirmation = await confirmOperation('file', payload.submissionId);
+      if (!confirmation.ok) return {ok: false, error: 'file-not-confirmed', confirmed: false};
+      return {ok: true, confirmed: true, submissionId: payload.submissionId};
+    } catch (error) {
+      return {ok: false, error, confirmed: false};
+    }
+  }
+
   async function uploadPdf(file, {practice = 'Pràctica', area = 'Sistema', submissionId = ''} = {}) {
     const session = getSession();
     if (!session || session.role !== 'student') return {ok: false, error: 'no-student-session'};
@@ -1157,7 +1200,7 @@
   startPortalPresence();
 
   window.PracticeTracker = Object.freeze({
-    version: 'v8',
+    version: 'v9',
     endpoint: ENDPOINT,
     normalizeId,
     validateId,
@@ -1168,6 +1211,7 @@
     makeSubmissionId,
     submit,
     uploadPdf,
+    uploadFile,
     checkPracticeSubmitted,
     getPracticeSubmission,
     stablePracticeSubmissionId,
