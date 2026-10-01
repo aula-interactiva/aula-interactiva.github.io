@@ -119,7 +119,9 @@
     $('messages-button').classList.remove('hidden');
     setMessagesBadge(0);
     render();
-    refreshMessages().catch(() => {});
+    // El portal ja és usable immediatament; el badge de missatges es carrega
+    // lleugerament després per no competir amb el login i el registre d'activitat.
+    setTimeout(() => refreshMessages().catch(() => {}), 1200);
   }
 
   function showLogin() {
