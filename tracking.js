@@ -1125,6 +1125,8 @@
       const privateActions = new Set([
         'notes',
         'messages',
+        'presence-ping',
+        'online-students',
         'submission',
         'operation-status'
       ]);
