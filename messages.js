@@ -70,12 +70,34 @@
     }).join('');
   }
 
-  async function refreshMessages() {
-    const result = await tracker.apiGet('messages');
-    if (!result?.ok) return result;
-    messagesData = result;
-    renderMessages(result);
-    return result;
+  const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+  async function refreshMessages({attempts = 2} = {}) {
+    const list = $('messages-list');
+    list.innerHTML = '<div class="messages-empty">Carregant missatges…</div>';
+
+    let last = null;
+    for (let attempt = 0; attempt < attempts; attempt++) {
+      try {
+        last = await tracker.apiGet('messages');
+        if (last?.ok) {
+          messagesData = last;
+          renderMessages(last);
+          return last;
+        }
+      } catch (error) {
+        last = {ok:false, error:String(error && error.message || error)};
+      }
+      if (attempt < attempts - 1) await sleep(450);
+    }
+
+    list.innerHTML =
+      '<div class="messages-empty">No s’han pogut carregar els missatges. ' +
+      '<button type="button" id="messages-retry">Torna-ho a provar</button></div>';
+    $('messages-retry')?.addEventListener('click', () => {
+      refreshMessages().then(markUnreadAsRead).catch(() => {});
+    });
+    return last || {ok:false, error:'messages-unavailable'};
   }
 
   async function markUnreadAsRead(result) {
@@ -83,9 +105,14 @@
     const unread = (result.messages || []).filter(m => m.read === false && m.id);
     if (!unread.length) return;
 
-    await Promise.all(unread.map(m =>
-      tracker.apiPost({status:'MissatgeLlegit', messageId:m.id}).catch(() => null)
-    ));
+    try {
+      await tracker.apiPost({
+        status:'MissatgesLlegits',
+        messageIds:unread.map(m => m.id)
+      });
+    } catch (_) {
+      return;
+    }
 
     if (messagesData?.messages) {
       messagesData.messages = messagesData.messages.map(m => ({...m, read:true}));
