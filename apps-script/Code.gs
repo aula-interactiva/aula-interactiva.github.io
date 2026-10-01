@@ -551,7 +551,7 @@ function login_(code) {
   };
 }
 
-const ONLINE_WINDOW_MS = 3 * 60 * 1000; // 3 minuts
+const ONLINE_WINDOW_MS = 5 * 60 * 1000; // 5 minuts
 
 function onlineStudents_(token, code) {
   const auth = authFromRequest_(token, code);
