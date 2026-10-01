@@ -232,27 +232,44 @@
     else studentView(state.notes);
   }
 
-  async function loadNotes() {
+  const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+  async function loadNotes({attempts = 2} = {}) {
     if (state.loaded) {
       render();
       return;
     }
 
     setLoading();
-    try {
-      const result = await tracker.apiGet('notes');
-      if (!result?.ok) {
-        $('notes-content').innerHTML = result?.error === 'unauthorized'
-          ? '<div class="notes-empty">No s’ha pogut validar l’accés a Notes. La sessió del portal continua activa.</div>'
-          : '<div class="notes-empty">No s’han pogut carregar les notes.</div>';
-        return;
+    let last = null;
+
+    for (let attempt = 0; attempt < attempts; attempt++) {
+      try {
+        last = await tracker.apiGet('notes');
+        if (last?.ok) {
+          state.notes = Array.isArray(last.notes) ? last.notes : [];
+          state.loaded = true;
+          render();
+          return;
+        }
+
+        // Una sessió no autoritzada no millorarà repetint la mateixa petició.
+        if (last?.error === 'unauthorized') break;
+      } catch (error) {
+        last = {ok:false, error:String(error && error.message || error)};
       }
-      state.notes = Array.isArray(result.notes) ? result.notes : [];
-      state.loaded = true;
-      render();
-    } catch (_) {
-      $('notes-content').innerHTML = '<div class="notes-empty">No s’han pogut carregar les notes.</div>';
+
+      if (attempt < attempts - 1) await sleep(450);
     }
+
+    const unauthorized = last?.error === 'unauthorized';
+    $('notes-content').innerHTML = unauthorized
+      ? '<div class="notes-empty">No s’ha pogut validar l’accés a Notes. La sessió del portal continua activa.</div>'
+      : '<div class="notes-empty">No s’han pogut carregar les notes. <button type="button" id="notes-retry">Torna-ho a provar</button></div>';
+
+    $('notes-retry')?.addEventListener('click', () => {
+      loadNotes().catch(() => {});
+    });
   }
 
   $('notes-button')?.addEventListener('click', showPanel);
