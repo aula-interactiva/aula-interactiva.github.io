@@ -599,7 +599,9 @@
           : ''
         : '';
       const closingTime = !isApunts && availability.closesAt
-        ? `<span class="practice-closing">${availability.state === 'closed' ? 'Tancada' : 'Tanca'} ${esc(formatAccessDate(availability.closesAt))}</span>`
+        ? availability.state === 'closed'
+          ? '<span class="practice-closing">TANCADA</span>'
+          : `<span class="practice-closing">TANCA · ${esc(formatAccessDate(availability.closesAt)).toUpperCase()}</span>`
         : '';
 
       let buttons = '';
