@@ -109,6 +109,9 @@ function savePayload_(payload) {
   if (status === 'MissatgeLlegit') {
     return markMessageRead_(payload, student);
   }
+  if (status === 'MissatgesLlegits') {
+    return markMessagesRead_(payload, student);
+  }
 
   // L'alumne de prova serveix per validar la web però no ha de generar registres de pràctiques.
   if (student.id === '142858') {
@@ -855,6 +858,84 @@ function markMessageRead_(payload, student) {
   return {ok: true, messageId};
 }
 
+function markMessagesRead_(payload, student) {
+  if (!student || student.role !== 'student') {
+    return {ok: false, error: 'unauthorized'};
+  }
+
+  const messageIds = Array.from(new Set(
+    (Array.isArray(payload.messageIds) ? payload.messageIds : [])
+      .map(v => String(v || '').trim())
+      .filter(Boolean)
+  ));
+
+  if (!messageIds.length) return {ok: true, marked: 0};
+
+  // Validem els missatges amb una sola lectura de Missatges.
+  const messagesSh = sheet_(SHEETS.messages);
+  const messageHeaders = headers_(messagesSh);
+  const midCol = messageHeaders.indexOf('ID missatge');
+  const recipientCol = messageHeaders.indexOf('Destinatari');
+  const activeCol = messageHeaders.indexOf('Actiu');
+  if (midCol < 0 || recipientCol < 0 || activeCol < 0) {
+    return {ok: false, error: 'messages-schema'};
+  }
+
+  const wanted = new Set(messageIds);
+  const allowed = new Set();
+  if (messagesSh.getLastRow() >= 2) {
+    const rows = messagesSh
+      .getRange(2, 1, messagesSh.getLastRow() - 1, messagesSh.getLastColumn())
+      .getDisplayValues();
+
+    rows.forEach(r => {
+      const mid = String(r[midCol] || '').trim();
+      if (!wanted.has(mid)) return;
+      const activeRaw = String(r[activeCol] || '').trim().toLowerCase();
+      const active = activeRaw === '' || activeRaw === 'true' || activeRaw === 'sí' || activeRaw === 'si' || activeRaw === '1';
+      const recipient = String(r[recipientCol] || '').trim();
+      if (active && (recipient === 'TOTS' || normalizeId_(recipient) === student.id)) {
+        allowed.add(mid);
+      }
+    });
+  }
+
+  if (!allowed.size) return {ok: true, marked: 0};
+
+  const sh = sheet_(SHEETS.messageReads);
+  const headers = headers_(sh);
+  const readMidCol = headers.indexOf('ID missatge');
+  const idCol = headers.indexOf('ID alumne');
+  if (readMidCol < 0 || idCol < 0) {
+    return {ok: false, error: 'message-reads-schema'};
+  }
+
+  const existing = new Set();
+  if (sh.getLastRow() >= 2) {
+    sh.getRange(2, 1, sh.getLastRow() - 1, sh.getLastColumn())
+      .getDisplayValues()
+      .forEach(r => {
+        if (normalizeId_(r[idCol]) === student.id) {
+          existing.add(String(r[readMidCol] || '').trim());
+        }
+      });
+  }
+
+  const newIds = Array.from(allowed).filter(mid => !existing.has(mid));
+  if (!newIds.length) return {ok: true, marked: 0};
+
+  const now = new Date();
+  const rows = newIds.map(mid => headers.map(header => {
+    if (header === 'Data/hora') return now;
+    if (header === 'ID missatge') return mid;
+    if (header === 'ID alumne') return idNumber_(student.id);
+    return '';
+  }));
+
+  sh.getRange(sh.getLastRow() + 1, 1, rows.length, headers.length).setValues(rows);
+  return {ok: true, marked: newIds.length};
+}
+
 function messageReadIds_(studentId) {
   const sh = sheet_(SHEETS.messageReads);
   const headers = headers_(sh);
@@ -1012,11 +1093,17 @@ function headers_(sh) {
     .map(v => String(v || '').trim());
 }
 
-function sheet_(name) {
-  const sh = SpreadsheetApp
-    .openById(SPREADSHEET_ID)
-    .getSheetByName(name);
+let spreadsheetCache_ = null;
 
+function spreadsheet_() {
+  if (!spreadsheetCache_) {
+    spreadsheetCache_ = SpreadsheetApp.openById(SPREADSHEET_ID);
+  }
+  return spreadsheetCache_;
+}
+
+function sheet_(name) {
+  const sh = spreadsheet_().getSheetByName(name);
   if (!sh) throw new Error('Missing sheet: ' + name);
   return sh;
 }
