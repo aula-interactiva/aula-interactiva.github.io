@@ -319,7 +319,7 @@ function saveSubmissionAttachments_(p, student, attachments) {
     const registryId = String(p.submissionId || '').trim() + '#file' + (i + 1);
     upsertByHeaderKey_(SHEETS.pdfUploads, 'ID entrega', registryId, {
       'Data/hora': new Date(), 'ID': idNumber_(p.id), 'Nom': student.name,
-      'Àrea': clean_(p.area), 'Pràctica': clean_(p.practice), 'Fitxer': filename,
+      'Àrea': clean_(p.area), 'Pràctica': shortPracticeLabel_(p), 'Fitxer': filename,
       'URL': file.getUrl(), 'ID fitxer': file.getId(), 'Mida bytes': item.bytes.length,
       'ID entrega': registryId
     });
@@ -381,7 +381,7 @@ function saveFile_(p, student) {
     'ID': idNumber_(p.id),
     'Nom': student.name,
     'Àrea': clean_(p.area),
-    'Pràctica': clean_(p.practice),
+    'Pràctica': shortPracticeLabel_(p),
     'Fitxer': filename,
     'URL': file.getUrl(),
     'ID fitxer': file.getId(),
@@ -434,7 +434,7 @@ function savePdf_(p, student) {
     'ID': idNumber_(p.id),
     'Nom': student.name,
     'Àrea': clean_(p.area),
-    'Pràctica': clean_(p.practice),
+    'Pràctica': shortPracticeLabel_(p),
     'Fitxer': filename,
     'URL': file.getUrl(),
     'ID fitxer': file.getId(),
@@ -498,7 +498,7 @@ function upsertSubmission_(p) {
   const values = {
     'Data/hora': new Date(),
     'ID': idNumber_(p.id),
-    'Pràctica': clean_(p.practice),
+    'Pràctica': shortPracticeLabel_(p),
     'Àrea': clean_(p.area),
     'Estat': 'Entregada',
     'Preguntes totals': numberOrBlank_(p.total),
@@ -554,6 +554,45 @@ function practiceIdFromPayload_(p) {
   return match ? String(match[1] || '').trim() : '';
 }
 
+function shortPracticeLabel_(p) {
+  const practiceId = practiceIdFromPayload_(p);
+  const labels = {
+    // Economia
+    'fpp': '1 · FPP',
+    'oferta': '2a · Oferta',
+    'demanda': '2b · Demanda',
+    'oferta-demanda-repas': '2c · Oferta i demanda',
+    'equilibri': '2d · Equilibri',
+    'equilibri-exercicis': '2e · Exercicis equilibri',
+    'elasticitat': '3 · Elasticitat',
+
+    // Estadística
+    'excel-zero': '0 · Excel',
+    'freq-var': '1a · Unidimensional guiada',
+    'descriptiva-1d': '1b · Unidimensional aplicada',
+    'descriptiva-1d-examen': '1c · Unidimensional final',
+    'descriptiva-2d': '2a · Bidimensional guiada',
+    'descriptiva-2d-aplicada': '2b · Bidimensional aplicada',
+    'descriptiva-2d-examen': '2c · Bidimensional final',
+    'series-temporals-3a': '3a · Sèries guiada',
+    'series-temporals-3b': '3b · Sèries aplicada',
+    'series-temporals-3c': '3c · Sèries final',
+    'probabilitat-4a': '4a · Probabilitat guiada',
+    'probabilitat-4b': '4b · Probabilitat aplicada',
+    'probabilitat-4c': '4c · Probabilitat final',
+    'mostreig-5a': '5a · Mostreig guiada',
+    'mostreig-5b': '5b · Estimació guiada',
+    'mostreig-5c': '5c · Mostreig final',
+    'inferencia-6a': '6a · Intervals guiada',
+    'inferencia-6b': '6b · Intervals aplicada',
+    'inferencia-6c': '6c · Intervals final',
+    'aplicacions-7a': '7a · Indicadors',
+    'aplicacions-7b': '7b · Cas integrador'
+  };
+
+  return labels[practiceId] || clean_(p && p.practice);
+}
+
 function syncGradeStatusAfterSubmission_(p, student) {
   try {
     const practiceId = practiceIdFromPayload_(p);
@@ -591,7 +630,7 @@ function syncGradeStatusAfterSubmission_(p, student) {
       const values = {
         'Àrea': clean_(p.area),
         'Pràctica ID': practiceId,
-        'Pràctica': clean_(p.practice),
+        'Pràctica': shortPracticeLabel_(p),
         'Alumne': clean_(student && student.name),
         'ID alumne': idNumber_(p.id),
         'Nota': '',
@@ -643,7 +682,7 @@ function appendActivity_(p, student) {
     'Data/hora': new Date(),
     'ID': idNumber_(p.id),
     'Nom': student.name,
-    'Pràctica': clean_(p.practice),
+    'Pràctica': shortPracticeLabel_(p),
     'Àrea': clean_(p.area),
     'Estat': 'Activitat',
     'Preguntes totals': numberOrBlank_(p.total),
@@ -668,7 +707,7 @@ function appendCorrection_(p, justification) {
   appendByHeaders_(SHEETS.corrections, {
     'Data/hora': new Date(),
     'ID': idNumber_(p.id),
-    'Pràctica': clean_(p.practice),
+    'Pràctica': shortPracticeLabel_(p),
     'Pregunta': clean_(justification && justification.question),
     'Justificació alumne': clean_(justification && justification.text),
     'ID entrega': clean_(p.submissionId)
