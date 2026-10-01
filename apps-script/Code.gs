@@ -137,6 +137,18 @@ function savePayload_(payload) {
     return {ok: false, error: 'unsupported-status'};
   }
 
+  // Qualsevol fitxer adjunt forma part de l'entrega i s'ha de conservar.
+  // Si hi ha adjunts, els desem ABANS de registrar l'entrega: una entrega no pot
+  // quedar confirmada si els fitxers seleccionats no s'han pogut guardar.
+  const attachments = Array.isArray(payload.attachments) ? payload.attachments : [];
+  if (attachments.length) {
+    const saved = saveSubmissionAttachments_(payload, student, attachments);
+    if (!saved.ok) return saved;
+    payload.detail = Object.assign({}, payload.detail || {}, {
+      savedFiles: saved.files.map(f => ({name: f.name, fileId: f.fileId, url: f.url, size: f.size, mimeType: f.mimeType}))
+    });
+  }
+
   // L'entrega final va EXCLUSIVAMENT a Entregues.
   // L'ID final és determinista per alumne i pràctica.
   // Si torna a entregar mentre la pràctica és oberta, substituïm l'entrega anterior.
@@ -251,6 +263,81 @@ function submission_(token, code, submissionId) {
     detail,
     justifications
   };
+}
+
+function saveSubmissionAttachments_(p, student, attachments) {
+  if (!attachments.length) return {ok: true, files: []};
+  if (attachments.length > 5) return {ok: false, error: 'too-many-files'};
+
+  const allowed = {
+    'application/pdf': '.pdf',
+    'image/png': '.png',
+    'image/jpeg': '.jpg',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',
+    'application/vnd.ms-excel.sheet.macroenabled.12': '.xlsm'
+  };
+
+  const prepared = [];
+  let totalBytes = 0;
+  for (let i = 0; i < attachments.length; i++) {
+    const a = attachments[i] || {};
+    let mimeType = String(a.mimeType || '').toLowerCase();
+    if (mimeType === 'application/vnd.ms-excel.sheet.macroenabled.12') mimeType = 'application/vnd.ms-excel.sheet.macroenabled.12';
+    const extension = allowed[mimeType];
+    if (!extension) return {ok: false, error: 'unsupported-file-type'};
+    const base64 = String(a.base64 || '').replace(/^data:[^;]+;base64,/, '');
+    if (!base64) return {ok: false, error: 'missing-file'};
+    let bytes;
+    try { bytes = Utilities.base64Decode(base64); }
+    catch (_) { return {ok: false, error: 'invalid-file'}; }
+    if (!bytes || !bytes.length) return {ok: false, error: 'empty-file'};
+    if (bytes.length > MAX_UPLOAD_BYTES) return {ok: false, error: 'file-too-large'};
+    totalBytes += bytes.length;
+    if (totalBytes > 40 * 1024 * 1024) return {ok: false, error: 'attachments-too-large'};
+    prepared.push({a, mimeType, extension, bytes});
+  }
+
+  const root = DriveApp.getFolderById(PDF_ROOT_FOLDER_ID);
+  const areaFolder = getOrCreateFolder_(root, safeFilePart_(p.area || 'General'));
+  const practiceFolder = getOrCreateFolder_(areaFolder, safeFilePart_(p.practice || 'Pràctica'));
+  const prefix = normalizeId_(p.id) + '_' + safeFilePart_(student.name || 'Alumne') + '_' + safeFilePart_(p.practice || 'Pràctica') + '_';
+
+  // Reentrega: elimina totes les versions actives anteriors d'aquest alumne/pràctica.
+  const existing = practiceFolder.getFiles();
+  while (existing.hasNext()) {
+    const old = existing.next();
+    if (String(old.getName() || '').indexOf(prefix) === 0) old.setTrashed(true);
+  }
+  deleteFileRegistryRowsBySubmissionPrefix_(String(p.submissionId || '').trim() + '#');
+
+  const files = [];
+  prepared.forEach((item, i) => {
+    const originalBase = safeFilePart_(String(item.a.name || ('fitxer' + (i + 1))).replace(/\.[^.]+$/, ''));
+    const filename = prefix + String(i + 1).padStart(2, '0') + '_' + originalBase + item.extension;
+    const blob = Utilities.newBlob(item.bytes, item.mimeType, filename);
+    const file = practiceFolder.createFile(blob);
+    const registryId = String(p.submissionId || '').trim() + '#file' + (i + 1);
+    upsertByHeaderKey_(SHEETS.pdfUploads, 'ID entrega', registryId, {
+      'Data/hora': new Date(), 'ID': idNumber_(p.id), 'Nom': student.name,
+      'Àrea': clean_(p.area), 'Pràctica': clean_(p.practice), 'Fitxer': filename,
+      'URL': file.getUrl(), 'ID fitxer': file.getId(), 'Mida bytes': item.bytes.length,
+      'ID entrega': registryId
+    });
+    files.push({name: filename, fileId: file.getId(), url: file.getUrl(), size: item.bytes.length, mimeType: item.mimeType});
+  });
+  return {ok: true, files};
+}
+
+function deleteFileRegistryRowsBySubmissionPrefix_(prefix) {
+  const sh = sheet_(SHEETS.pdfUploads);
+  if (sh.getLastRow() < 2) return;
+  const headers = headers_(sh);
+  const idx = headers.indexOf('ID entrega');
+  if (idx < 0) return;
+  const vals = sh.getRange(2, idx + 1, sh.getLastRow() - 1, 1).getDisplayValues();
+  for (let i = vals.length - 1; i >= 0; i--) {
+    if (String(vals[i][0] || '').indexOf(prefix) === 0) sh.deleteRow(i + 2);
+  }
 }
 
 function saveFile_(p, student) {
