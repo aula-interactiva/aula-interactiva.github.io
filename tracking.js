@@ -863,21 +863,46 @@
     return Date.now() + serverTimeOffsetMs;
   }
 
-  function accessState(practice, nowMs = currentAccessTime()) {
-    if (!practice || practice.disponible !== true) {
+  function studentAccessException(practice, studentId) {
+    const id = normalizeId(studentId);
+    const exceptions = Array.isArray(practice?.excepcionsAcces) ? practice.excepcionsAcces : [];
+    const entry = exceptions.find(item => {
+      const value = typeof item === 'object' && item !== null ? item.id : item;
+      return normalizeId(value) === id;
+    });
+    if (entry === undefined) return null;
+    if (typeof entry !== 'object' || entry === null) return {id, fins: null};
+    return {id, fins: parseAccessTime(entry.fins)};
+  }
+
+  function accessState(practice, nowMs = currentAccessTime(), studentId = '') {
+    if (!practice) {
       return {open: false, reason: 'unavailable', opensAt: null, closesAt: null};
     }
 
     const opensAt = parseAccessTime(practice.obertura);
     const closesAt = parseAccessTime(practice.tancament);
+    const exception = studentAccessException(practice, studentId);
+    const exceptionOpen = !!exception && (exception.fins === null || nowMs < exception.fins);
 
+    // L'excepció individual només amplia l'accés: no obre una pràctica
+    // que encara no s'ha publicat (disponible:false).
+    if (practice.disponible !== true) {
+      return {open: false, reason: 'unavailable', opensAt, closesAt};
+    }
     if (opensAt !== null && nowMs < opensAt) {
       return {open: false, reason: 'not-open-yet', opensAt, closesAt};
     }
-    if (closesAt !== null && nowMs >= closesAt) {
+    if (closesAt !== null && nowMs >= closesAt && !exceptionOpen) {
       return {open: false, reason: 'closed', opensAt, closesAt};
     }
-    return {open: true, reason: '', opensAt, closesAt};
+    return {
+      open: true,
+      reason: '',
+      opensAt,
+      closesAt: exceptionOpen && exception.fins !== null ? exception.fins : closesAt,
+      exception: exceptionOpen
+    };
   }
 
   function formatAccessDate(ms) {
@@ -1082,7 +1107,7 @@
       return;
     }
 
-    const state = accessState(practice);
+    const state = accessState(practice, currentAccessTime(), session.id);
     if (!state.open) {
       showBlockedPractice(
         state.reason,
