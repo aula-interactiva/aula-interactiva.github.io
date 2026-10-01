@@ -34,8 +34,6 @@ function doGet(e) {
       result = login_(p.code);
     } else if (action === 'notes') {
       result = notes_(p.token, p.code);
-    } else if (action === 'presence-ping') {
-      result = presencePing_(p.token, p.code);
     } else if (action === 'online-students') {
       result = onlineStudents_(p.token, p.code);
     } else if (action === 'submission-status') {
@@ -553,64 +551,83 @@ function login_(code) {
   };
 }
 
-const PRESENCE_TTL_SECONDS = 180; // 3 minuts
-
-function presencePing_(token, code) {
-  const auth = authFromRequest_(token, code);
-  if (!auth || auth.role !== 'student') return {ok: false, error: 'unauthorized'};
-
-  // L'alumne de prova no compta com a alumne connectat real.
-  if (auth.id === '142858') return {ok: true, skipped: true};
-
-  CacheService.getScriptCache().put(
-    'presence:' + auth.id,
-    String(Date.now()),
-    PRESENCE_TTL_SECONDS
-  );
-
-  return {ok: true};
-}
+const ONLINE_WINDOW_MS = 3 * 60 * 1000; // 3 minuts
 
 function onlineStudents_(token, code) {
   const auth = authFromRequest_(token, code);
   if (!auth || auth.role !== 'teacher') return {ok: false, error: 'unauthorized'};
 
-  const sh = sheet_(SHEETS.students);
-  const lastRow = sh.getLastRow();
+  const studentsSh = sheet_(SHEETS.students);
+  const studentRows = studentsSh.getLastRow() < 2
+    ? []
+    : studentsSh.getRange(2, 1, studentsSh.getLastRow() - 1, 5).getValues();
+
+  const activeStudents = new Map();
+  studentRows.forEach(r => {
+    const id = normalizeId_(r[1]);
+    const active =
+      r[3] === true ||
+      String(r[3]).toLowerCase() === 'true' ||
+      String(r[3]).toLowerCase() === 'sí' ||
+      String(r[3]).toLowerCase() === 'si' ||
+      String(r[3]) === '1';
+    const role = String(r[4] || 'student').trim().toLowerCase();
+
+    if (
+      /^\d{6}$/.test(id) &&
+      id !== '142858' &&
+      active &&
+      role !== 'teacher'
+    ) {
+      activeStudents.set(id, String(r[0] || '').trim());
+    }
+  });
+
+  if (!activeStudents.size) return {ok: true, count: 0, students: []};
+
+  const activitySh = sheet_(SHEETS.activity);
+  const headers = headers_(activitySh);
+  const dateCol = headers.indexOf('Data/hora');
+  const idCol = headers.indexOf('ID');
+
+  if (dateCol < 0 || idCol < 0) {
+    return {ok: false, error: 'activity-schema'};
+  }
+
+  const lastRow = activitySh.getLastRow();
   if (lastRow < 2) return {ok: true, count: 0, students: []};
 
-  // A Nom | B ID | C ... | D Actiu | E Rol
-  const rows = sh.getRange(2, 1, lastRow - 1, 5).getValues();
-  const students = rows
-    .map(r => {
-      const id = normalizeId_(r[1]);
-      const active =
-        r[3] === true ||
-        String(r[3]).toLowerCase() === 'true' ||
-        String(r[3]).toLowerCase() === 'sí' ||
-        String(r[3]).toLowerCase() === 'si' ||
-        String(r[3]) === '1';
-      const role = String(r[4] || 'student').trim().toLowerCase();
-      return {id, name: String(r[0] || '').trim(), active, role};
-    })
-    .filter(s =>
-      /^\d{6}$/.test(s.id) &&
-      s.id !== '142858' &&
-      s.active &&
-      s.role !== 'teacher'
-    );
+  // Activitat s'insereix sempre a la fila 2: les files estan de més nova a més antiga.
+  // Llegim totes les files reals (sense límits arbitraris) i ens quedem amb l'activitat
+  // dels últims 3 minuts. Qualsevol activitat recent —inclòs SESSION_PULSE,
+  // LOGIN, ENTRA PORTAL o ENTRA PRÀCTICA— indica que l'alumne continua connectat.
+  const rows = activitySh
+    .getRange(2, 1, lastRow - 1, activitySh.getLastColumn())
+    .getValues();
 
-  const cache = CacheService.getScriptCache();
-  const keys = students.map(s => 'presence:' + s.id);
-  const present = keys.length ? cache.getAll(keys) : {};
-  const now = Date.now();
+  const cutoff = Date.now() - ONLINE_WINDOW_MS;
+  const seen = new Map();
 
-  const online = students
-    .filter(s => {
-      const seen = Number(present['presence:' + s.id] || 0);
-      return seen > 0 && now - seen <= PRESENCE_TTL_SECONDS * 1000;
-    })
-    .map(s => ({id: s.id, name: s.name}))
+  for (const row of rows) {
+    const rawDate = row[dateCol];
+    const time = rawDate instanceof Date
+      ? rawDate.getTime()
+      : new Date(rawDate).getTime();
+
+    if (!Number.isFinite(time)) continue;
+    if (time < cutoff) break;
+
+    const id = normalizeId_(row[idCol]);
+    if (!activeStudents.has(id) || seen.has(id)) continue;
+    seen.set(id, time);
+  }
+
+  const online = Array.from(seen.entries())
+    .map(([id, lastSeen]) => ({
+      id,
+      name: activeStudents.get(id) || '',
+      lastSeen: new Date(lastSeen).toISOString()
+    }))
     .sort((a, b) => a.name.localeCompare(b.name));
 
   return {ok: true, count: online.length, students: online};
