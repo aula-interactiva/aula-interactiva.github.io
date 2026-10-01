@@ -107,6 +107,44 @@
     history.replaceState(null, '', u);
   }
 
+  let presenceTimer = null;
+
+  function renderOnlineStudents(result) {
+    if (!result?.ok) return;
+    const students = Array.isArray(result.students) ? result.students : [];
+    const count = students.length;
+    $('online-count').textContent = count + (count === 1 ? ' connectat' : ' connectats');
+    $('online-list').innerHTML = count
+      ? students.map(s => '<div class="online-student">' + esc(s.name) + '</div>').join('')
+      : '<div class="online-empty">Cap alumne connectat ara mateix.</div>';
+  }
+
+  async function refreshPresence(session) {
+    try {
+      if (session.role === 'teacher') {
+        renderOnlineStudents(await tracker.apiGet('online-students'));
+      } else {
+        await tracker.apiGet('presence-ping');
+      }
+    } catch (_) {}
+  }
+
+  function startPresence(session) {
+    if (presenceTimer) clearInterval(presenceTimer);
+    presenceTimer = null;
+
+    const teacher = session.role === 'teacher';
+    $('online-wrap').classList.toggle('hidden', !teacher);
+    if (!teacher) {
+      $('online-popover').classList.add('hidden');
+      $('online-button').setAttribute('aria-expanded', 'false');
+    }
+
+    // Es fa després de la càrrega inicial per no competir amb login/missatges.
+    setTimeout(() => refreshPresence(session), 1800);
+    presenceTimer = setInterval(() => refreshPresence(session), 60000);
+  }
+
   function showPortal(session) {
     $('login-view').classList.add('hidden');
     $('hub-view').classList.remove('hidden');
@@ -118,6 +156,7 @@
     $('notes-button').classList.remove('hidden');
     $('messages-button').classList.remove('hidden');
     setMessagesBadge(0);
+    startPresence(session);
     render();
     // El portal ja és usable immediatament; el badge de missatges es carrega
     // lleugerament després per no competir amb el login i el registre d'activitat.
@@ -620,6 +659,25 @@
     }
   });
   $('login-button').addEventListener('click', handleLogin);
+
+  $('online-button').addEventListener('click', () => {
+    const popover = $('online-popover');
+    const opening = popover.classList.contains('hidden');
+    popover.classList.toggle('hidden', !opening);
+    $('online-button').setAttribute('aria-expanded', String(opening));
+    if (opening) {
+      const session = tracker.getSession();
+      if (session?.role === 'teacher') refreshPresence(session);
+    }
+  });
+
+  document.addEventListener('click', event => {
+    const wrap = $('online-wrap');
+    if (!wrap.classList.contains('hidden') && !wrap.contains(event.target)) {
+      $('online-popover').classList.add('hidden');
+      $('online-button').setAttribute('aria-expanded', 'false');
+    }
+  });
 
   $('logout-button').addEventListener('click', () => {
     tracker.logout();
