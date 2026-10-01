@@ -157,7 +157,6 @@
 
   function showPortal(session) {
     $('login-view').classList.add('hidden');
-    $('hub-view').classList.remove('hidden');
     const teacher = session.role === 'teacher';
     $('session-role').textContent = teacher ? 'Professor' : 'Alumne ·';
     $('session-id').textContent = teacher ? '' : `••••${String(session.id).slice(-2)}`;
@@ -166,8 +165,11 @@
     $('notes-button').classList.remove('hidden');
     $('messages-button').classList.remove('hidden');
     setMessagesBadge(0);
+    // Restaura primer l'últim recompte confirmat i només després mostra el portal.
+    // Així, en recarregar, no es veu el 0 inicial de l'HTML abans de consultar el servidor.
     startPresence(session);
     render();
+    $('hub-view').classList.remove('hidden');
     // El portal ja és usable immediatament; el badge de missatges es carrega
     // lleugerament després per no competir amb el login i el registre d'activitat.
     setTimeout(() => refreshMessages().catch(() => {}), 1200);
