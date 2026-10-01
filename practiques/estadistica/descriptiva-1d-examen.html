@@ -105,7 +105,7 @@ textarea{width:100%;min-height:165px;resize:vertical;border:1px solid #dfca77;ba
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-<script src="../../tracking.js?v=44"></script>
+<script src="../../tracking.js?v=46"></script>
 <script>
 (() => {
 'use strict';
@@ -270,7 +270,7 @@ async function submitExam(){
   };
 
   $('submit').textContent='Enviant…';setStatus('','Guardant l’entrega i la primera correcció…');
-  const res=await tracker.submit(payload);
+  const fileSave=await tracker.uploadFile(selectedFile,{practice:payload.practice,area:payload.area,submissionId:tracker.stablePracticeSubmissionId(location.pathname,id)});if(!fileSave.ok){$('submit').disabled=false;$('submit').textContent='Entrega la pràctica';setStatus('bad','No s’ha pogut guardar l’Excel. L’entrega no s’ha registrat. Torna-ho a provar.');return}const res=await tracker.submit(payload);
   if(res.ok){
     submitted=true;
     document.querySelectorAll('input,select,textarea').forEach(x=>x.disabled=true);
