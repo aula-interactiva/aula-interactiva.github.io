@@ -302,6 +302,36 @@ function savePdf_(p, student) {
     'ID entrega': clean_(p.submissionId)
   });
 
+  // En una pràctica PDF-only, la pujada confirmada del PDF ÉS l'entrega.
+  // La registrem també a Entregues perquè Control i la resta del sistema
+  // puguin tractar totes les pràctiques amb una única font d'estat.
+  upsertSubmission_({
+    id: p.id,
+    practice: p.practice,
+    area: p.area,
+    submissionId: p.submissionId,
+    total: '',
+    correct: '',
+    attempts: '',
+    progress: 100,
+    minutes: '',
+    version: '',
+    detail: {
+      _practiceKey: practicePathFromSubmissionId_(p.submissionId),
+      _deliveryType: 'pdf'
+    }
+  });
+  syncGradeStatusAfterSubmission_({
+    id: p.id,
+    practice: p.practice,
+    area: p.area,
+    submissionId: p.submissionId,
+    detail: {
+      _practiceKey: practicePathFromSubmissionId_(p.submissionId),
+      _deliveryType: 'pdf'
+    }
+  }, student);
+
   return {
     ok: true,
     type: 'pdf',
@@ -358,6 +388,13 @@ function upsertSubmission_(p) {
   }
 
   sh.appendRow(row);
+}
+
+function practicePathFromSubmissionId_(submissionId) {
+  const sid = String(submissionId || '').trim();
+  const match = sid.match(/^final-\d{6}-([^-]+)-(.+)$/i);
+  if (!match) return '';
+  return 'practiques/' + match[1] + '/' + match[2] + '.html';
 }
 
 function practiceIdFromPayload_(p) {
