@@ -197,9 +197,20 @@ $('submit').onclick=async()=>{
     minutes:startedAt?Math.max(1,Math.round((elapsedBeforeMs+Math.max(0,Date.now()-startedAt))/60000)):'',
     version:'pilot-1',detail:{checks:lastReport.detail},justifications:lastReport.justifications
   };
+  const stableId=tracker.stablePracticeSubmissionId(location.pathname,validatedId);
+  const upload=await tracker.uploadFile(file,{
+    practice:'Pràctica 1a · Taules de freqüències i dispersió',
+    area:'Estadística',
+    submissionId:stableId
+  });
+  if(!upload.ok){
+    $('submit').disabled=false;$('submit').textContent='Entrega la pràctica';
+    setStatus('submit-status','bad','No s’ha pogut guardar l’Excel. L’entrega no s’ha registrat. Torna-ho a provar.');
+    return;
+  }
   const r=await tracker.submit(payload);
-  if(r.ok){submitted=true;$('submit').textContent='Pràctica entregada';setStatus('submit-status','ok','Entrega registrada. Les 3 interpretacions queden pendents de correcció IA.')}
-  else{$('submit').disabled=false;$('submit').textContent='Entrega la pràctica';setStatus('submit-status','bad','No s’ha pogut confirmar l’entrega. Torna-ho a provar.')}
+  if(r.ok){submitted=true;$('submit').textContent='Pràctica entregada';setStatus('submit-status','ok','Entrega registrada i Excel guardat. Les 3 interpretacions queden pendents de correcció IA.')}
+  else{$('submit').disabled=false;$('submit').textContent='Entrega la pràctica';setStatus('submit-status','bad','L’Excel s’ha guardat però no s’ha pogut confirmar l’entrega. Torna-ho a provar.')}
 };
 })();
 </script>
