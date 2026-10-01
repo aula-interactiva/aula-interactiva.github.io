@@ -23,6 +23,7 @@ const SHEETS = Object.freeze({
 const TOKEN_TTL_SECONDS = 21600; // 6 hores
 const PDF_ROOT_FOLDER_ID = '19kL-nxDJxMDj8IF2t7dwyFsN_bdT5j0t';
 const MAX_PDF_BYTES = 10 * 1024 * 1024;
+const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 
 function doGet(e) {
   try {
@@ -129,7 +130,7 @@ function savePayload_(payload) {
   }
 
   if (status === 'Fitxer') {
-    return savePdf_(payload, student);
+    return saveFile_(payload, student);
   }
 
   if (status !== 'Entregada') {
@@ -250,6 +251,58 @@ function submission_(token, code, submissionId) {
     detail,
     justifications
   };
+}
+
+function saveFile_(p, student) {
+  const mimeType = String(p.mimeType || '').toLowerCase();
+  if (mimeType === 'application/pdf') return savePdf_(p, student);
+
+  const allowed = {
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',
+    'application/vnd.ms-excel.sheet.macroenabled.12': '.xlsm'
+  };
+  const extension = allowed[mimeType];
+  if (!extension) return {ok: false, error: 'unsupported-file-type'};
+
+  const base64 = String(p.fileBase64 || '').replace(/^data:[^;]+;base64,/, '');
+  if (!base64) return {ok: false, error: 'missing-file'};
+
+  let bytes;
+  try { bytes = Utilities.base64Decode(base64); }
+  catch (_) { return {ok: false, error: 'invalid-file'}; }
+
+  if (!bytes || !bytes.length) return {ok: false, error: 'empty-file'};
+  if (bytes.length > MAX_UPLOAD_BYTES) return {ok: false, error: 'file-too-large'};
+
+  const root = DriveApp.getFolderById(PDF_ROOT_FOLDER_ID);
+  const areaFolder = getOrCreateFolder_(root, safeFilePart_(p.area || 'General'));
+  const practiceFolder = getOrCreateFolder_(areaFolder, safeFilePart_(p.practice || 'Pràctica'));
+  const filename =
+    normalizeId_(p.id) + '_' +
+    safeFilePart_(student.name || 'Alumne') + '_' +
+    safeFilePart_(p.practice || 'Pràctica') + extension;
+
+  // Una sola versió activa per alumne i pràctica.
+  const oldFiles = practiceFolder.getFilesByName(filename);
+  while (oldFiles.hasNext()) oldFiles.next().setTrashed(true);
+
+  const blob = Utilities.newBlob(bytes, mimeType, filename);
+  const file = practiceFolder.createFile(blob);
+
+  upsertByHeaderKey_(SHEETS.pdfUploads, 'ID entrega', clean_(p.submissionId), {
+    'Data/hora': new Date(),
+    'ID': idNumber_(p.id),
+    'Nom': student.name,
+    'Àrea': clean_(p.area),
+    'Pràctica': clean_(p.practice),
+    'Fitxer': filename,
+    'URL': file.getUrl(),
+    'ID fitxer': file.getId(),
+    'Mida bytes': bytes.length,
+    'ID entrega': clean_(p.submissionId)
+  });
+
+  return {ok: true, type: 'file', fileId: file.getId(), url: file.getUrl(), name: filename};
 }
 
 function savePdf_(p, student) {
@@ -879,7 +932,7 @@ function operationStatus_(token, code, kind, operationId) {
   if (type === 'submission') {
     if (auth.role !== 'student') return {ok: false, error: 'unauthorized'};
     exists = submissionExistsForStudent_(auth.id, oid);
-  } else if (type === 'pdf') {
+  } else if (type === 'pdf' || type === 'file') {
     if (auth.role !== 'student') return {ok: false, error: 'unauthorized'};
     exists = pdfExistsForStudent_(auth.id, oid);
   } else if (type === 'message') {
