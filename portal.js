@@ -632,7 +632,7 @@
         buttons = pdfBtn + solutionBtn + openBtn;
       }
 
-      return `<article class="practice-card ${canOpen ? 'active' : 'disabled'} ${preview ? 'teacher-preview' : ''}">
+      return `<article class="practice-card ${canOpen ? 'active' : 'disabled'} ${availability.state === 'closed' ? 'closed' : ''} ${preview ? 'teacher-preview' : ''}">
         <div>
           <div class="card-kicker">${esc(p.codi)} · <span class="card-status ${statusClass}">${esc(status)}</span>${esc(timing)}</div>
           ${closingTime}
