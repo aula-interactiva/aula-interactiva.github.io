@@ -139,18 +139,30 @@ async function checkFile(){
     if(!dws||!tws||!iws||!rws){addCheck(report,'Estructura del fitxer',false,'Falten fulls de la plantilla.');report.total=1;render(report);return}
     const ver=String(cell(iws,'B9')?.v||'').trim();addCheck(report,'Plantilla correcta',ver==='freq-var-v1',ver==='freq-var-v1'?'':'Versió de plantilla no reconeguda.');
     for(const b of blocks){
-      const data=dataFromSheet(dws,b.dataCol),e=expected(data);let tableOk=true;
+      const data=dataFromSheet(dws,b.dataCol),e=expected(data);let tableOk=true;const tableErrors=[];
       const [r1,r2]=b.rows;
       for(let r=r1;r<=r2;r++){
         const er=e.rows[r-r1];
         const checks=[
           ['B',er.ni,1e-9],['C',er.fi,2e-4],['D',er.Ni,1e-9],['E',er.Fi,2e-4]
         ];
-        for(const [col,ex,tol] of checks){const z=formulaValue(tws,`${col}${r}`,ex,tol);if(!(z.formula&&z.value))tableOk=false}
+        for(const [col,ex,tol] of checks){
+          const addr=`${col}${r}`,z=formulaValue(tws,addr,ex,tol);
+          if(!(z.formula&&z.value)){
+            tableOk=false;
+            tableErrors.push(`${addr}: ${!z.formula?'falta una fórmula amb referència a cel·les':'la fórmula hi és però el resultat no coincideix'}`);
+          }
+        }
       }
       const totals=[['B',e.n,1e-9],['C',1,2e-4],['D',e.n,1e-9],['E',1,2e-4]];
-      for(const [col,ex,tol] of totals){const z=formulaValue(tws,`${col}${b.total}`,ex,tol);if(!(z.formula&&z.value))tableOk=false}
-      addCheck(report,`${b.name} · taula de freqüències`,tableOk,tableOk?'Fórmules i resultats correctes.':'Revisa nᵢ, fᵢ, Nᵢ, Fᵢ i la fila TOTAL.');
+      for(const [col,ex,tol] of totals){
+        const addr=`${col}${b.total}`,z=formulaValue(tws,addr,ex,tol);
+        if(!(z.formula&&z.value)){
+          tableOk=false;
+          tableErrors.push(`${addr}: ${!z.formula?'falta una fórmula amb referència a cel·les':'la fórmula hi és però el resultat no coincideix'}`);
+        }
+      }
+      addCheck(report,`${b.name} · taula de freqüències`,tableOk,tableOk?'Fórmules i resultats correctes.':tableErrors.join(' · '));
       const metricAddr=[`H${b.summary[0]}`,`H${b.summary[0]+1}`,`H${b.summary[0]+2}`],metricExp=[e.mean,e.variance,e.sd],metricNames=['mitjana','variància','desviació típica'];
       metricAddr.forEach((addr,j)=>{const z=formulaValue(tws,addr,metricExp[j],.002);addCheck(report,`${b.name} · ${metricNames[j]}`,z.formula&&z.value,z.formula?(z.value?'Correcte.':'La fórmula hi és però el resultat no és correcte.'):'Cal una fórmula que faci referència a altres cel·les.');});
     }
