@@ -943,7 +943,7 @@
       open: true,
       reason: '',
       opensAt,
-      closesAt: exceptionOpen && exception.fins !== null ? exception.fins : closesAt,
+      closesAt: exceptionOpen ? exception.fins : closesAt,
       exception: exceptionOpen
     };
   }
