@@ -492,7 +492,7 @@
     const exception = session?.role === 'student' ? studentAccessException(p, session.id) : null;
     const exceptionOpen = !!exception && (exception.fins === null || now < exception.fins);
 
-    if (p.disponible !== true) return {open:false, state:'closed', opensAt, closesAt};
+    if (p.disponible !== true) return {open:false, state:'unavailable', opensAt, closesAt};
     if (opensAt !== null && now < opensAt) return {open:false, state:'upcoming', opensAt, closesAt};
     if (closesAt !== null && now >= closesAt && !exceptionOpen) return {open:false, state:'closed', opensAt, closesAt};
     return {
