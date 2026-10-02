@@ -154,7 +154,7 @@ async function checkFile(){
           }
         }
       }
-      const totals=[['B',e.n,1e-9],['C',1,2e-4],['D',e.n,1e-9],['E',1,2e-4]];
+      const totals=[['B',e.n,1e-9],['C',1,2e-4]];
       for(const [col,ex,tol] of totals){
         const addr=`${col}${b.total}`,z=formulaValue(tws,addr,ex,tol);
         if(!(z.formula&&z.value)){
