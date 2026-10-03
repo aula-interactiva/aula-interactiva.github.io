@@ -106,7 +106,8 @@ const fmt=(x,d=0)=>Number(x).toLocaleString('ca-ES',{minimumFractionDigits:d,max
 const parse=s=>{if(typeof s==='number')return s; const v=String(s??'').trim().replace(/\s/g,'').replace(',','.');return v===''?NaN:Number(v)};
 const round=(x,d=0)=>{const m=10**d;return Math.round((x+Number.EPSILON)*m)/m};
 const median=a=>{const s=[...a].sort((x,y)=>x-y),n=s.length;return n%2?s[(n-1)/2]:(s[n/2-1]+s[n/2])/2};
-const quartiles=a=>{const s=[...a].sort((x,y)=>x-y),n=s.length,h=Math.floor(n/2);return {q1:median(s.slice(0,h)),q2:median(s),q3:median(s.slice(n-h))}};
+const percentileInc=(a,p)=>{const s=[...a].sort((x,y)=>x-y),n=s.length;if(!n)return NaN;if(n===1)return s[0];const r=(n-1)*p,lo=Math.floor(r),hi=Math.ceil(r),w=r-lo;return s[lo]+(s[hi]-s[lo])*w};
+const quartiles=a=>({q1:percentileInc(a,.25),q2:percentileInc(a,.5),q3:percentileInc(a,.75)});
 const stats=a=>{const n=a.length,sum=a.reduce((x,y)=>x+y,0),mean=sum/n,med=median(a),min=Math.min(...a),max=Math.max(...a),range=max-min;const variance=a.reduce((s,x)=>s+(x-mean)**2,0)/n,sd=Math.sqrt(variance);const {q1,q2,q3}=quartiles(a),iqr=q3-q1,cv=sd/mean*100;const counts={};a.forEach(x=>counts[x]=(counts[x]||0)+1);const mx=Math.max(...Object.values(counts));const modes=Object.keys(counts).filter(k=>counts[k]===mx).map(Number);return {n,mean,median:med,min,max,range,variance,sd,q1,q2,q3,iqr,cv,modes,modeCount:mx}};
 function hash(s){let h=2166136261;for(const ch of String(s)){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
 function rng(seed){let x=seed||123456789;return ()=>{x^=x<<13;x^=x>>>17;x^=x<<5;return (x>>>0)/4294967296}}
@@ -163,7 +164,7 @@ case 1:return [q('sel','Quina forma descriu millor la distribució?',shape,'',['
 case 2:return [qx('num','Calcula la mitjana.',round(st.mean,2),'min'),qx('num','Calcula la mediana.',round(st.median,2),'min'),qx('num','Quantes vegades apareix el valor modal més freqüent?',st.modeCount,'vegades')];
 case 3:{const altered=[...baseData];altered[31]=Math.max(...baseData)+40;const a=stats(altered);return [q('sel','En augmentar molt una sola observació alta, quina mesura de centre canvia més?','Mitjana','',['Mitjana','Mediana','Canvien igual']),q('sel','La mediana és relativament robusta davant un valor extrem?','Sí','',['Sí','No']),qx('num','A Excel, canvia l’observació 32 al valor màxim del control i calcula la nova mitjana.',round(a.mean,2),'min')];}
 case 4:return [qx('num','Calcula la variància descriptiva (dividint per n).',round(st.variance,2),'min²'),qx('num','Calcula la desviació típica.',round(st.sd,2),'min'),qx('num','Calcula el coeficient de variació.',round(st.cv,2),'%'),q('sel','Una desviació típica més gran indica, en general, més dispersió?','Sí','',['Sí','No'])];
-case 5:{const lo=st.q1-1.5*st.iqr,hi=st.q3+1.5*st.iqr,out=dataset.filter(x=>x<lo||x>hi).length;return [qx('num','Calcula Q1 (mediana de la meitat inferior).',round(st.q1,2),'min'),qx('num','Calcula Q3 (mediana de la meitat superior).',round(st.q3,2),'min'),qx('num','Calcula el rang interquartílic (RIQ).',round(st.iqr,2),'min'),q('num','Amb la regla 1,5·RIQ, quants valors atípics hi ha?',out,'valors')];}
+case 5:{const lo=st.q1-1.5*st.iqr,hi=st.q3+1.5*st.iqr,out=dataset.filter(x=>x<lo||x>hi).length;return [qx('num','Calcula Q1 amb QUARTILE.INC.',round(st.q1,2),'min'),qx('num','Calcula Q3 amb QUARTILE.INC.',round(st.q3,2),'min'),qx('num','Calcula el rang interquartílic (RIQ).',round(st.iqr,2),'min'),q('num','Amb la regla 1,5·RIQ, quants valors atípics hi ha?',out,'valors')];}
 case 6:return [q('sel','Quina mostra és més homogènia?','B','',['A','B']),q('sel','Les dues mostres tenen pràcticament el mateix centre però la mateixa dispersió?','No','',['Sí','No']),qx('num','Utilitza les mostres A i B del full TREBALL. Quina és la desviació típica de la mostra B?',round(comp.sd,2),'min')];
 case 7:{const centre=family===3?'Cap de les dues per si sola':((family===1||family===2)?'Mediana':'Mitjana');return [q('sel','Per resumir el centre d’aquesta distribució, quina opció triaries?',centre,'',[ 'Mitjana','Mediana','Cap de les dues per si sola']),q('sel','Si vols una dispersió robusta als valors extrems, quina mesura és més adequada?','RIQ','',['Recorregut','Desviació típica','RIQ']),q('sel',`La frase “la majoria de dades es poden descriure només amb la mitjana” és suficient per resumir bé una distribució?`,'No','',['Sí','No'])];}
 }}
@@ -184,7 +185,7 @@ else if(current===1){title.textContent='HISTOGRAMA';histogram(false);hint.textCo
 else if(current===2){title.textContent='CENTRE DE LA DISTRIBUCIÓ';dotplot(completed.has(2));hint.textContent=completed.has(2)?'Verd: mediana. Taronja discontinu: mitjana.':'Primer calcula les mesures. Les línies apareixeran després de validar el bloc.';}
 else if(current===3){title.textContent='EXPERIMENT AMB UN VALOR EXTREM';dotplot(true);hint.textContent='La dada taronja és la que estàs manipulant. Observa especialment mitjana i mediana.';const baseMax=Math.max(...baseData),max=baseMax+40;controls.innerHTML=`Valor extrem <input id="outlier" type="range" min="${baseMax}" max="${max}" value="${dataset[31]}"> <strong id="out-val">${dataset[31]} min</strong>`;$('outlier').oninput=e=>{dataset=[...baseData];dataset[31]=+e.target.value;extremeValue=dataset[31];$('out-val').textContent=extremeValue+' min';dotplot(true);renderDataPanel();renderStats()}}
 else if(current===4){title.textContent='DISPERSIÓ AL VOLTANT DE LA MITJANA';dotplot(true);hint.textContent='La desviació típica utilitza totes les distàncies respecte de la mitjana.';}
-else if(current===5){title.textContent='BOXPLOT · QUARTILS I VALORS ATÍPICS';boxplot();hint.textContent='Per aquesta pràctica, Q1 i Q3 són les medianes de les dues meitats de les dades ordenades.';}
+else if(current===5){title.textContent='BOXPLOT · QUARTILS I VALORS ATÍPICS';boxplot();hint.textContent='Q1 i Q3 es calculen amb el criteri inclusiu d’Excel (QUARTILE.INC).';}
 else if(current===6){title.textContent='COMPARACIÓ DE DUES DISTRIBUCIONS';histogram(true);hint.innerHTML='<strong style="color:#567f96">A</strong>: mostra original · <strong style="color:#b3733f">B</strong>: mateix centre aproximat, menor dispersió.';}
 else {title.textContent='RADIOGRAFIA FINAL';histogram(false);hint.textContent='Ara ja no es tracta de calcular: es tracta d’escollir què explicaries d’aquestes dades.';}}
 function renderInsight(){const msgs=[
@@ -405,14 +406,23 @@ window.AulaDraftState = {
     return n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2;
   }
 
-  function quartiles(a) {
+  function percentileInc(a, p) {
     const s = [...a].sort((x, y) => x - y);
     const n = s.length;
-    const h = Math.floor(n / 2);
+    if (!n) return NaN;
+    if (n === 1) return s[0];
+    const r = (n - 1) * p;
+    const lo = Math.floor(r);
+    const hi = Math.ceil(r);
+    const w = r - lo;
+    return s[lo] + (s[hi] - s[lo]) * w;
+  }
+
+  function quartiles(a) {
     return {
-      q1: median(s.slice(0, h)),
-      q2: median(s),
-      q3: median(s.slice(n - h))
+      q1: percentileInc(a, 0.25),
+      q2: percentileInc(a, 0.5),
+      q3: percentileInc(a, 0.75)
     };
   }
 
