@@ -1,5 +1,5 @@
 {
-  "versio": 23,
+  "versio": 24,
   "ajuda": "visible controla la visibilitat per a l’alumnat; disponible és l’interruptor general d’accés. Opcionalment, obertura i tancament (ISO 8601 amb zona horària, p. ex. 2026-09-20T08:00:00+02:00) limiten automàticament l’accés. El professor pot previsualitzar les pràctiques fora de termini.",
   "arees": {
     "economia": {
@@ -98,13 +98,15 @@
         {
           "id": "equilibri",
           "ordre": 4,
-          "visible": false,
-          "disponible": false,
+          "visible": true,
+          "disponible": true,
           "codi": "Pràctica 2d",
           "titol": "Equilibri de mercat",
           "descripcio": "Oferta, demanda, equilibri, canvis en les condicions del mercat, impostos i subvencions.",
           "fitxer": "practiques/economia/equilibri.html",
-          "pdf": "assets/pdf/equilibri.pdf"
+          "pdf": "assets/pdf/equilibri.pdf",
+          "obertura": "2026-10-05T16:00:00+02:00",
+          "tancament": "2026-10-06T15:00:00+02:00"
         },
         {
           "id": "equilibri-exercicis",
