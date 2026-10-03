@@ -196,8 +196,10 @@
         {
           "id": "descriptiva-1d-examen",
           "ordre": 2.5,
-          "visible": false,
-          "disponible": false,
+          "visible": true,
+          "disponible": true,
+          "obertura": "2026-10-05T22:00:00+02:00",
+          "tancament": "2026-10-09T22:00:00+02:00",
           "codi": "Pràctica 1c",
           "titol": "Unidimensional · pràctica final",
           "descripcio": "Cas global sense procediment pautat: l’alumne decideix mesures, representacions i anàlisi, construeix l’Excel i redacta una conclusió global.",
