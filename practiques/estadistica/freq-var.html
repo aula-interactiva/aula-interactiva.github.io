@@ -150,7 +150,7 @@ async function checkFile(){
           const addr=`${col}${r}`,z=formulaValue(tws,addr,ex,tol);
           if(!(z.formula&&z.value)){
             tableOk=false;
-            tableErrors.push(`${addr}: ${!z.formula?'falta una fórmula amb referència a cel·les':'la fórmula hi és però el resultat no coincideix'}`);
+            tableErrors.push(`${addr}: ${!z.formula?'falta una fórmula amb referència a cel·les':`la fórmula hi és però el resultat no coincideix (obtingut: ${num(cell(tws,addr)?.v)} · esperat: ${Number(ex.toFixed(4))})`}`);
           }
         }
       }
