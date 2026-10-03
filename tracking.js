@@ -1163,6 +1163,61 @@
     startPractice(session);
   }
 
+  // Variant determinista per alumne + pràctica.
+  // Qualsevol generació aleatòria executada després de tracking.js rep una seqüència
+  // pròpia de l'alumne i de la pàgina, però idèntica quan torna a obrir-la.
+  function hashVariantSeed(value) {
+    let h = 2166136261 >>> 0;
+    const s = String(value || '');
+    for (let i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619) >>> 0;
+    }
+    return h || 0x6d2b79f5;
+  }
+
+  function makeSeededRandom(seedValue) {
+    let state = hashVariantSeed(seedValue);
+    return function seededRandom() {
+      state = (state + 0x6D2B79F5) >>> 0;
+      let t = state;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function practiceVariantKey(practicePath = location.pathname, studentId = '') {
+    const session = getSession();
+    const id = normalizeId(studentId || session?.id || '');
+    const path = normalizeRepoPath(practicePath || location.pathname).toLowerCase();
+    return id && path ? id + '|' + path : '';
+  }
+
+  function practiceRandom(practicePath = location.pathname, studentId = '') {
+    const key = practiceVariantKey(practicePath, studentId);
+    return key ? makeSeededRandom(key) : Math.random;
+  }
+
+  function practiceVariant(maxVariants = 1000000, practicePath = location.pathname, studentId = '') {
+    const n = Math.max(1, Math.floor(Number(maxVariants) || 1));
+    const key = practiceVariantKey(practicePath, studentId);
+    return key ? Math.floor(makeSeededRandom(key)() * n) : 0;
+  }
+
+  function installDeterministicPracticeRandom() {
+    if (!location.pathname.includes('/practiques/')) return;
+    const session = getSession();
+    if (!session || session.role !== 'student') return;
+    const key = practiceVariantKey(location.pathname, session.id);
+    if (!key) return;
+    const seeded = makeSeededRandom(key);
+    try {
+      Math.random = seeded;
+      document.documentElement.dataset.aulaVariant = String(practiceVariant(1000000, location.pathname, session.id));
+    } catch (_) {}
+  }
+
   function startPortalPresence() {
     if (location.pathname.includes('/practiques/')) return;
 
@@ -1191,6 +1246,8 @@
     }, SESSION_PULSE_MS);
   }
 
+  installDeterministicPracticeRandom();
+
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', guardPractice);
   } else {
@@ -1218,6 +1275,9 @@
     logActivity,
     saveDraftNow,
     restoreDraft,
+    practiceRandom,
+    practiceVariant,
+    practiceVariantKey,
     confirmOperation,
     async apiGet(action, params = {}) {
       const session = getSession();
