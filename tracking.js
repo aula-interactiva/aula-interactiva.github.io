@@ -295,7 +295,7 @@
 
   function activityPayload(event, detail = {}) {
     const session = getSession();
-    if (!session || session.role !== 'student') return null;
+    if (!session) return null;
     if (normalizeId(session.id) === '142858') return null;
 
     return {
@@ -438,7 +438,7 @@
 
   function saveDraftNow() {
     const session = getSession();
-    if (!session || session.role !== 'student' || !location.pathname.includes('/practiques/')) return false;
+    if (!session || !location.pathname.includes('/practiques/')) return false;
     try {
       const key = draftKey(location.pathname, session.id);
       let previous = null;
@@ -542,7 +542,7 @@
 
   function installDraftAutosave() {
     const session = getSession();
-    if (!session || session.role !== 'student') return;
+    if (!session) return;
 
     let timer = null;
     const schedule = () => {
@@ -580,7 +580,7 @@
 
   function installSaveAndExitButton() {
     const session = getSession();
-    if (!session || session.role !== 'student' || document.getElementById('aula-save-exit')) return;
+    if (!session || document.getElementById('aula-save-exit')) return;
 
     const button = document.createElement('button');
     button.id = 'aula-save-exit';
