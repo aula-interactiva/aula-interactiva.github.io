@@ -69,7 +69,7 @@ textarea{width:100%;min-height:165px;resize:vertical;border:1px solid #dfca77;ba
       </div>
       <div class="result-card">
         <h2>Dispersió</h2>
-        <p>Utilitza la versió descriptiva de la variància, dividint per n.</p>
+        <p>Utilitza la versió descriptiva de la variància, dividint per n. Per als quartils i la regla dels valors atípics, utilitza el criteri inclusiu d’Excel (<strong>QUARTILE.INC</strong>).</p>
         <div class="fields">
           <div class="field"><label for="variance">Variància (2 decimals)</label><input id="variance" inputmode="decimal" placeholder="Resultat"></div>
           <div class="field"><label for="sd">Desviació típica (2 decimals)</label><input id="sd" inputmode="decimal" placeholder="Resultat"></div>
@@ -105,7 +105,7 @@ textarea{width:100%;min-height:165px;resize:vertical;border:1px solid #dfca77;ba
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-<script src="../../tracking.js?v=46"></script>
+<script src="../../tracking.js?v=47"></script>
 <script>
 (() => {
 'use strict';
@@ -118,7 +118,7 @@ function normal(r){let u=0,v=0;while(!u)u=r();while(!v)v=r();return Math.sqrt(-2
 function round(x,d=2){const m=10**d;return Math.round((x+Number.EPSILON)*m)/m}
 function parseNum(v){let s=String(v??'').trim().replace(/\s/g,'');if(!s)return NaN;if(s.includes(',')&&s.includes('.'))s=s.lastIndexOf(',')>s.lastIndexOf('.')?s.replace(/\./g,'').replace(',','.'):s.replace(/,/g,'');else s=s.replace(',','.');return Number(s)}
 function median(a){const s=[...a].sort((x,y)=>x-y),n=s.length;return n%2?s[(n-1)/2]:(s[n/2-1]+s[n/2])/2}
-function quartiles(a){const s=[...a].sort((x,y)=>x-y),h=Math.floor(s.length/2);return{q1:median(s.slice(0,h)),q2:median(s),q3:median(s.slice(s.length-h))}}
+function percentileInc(a,p){const s=[...a].sort((x,y)=>x-y),n=s.length;if(!n)return NaN;if(n===1)return s[0];const r=(n-1)*p,lo=Math.floor(r),hi=Math.ceil(r),w=r-lo;return s[lo]+(s[hi]-s[lo])*w}function quartiles(a){return{q1:percentileInc(a,.25),q2:percentileInc(a,.5),q3:percentileInc(a,.75)}}
 
 function makeData(id){
   const seed=hash(id+'-exam-1c-global'),r=rng(seed);
