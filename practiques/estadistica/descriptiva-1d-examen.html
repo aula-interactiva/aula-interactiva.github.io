@@ -186,7 +186,7 @@ function objectiveDetail(){
     {question:'Variància descriptiva',answer:Number.isFinite(answers.variance)?answers.variance:'',correct:Number.isFinite(answers.variance)&&Math.abs(answers.variance-stats.variance)<=.021},
     {question:'Desviació típica descriptiva',answer:Number.isFinite(answers.sd)?answers.sd:'',correct:Number.isFinite(answers.sd)&&Math.abs(answers.sd-stats.sd)<=.021},
     {question:'Nombre de valors atípics',answer:Number.isFinite(answers.outliers)?answers.outliers:'',correct:Number.isFinite(answers.outliers)&&Math.abs(answers.outliers-stats.outliers.length)<.001},
-    {question:'Forma principal',answer:answers.shape,correct:answers.shape===shapeName()}
+    {question:'Forma principal (interpretació gràfica)',answer:answers.shape,correct:true}
   ];
 }
 
@@ -245,7 +245,7 @@ async function submitExam(){
     `Resultats correctes: n=${stats.n}; mitjana=${round(stats.mean,2)}; mediana=${round(stats.median,2)}; `+
     `variància descriptiva=${round(stats.variance,2)}; desviació típica=${round(stats.sd,2)}; mínim=${stats.min}; màxim=${stats.max}; `+
     `Q1=${round(stats.q1,2)}; Q3=${round(stats.q3,2)}; RIQ=${round(stats.iqr,2)}; `+
-    `forma=${shapeName().toLowerCase()}; valors atípics segons 1,5·RIQ=${stats.outliers.length}. `+
+    `família generadora de referència=${shapeName().toLowerCase()} (no s’ha d’usar com a etiqueta obligatòria de la mostra); valors atípics segons 1,5·RIQ=${stats.outliers.length}. `+
     `Avalua si integra coherentment centre, dispersió, forma, mesures de posició, valors atípics i la tria d’una mesura de centre representativa. `+
     `No exigeixis que enumeri tots els estadístics. Aquesta part val 1 punt.`;
 
