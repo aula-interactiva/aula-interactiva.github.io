@@ -1,5 +1,5 @@
 {
-  "versio": 22,
+  "versio": 23,
   "ajuda": "visible controla la visibilitat per a l’alumnat; disponible és l’interruptor general d’accés. Opcionalment, obertura i tancament (ISO 8601 amb zona horària, p. ex. 2026-09-20T08:00:00+02:00) limiten automàticament l’accés. El professor pot previsualitzar les pràctiques fora de termini.",
   "arees": {
     "economia": {
@@ -188,7 +188,8 @@
           "pdf": null,
           "tema": 1,
           "temaTitol": "Tema 1 · Estadística descriptiva unidimensional",
-          "obertura": "2026-10-03T22:00:00+02:00"
+          "obertura": "2026-10-03T22:00:00+02:00",
+          "tancament": "2026-10-05T22:00:00+02:00"
         },
         {
           "id": "descriptiva-1d-examen",
