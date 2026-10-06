@@ -567,7 +567,10 @@
 
     const source = isApunts ? (a.apunts || []) : (a.practiques || []);
     const list = source
-      .filter(p => teacher || p.visible !== false)
+      .filter(p => {
+        if (teacher || p.visible !== false) return true;
+        return !isApunts && session.role === 'student' && !!studentAccessException(p, session.id);
+      })
       .sort((x, y) => (x.ordre || 0) - (y.ordre || 0));
     const grid = $('practice-grid');
 
