@@ -187,9 +187,9 @@
       ? {token: session.token}
       : {id: session.id}; // compatibilitat temporal amb sessions obertes abans de v36
 
-    const body = new URLSearchParams({
-      payload: JSON.stringify({...payload, ...auth})
-    });
+    // Enviem el payload com a text JSON cru. Això evita passar fitxers base64
+    // grans pel parser de paràmetres de formulari d'Apps Script.
+    const body = JSON.stringify({...payload, ...auth});
 
     return fetch(ENDPOINT, {
       method: 'POST',
@@ -197,6 +197,7 @@
       credentials: 'omit',
       cache: 'no-store',
       keepalive,
+      headers: {'Content-Type': 'text/plain;charset=UTF-8'},
       body
     });
   }
