@@ -252,7 +252,7 @@ window.AulaDraftState = {
 })();
 </script>
 
-<script src="../../tracking.js?v=46"></script>
+<script src="../../tracking.js?v=49"></script>
 <script>
 (() => {
   'use strict';
@@ -269,8 +269,13 @@ window.AulaDraftState = {
 
   function normalizePracticeId() {
     const input = $('student-id');
-    const value = String(input?.value || '').replace(/\D/g, '').slice(0, 6);
-    if (input) input.value = value;
+    const session = tracker.getSession();
+    const raw = input?.dataset?.studentId || session?.id || input?.value || '';
+    const value = String(raw).replace(/\D/g, '').slice(0, 6);
+    if (input) {
+      input.dataset.studentId = value;
+      if (!input.readOnly) input.value = value;
+    }
     return value;
   }
 
@@ -347,7 +352,16 @@ window.AulaDraftState = {
     });
   }
 
-  lockPractice();
+  const authenticatedSession = tracker.getSession();
+  if (authenticatedSession?.role === 'student' && /^\d{6}$/.test(String(authenticatedSession.id || ''))) {
+    if (practiceIdInput) {
+      practiceIdInput.dataset.studentId = String(authenticatedSession.id);
+      if (!practiceIdInput.readOnly) practiceIdInput.value = String(authenticatedSession.id);
+    }
+    validatePracticeId();
+  } else {
+    lockPractice();
+  }
 
   const round = (x, d = 0) => {
     const m = 10 ** d;
@@ -602,7 +616,7 @@ window.AulaDraftState = {
     }
 
     const idInput = $('student-id');
-    const rawId = String(idInput?.value || '').trim();
+    const rawId = normalizePracticeId();
 
     if (!validatedPracticeId || rawId !== validatedPracticeId) {
       status.className = 'comment-status bad';
@@ -651,24 +665,36 @@ window.AulaDraftState = {
       ]
     };
 
-    btn.textContent = 'Guardant Excel…';
-    status.textContent = 'Guardant el fitxer abans de registrar l’entrega…';
+    btn.textContent = 'Preparant Excel…';
+    status.textContent = 'Preparant el fitxer per a l’entrega…';
 
-    const fileSave = await tracker.uploadFile(selectedExcel, {
-      practice: payload.practice,
-      area: payload.area,
-      submissionId: tracker.stablePracticeSubmissionId(location.pathname, idCheck.id)
-    });
-    if (!fileSave.ok) {
+    try {
+      const buffer = await selectedExcel.arrayBuffer();
+      const bytes = new Uint8Array(buffer);
+      let binary = '';
+      const chunk = 0x8000;
+      for (let i = 0; i < bytes.length; i += chunk) {
+        binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+      }
+      const ext = String(selectedExcel.name || '').toLowerCase().split('.').pop();
+      let mimeType = String(selectedExcel.type || '').toLowerCase();
+      if (!mimeType && ext === 'xlsx') mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+      if (!mimeType && ext === 'xlsm') mimeType = 'application/vnd.ms-excel.sheet.macroenabled.12';
+      payload.attachments = [{
+        name: selectedExcel.name || ('practica_1b_' + idCheck.id + '.' + ext),
+        mimeType,
+        base64: btoa(binary)
+      }];
+    } catch (_) {
       btn.disabled = false;
       btn.textContent = 'Entrega el comentari';
       status.className = 'comment-status bad';
-      status.textContent = 'No s’ha pogut guardar l’Excel. L’entrega no s’ha registrat. Torna-ho a provar.';
+      status.textContent = 'No s’ha pogut preparar l’Excel. L’entrega no s’ha registrat. Torna-ho a provar.';
       return;
     }
 
     btn.textContent = 'Enviant…';
-    status.textContent = 'Excel guardat. Registrant l’entrega…';
+    status.textContent = 'Guardant l’Excel i registrant l’entrega…';
     const res = await tracker.submit(payload);
     if (res.ok) {
       submitted = true;
