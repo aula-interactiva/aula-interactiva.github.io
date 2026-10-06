@@ -71,7 +71,12 @@ function doPost(e) {
   try {
     lock.waitLock(10000);
 
-    const raw = e && e.parameter && e.parameter.payload;
+    // Compatibilitat amb els dos transports:
+    // - antic: payload dins d'un formulari URL-encoded
+    // - nou: payload JSON cru a e.postData.contents
+    const parameterRaw = e && e.parameter && e.parameter.payload;
+    const postDataRaw = e && e.postData && e.postData.contents;
+    const raw = parameterRaw || postDataRaw;
     if (!raw) return json_({ok: false, error: 'missing-payload'});
 
     const payload = JSON.parse(raw);
