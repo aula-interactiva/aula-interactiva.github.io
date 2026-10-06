@@ -187,10 +187,9 @@
       ? {token: session.token}
       : {id: session.id}; // compatibilitat temporal amb sessions obertes abans de v36
 
-    const hasAttachments = Array.isArray(payload.attachments) && payload.attachments.length > 0;
-    const body = hasAttachments
-      ? JSON.stringify({...payload, ...auth})
-      : new URLSearchParams({payload: JSON.stringify({...payload, ...auth})});
+    const body = new URLSearchParams({
+      payload: JSON.stringify({...payload, ...auth})
+    });
 
     return fetch(ENDPOINT, {
       method: 'POST',
@@ -198,7 +197,6 @@
       credentials: 'omit',
       cache: 'no-store',
       keepalive,
-      ...(hasAttachments ? {headers: {'Content-Type': 'text/plain;charset=UTF-8'}} : {}),
       body
     });
   }
