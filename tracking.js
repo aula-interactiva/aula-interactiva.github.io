@@ -759,7 +759,11 @@
 
     try {
       await postPayload(payload);
-      const confirmation = await confirmOperation('submission', payload.submissionId);
+      const hasAttachments = Array.isArray(payload.attachments) && payload.attachments.length > 0;
+      const confirmation = await confirmOperation('submission', payload.submissionId, hasAttachments
+        ? {attempts: 1, delayMs: 0}
+        : undefined
+      );
       if (!confirmation.ok) {
         return {ok: false, error: 'submission-not-confirmed', confirmed: false};
       }
