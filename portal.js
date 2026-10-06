@@ -493,6 +493,18 @@
     const exceptionOpen = !!exception && (exception.fins === null || now < exception.fins);
 
     if (p.disponible !== true) return {open:false, state:'unavailable', opensAt, closesAt};
+
+    const allowedStudents = Array.isArray(p.alumnesAcces)
+      ? p.alumnesAcces.map(tracker.normalizeId).filter(id => /^\d{6}$/.test(id))
+      : [];
+    if (
+      session?.role === 'student' &&
+      allowedStudents.length &&
+      !allowedStudents.includes(tracker.normalizeId(session.id))
+    ) {
+      return {open:false, state:'restricted', opensAt, closesAt};
+    }
+
     if (opensAt !== null && now < opensAt) return {open:false, state:'upcoming', opensAt, closesAt};
     if (closesAt !== null && now >= closesAt && !exceptionOpen) return {open:false, state:'closed', opensAt, closesAt};
     return {
