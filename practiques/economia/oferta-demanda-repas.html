@@ -158,13 +158,13 @@
       <div id="work-status" class="upload-status">PDF · màxim 10 MB</div>
     </div>
     <div class="upload-action">
-      <button id="upload-file" type="button">Puja el PDF</button>
+      <button id="upload-file" type="button">Entrega el PDF</button>
       <div id="upload-general-status" class="upload-status"></div>
     </div>
   </div>
 </section>
 </div>
-<script src="../../tracking.js?v=46"></script>
+<script src="../../tracking.js?v=49"></script>
 <script>
 (() => {
   const tracker = window.PracticeTracker;
@@ -190,22 +190,63 @@
       return;
     }
 
-    button.disabled = true;
-    button.textContent = 'Pujant…';
-    setStatus(generalStatus, '', 'Guardant el fitxer…');
+    const session = tracker.getSession();
+    if (!session || session.role !== 'student') {
+      setStatus(generalStatus, 'bad', 'No hi ha una sessió d’alumne activa.');
+      return;
+    }
 
-    const result = await tracker.uploadPdf(file, {
-      practice:'Exercici · Oferta i demanda',
-      area:'Economia'
+    button.disabled = true;
+    button.textContent = 'Preparant PDF…';
+    setStatus(generalStatus, '', 'Preparant el fitxer per a l’entrega…');
+
+    let attachment;
+    try {
+      const buffer = await file.arrayBuffer();
+      const bytes = new Uint8Array(buffer);
+      let binary = '';
+      const chunk = 0x8000;
+      for (let i = 0; i < bytes.length; i += chunk) {
+        binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+      }
+      attachment = {
+        name: file.name || ('practica_2c_' + session.id + '.pdf'),
+        mimeType: 'application/pdf',
+        base64: btoa(binary)
+      };
+    } catch (_) {
+      button.disabled = false;
+      button.textContent = 'Entrega el PDF';
+      setStatus(generalStatus, 'bad', 'No s’ha pogut preparar el PDF. Torna-ho a provar.');
+      return;
+    }
+
+    button.textContent = 'Enviant…';
+    setStatus(generalStatus, '', 'Guardant el PDF i registrant l’entrega…');
+
+    const result = await tracker.submit({
+      id: session.id,
+      practice: 'Pràctica 2c · Oferta i demanda',
+      area: 'Economia',
+      status: 'Entregada',
+      total: 0,
+      correct: 0,
+      attempts: 0,
+      progress: 100,
+      minutes: '',
+      version: 'pilot-1',
+      detail: {deliveryType: 'pdf'},
+      justifications: [],
+      attachments: [attachment]
     });
 
     setStatus(fileStatus, result.ok ? 'ok' : 'bad',
-      result.ok ? 'PDF pujat correctament.' : 'No s’ha pogut pujar el PDF.');
+      result.ok ? 'PDF guardat correctament.' : 'No s’ha pogut guardar el PDF.');
     setStatus(generalStatus, result.ok ? 'ok' : 'bad',
-      result.ok ? 'L’exercici ha quedat registrat per a la correcció.' : 'No s’ha pogut confirmar la pujada. Torna-ho a provar.');
+      result.ok ? 'Entrega registrada correctament.' : 'No s’ha pogut confirmar l’entrega. Torna-ho a provar.');
 
-    button.disabled = false;
-    button.textContent = 'Puja el PDF';
+    button.disabled = result.ok;
+    button.textContent = result.ok ? 'Pràctica entregada' : 'Entrega el PDF';
   });
 })();
 </script>
