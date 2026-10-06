@@ -296,7 +296,6 @@
   function activityPayload(event, detail = {}) {
     const session = getSession();
     if (!session) return null;
-    if (normalizeId(session.id) === '142858') return null;
 
     return {
       submissionId: makeSubmissionId('activity', session.id),
@@ -620,12 +619,6 @@
       return {ok: true, submitted: false, submissionId: ''};
     }
 
-    // L'alumne de prova no genera entregues reals; tampoc necessita
-    // una consulta al servidor per saber si la pràctica està entregada.
-    if (normalizeId(session.id) === '142858') {
-      return {ok: true, submitted: false, submissionId: ''};
-    }
-
     const practicePath = practice?.fitxer || location.pathname;
     const submissionId = stablePracticeSubmissionId(practicePath, session.id);
 
@@ -656,9 +649,6 @@
     if (!session || session.role !== 'student') {
       return {ok: false, error: 'no-student-session', submitted: false};
     }
-    if (normalizeId(session.id) === '142858') {
-      return {ok: true, submitted: false, test: true};
-    }
 
     const submissionId = stablePracticeSubmissionId(practicePath, session.id);
     const auth = session.token
@@ -679,7 +669,6 @@
   async function uploadFile(file, {practice = 'Pràctica', area = 'Sistema', submissionId = ''} = {}) {
     const session = getSession();
     if (!session || session.role !== 'student') return {ok: false, error: 'no-student-session'};
-    if (normalizeId(session.id) === '142858') return {ok: true, skipped: true, test: true};
     if (!file) return {ok: false, error: 'missing-file'};
     if (file.size > 10 * 1024 * 1024) return {ok: false, error: 'file-too-large'};
 
@@ -722,7 +711,6 @@
   async function uploadPdf(file, {practice = 'Pràctica', area = 'Sistema', submissionId = ''} = {}) {
     const session = getSession();
     if (!session || session.role !== 'student') return {ok: false, error: 'no-student-session'};
-    if (normalizeId(session.id) === '142858') return {ok: true, skipped: true, test: true};
     if (!file || file.type !== 'application/pdf') return {ok: false, error: 'pdf-only'};
     if (file.size > 10 * 1024 * 1024) return {ok: false, error: 'file-too-large'};
 
@@ -762,12 +750,6 @@
     const session = getSession();
     if (session?.role === 'teacher') {
       return {ok: true, skipped: true, teacher: true};
-    }
-    if (normalizeId(session?.id) === '142858') {
-      const practiceKey = normalizeRepoPath(location.pathname);
-      rememberLocalSubmission(practiceKey, session.id);
-      clearDraft(practiceKey, session.id);
-      return {ok: true, skipped: true, test: true};
     }
 
     const practiceKey = normalizeRepoPath(location.pathname);
