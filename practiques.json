@@ -1,5 +1,5 @@
 {
-  "versio": 24,
+  "versio": 25,
   "ajuda": "visible controla la visibilitat per a l’alumnat; disponible és l’interruptor general d’accés. Opcionalment, obertura i tancament (ISO 8601 amb zona horària, p. ex. 2026-09-20T08:00:00+02:00) limiten automàticament l’accés. El professor pot previsualitzar les pràctiques fora de termini.",
   "arees": {
     "economia": {
@@ -12,14 +12,13 @@
         {
           "id": "fpp",
           "ordre": 1,
-          "visible": false,
+          "visible": true,
           "disponible": true,
           "codi": "Pràctica 1",
           "titol": "Frontera de possibilitats de producció",
           "descripcio": "Escassetat, eficiència, moviments i desplaçaments de la FPP i cost d'oportunitat.",
           "fitxer": "practiques/economia/fpp.html",
           "pdf": "assets/pdf/fpp.pdf",
-          "tancament": "2026-10-01T00:00:00+02:00",
           "excepcionsAcces": [
             "142858"
           ]
@@ -27,14 +26,13 @@
         {
           "id": "oferta",
           "ordre": 2,
-          "visible": false,
+          "visible": true,
           "disponible": true,
           "codi": "Pràctica 2a",
           "titol": "Funció i corba d’oferta",
           "descripcio": "Moviments i desplaçaments de l’oferta, costos de producció, impostos i subvencions.",
           "fitxer": "practiques/economia/oferta.html",
           "pdf": "assets/pdf/oferta.pdf",
-          "tancament": "2026-10-01T00:00:00+02:00",
           "excepcionsAcces": [
             "142858"
           ]
@@ -42,14 +40,13 @@
         {
           "id": "demanda",
           "ordre": 3,
-          "visible": false,
+          "visible": true,
           "disponible": true,
           "codi": "Pràctica 2b",
           "titol": "Funció i corba de demanda",
           "descripcio": "Moviments i desplaçaments de la demanda, renda i preus de béns substitutius i complements.",
           "fitxer": "practiques/economia/demanda.html",
           "pdf": "assets/pdf/demanda.pdf",
-          "tancament": "2026-10-01T22:00:00+02:00",
           "excepcionsAcces": [
             "142858"
           ]
@@ -57,7 +54,7 @@
         {
           "id": "oferta-demanda-repas",
           "ordre": 3.5,
-          "visible": false,
+          "visible": true,
           "disponible": true,
           "codi": "Pràctica 2c",
           "titol": "Oferta i demanda",
@@ -66,7 +63,6 @@
           "pdf": null,
           "solucionari": "practiques/economia/oferta-demanda-repas-solucionari.html",
           "solucionariTitol": "Solucionari",
-          "tancament": "2026-10-01T22:00:00+02:00",
           "excepcionsAcces": [
             "142858"
           ]
@@ -74,15 +70,13 @@
         {
           "id": "equilibri",
           "ordre": 4,
-          "visible": false,
+          "visible": true,
           "disponible": true,
           "codi": "Pràctica 2d",
           "titol": "Equilibri de mercat",
           "descripcio": "Oferta, demanda, equilibri, canvis en les condicions del mercat, impostos i subvencions.",
           "fitxer": "practiques/economia/equilibri.html",
           "pdf": "assets/pdf/equilibri.pdf",
-          "obertura": "2026-10-05T16:00:00+02:00",
-          "tancament": "2026-10-06T15:00:00+02:00",
           "excepcionsAcces": [
             "142858"
           ]
@@ -129,7 +123,7 @@
         {
           "id": "excel-zero",
           "ordre": 0,
-          "visible": false,
+          "visible": true,
           "disponible": true,
           "codi": "Pràctica 0",
           "titol": "Primer contacte amb Excel",
@@ -138,7 +132,6 @@
           "pdf": null,
           "tema": 0,
           "temaTitol": "Introducció · Excel",
-          "tancament": "2026-10-01T00:00:00+02:00",
           "excepcionsAcces": [
             "142858"
           ]
@@ -146,7 +139,7 @@
         {
           "id": "freq-var",
           "ordre": 1,
-          "visible": false,
+          "visible": true,
           "disponible": true,
           "codi": "Pràctica 1a",
           "titol": "Unidimensional · guiada",
@@ -155,7 +148,6 @@
           "pdf": null,
           "tema": 1,
           "temaTitol": "Tema 1 · Estadística descriptiva unidimensional",
-          "tancament": "2026-10-03T22:00:00+02:00",
           "excepcionsAcces": [
             "142858"
           ]
@@ -163,7 +155,7 @@
         {
           "id": "descriptiva-1d",
           "ordre": 2,
-          "visible": false,
+          "visible": true,
           "disponible": true,
           "codi": "Pràctica 1b",
           "titol": "Unidimensional · aplicada amb Excel",
@@ -172,8 +164,6 @@
           "pdf": null,
           "tema": 1,
           "temaTitol": "Tema 1 · Estadística descriptiva unidimensional",
-          "obertura": "2026-10-03T22:00:00+02:00",
-          "tancament": "2026-10-05T22:00:00+02:00",
           "excepcionsAcces": [
             "142858"
           ]
