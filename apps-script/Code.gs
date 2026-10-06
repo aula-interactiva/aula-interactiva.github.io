@@ -116,10 +116,6 @@ function savePayload_(payload) {
     return markMessagesRead_(payload, student);
   }
 
-  // L'alumne de prova serveix per validar la web però no ha de generar registres de pràctiques.
-  if (student.id === '142858') {
-    return {ok: true, skipped: true, test: true};
-  }
   const submissionId = String(payload.submissionId || '').trim();
   if (!submissionId) return {ok: false, error: 'missing-submission-id'};
 
@@ -789,7 +785,7 @@ function onlineStudents_(token, code) {
       String(r[3]).toLowerCase() === 'si' ||
       String(r[3]) === '1';
     const role = String(r[4] || 'student').trim().toLowerCase();
-    if (/^\d{6}$/.test(id) && id !== '142858' && active && role !== 'teacher') {
+    if (/^\d{6}$/.test(id) && active && role !== 'teacher') {
       activeStudents.set(id, String(r[0] || '').trim());
     }
   });
