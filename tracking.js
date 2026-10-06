@@ -919,6 +919,16 @@
     if (practice.disponible !== true) {
       return {open: false, reason: 'unavailable', opensAt, closesAt};
     }
+
+    // Si hi ha una llista explícita d'alumnes, només aquests poden obrir
+    // la pràctica. La visibilitat al portal continua sent independent.
+    const allowedStudents = Array.isArray(practice.alumnesAcces)
+      ? practice.alumnesAcces.map(normalizeId).filter(id => /^\d{6}$/.test(id))
+      : [];
+    if (allowedStudents.length && !allowedStudents.includes(normalizeId(studentId))) {
+      return {open: false, reason: 'restricted', opensAt, closesAt};
+    }
+
     if (opensAt !== null && nowMs < opensAt) {
       return {open: false, reason: 'not-open-yet', opensAt, closesAt};
     }
