@@ -189,8 +189,10 @@
   }
 
   async function validateStudent() {
-    const id = tracker.normalizeId(idInput.value);
-    idInput.value = id;
+    const session = tracker.getSession();
+    const id = tracker.normalizeId(idInput.dataset.studentId || session?.id || idInput.value);
+    idInput.dataset.studentId = id;
+    if (!idInput.readOnly) idInput.value = id;
     validateBtn.disabled = true;
     setIdState('checking', 'Comprovant ID…');
 
@@ -429,6 +431,13 @@
 
   wireAttempts();
   resetWork();
-  setAnswersEnabled(false);
-  setIdState('', 'Valida el teu ID de 6 dígits per començar.');
+
+  const session = tracker.getSession();
+  if (session?.role === 'student' && /^\d{6}$/.test(tracker.normalizeId(session.id))) {
+    idInput.dataset.studentId = tracker.normalizeId(session.id);
+    validateStudent();
+  } else {
+    setAnswersEnabled(false);
+    setIdState('', 'Valida el teu ID de 6 dígits per començar.');
+  }
 })();
