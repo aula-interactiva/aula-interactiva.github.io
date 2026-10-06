@@ -12,7 +12,7 @@
         {
           "id": "fpp",
           "ordre": 1,
-          "visible": true,
+          "visible": false,
           "disponible": true,
           "codi": "Pràctica 1",
           "titol": "Frontera de possibilitats de producció",
@@ -21,20 +21,13 @@
           "pdf": "assets/pdf/fpp.pdf",
           "tancament": "2026-10-01T00:00:00+02:00",
           "excepcionsAcces": [
-            "417563",
-            "864192",
-            "530741",
-            "976254",
-            "356901",
-            "483726",
-            "591304",
             "142858"
           ]
         },
         {
           "id": "oferta",
           "ordre": 2,
-          "visible": true,
+          "visible": false,
           "disponible": true,
           "codi": "Pràctica 2a",
           "titol": "Funció i corba d’oferta",
@@ -43,19 +36,13 @@
           "pdf": "assets/pdf/oferta.pdf",
           "tancament": "2026-10-01T00:00:00+02:00",
           "excepcionsAcces": [
-            "417563",
-            "864192",
-            "530741",
-            "976254",
-            "356901",
-            "483726",
-            "591304"
+            "142858"
           ]
         },
         {
           "id": "demanda",
           "ordre": 3,
-          "visible": true,
+          "visible": false,
           "disponible": true,
           "codi": "Pràctica 2b",
           "titol": "Funció i corba de demanda",
@@ -64,19 +51,13 @@
           "pdf": "assets/pdf/demanda.pdf",
           "tancament": "2026-10-01T22:00:00+02:00",
           "excepcionsAcces": [
-            "417563",
-            "864192",
-            "530741",
-            "976254",
-            "356901",
-            "483726",
-            "591304"
+            "142858"
           ]
         },
         {
           "id": "oferta-demanda-repas",
           "ordre": 3.5,
-          "visible": true,
+          "visible": false,
           "disponible": true,
           "codi": "Pràctica 2c",
           "titol": "Oferta i demanda",
@@ -87,19 +68,13 @@
           "solucionariTitol": "Solucionari",
           "tancament": "2026-10-01T22:00:00+02:00",
           "excepcionsAcces": [
-            "417563",
-            "864192",
-            "530741",
-            "976254",
-            "356901",
-            "483726",
-            "591304"
+            "142858"
           ]
         },
         {
           "id": "equilibri",
           "ordre": 4,
-          "visible": true,
+          "visible": false,
           "disponible": true,
           "codi": "Pràctica 2d",
           "titol": "Equilibri de mercat",
@@ -107,7 +82,10 @@
           "fitxer": "practiques/economia/equilibri.html",
           "pdf": "assets/pdf/equilibri.pdf",
           "obertura": "2026-10-05T16:00:00+02:00",
-          "tancament": "2026-10-06T15:00:00+02:00"
+          "tancament": "2026-10-06T15:00:00+02:00",
+          "excepcionsAcces": [
+            "142858"
+          ]
         },
         {
           "id": "equilibri-exercicis",
@@ -120,7 +98,10 @@
           "fitxer": "practiques/economia/equilibri-exercicis.html",
           "pdf": null,
           "solucionari": "https://docs.google.com/document/d/1R390F2h-bjHzF6045kPzlai-satu3nxua_2ZtYAOJuo/edit",
-          "solucionariTitol": "Solucionari"
+          "solucionariTitol": "Solucionari",
+          "excepcionsAcces": [
+            "142858"
+          ]
         },
         {
           "id": "elasticitat",
@@ -131,7 +112,10 @@
           "titol": "Elasticitat de la demanda",
           "descripcio": "Mètode del punt mig, demanda elàstica i inelàstica, i relació entre preu i despesa total.",
           "fitxer": "practiques/economia/elasticitat.html",
-          "pdf": "assets/pdf/elasticitat.pdf"
+          "pdf": "assets/pdf/elasticitat.pdf",
+          "excepcionsAcces": [
+            "142858"
+          ]
         }
       ]
     },
@@ -145,7 +129,7 @@
         {
           "id": "excel-zero",
           "ordre": 0,
-          "visible": true,
+          "visible": false,
           "disponible": true,
           "codi": "Pràctica 0",
           "titol": "Primer contacte amb Excel",
@@ -156,19 +140,13 @@
           "temaTitol": "Introducció · Excel",
           "tancament": "2026-10-01T00:00:00+02:00",
           "excepcionsAcces": [
-            "417563",
-            "864192",
-            "530741",
-            "976254",
-            "356901",
-            "483726",
-            "591304"
+            "142858"
           ]
         },
         {
           "id": "freq-var",
           "ordre": 1,
-          "visible": true,
+          "visible": false,
           "disponible": true,
           "codi": "Pràctica 1a",
           "titol": "Unidimensional · guiada",
@@ -177,12 +155,15 @@
           "pdf": null,
           "tema": 1,
           "temaTitol": "Tema 1 · Estadística descriptiva unidimensional",
-          "tancament": "2026-10-03T22:00:00+02:00"
+          "tancament": "2026-10-03T22:00:00+02:00",
+          "excepcionsAcces": [
+            "142858"
+          ]
         },
         {
           "id": "descriptiva-1d",
           "ordre": 2,
-          "visible": true,
+          "visible": false,
           "disponible": true,
           "codi": "Pràctica 1b",
           "titol": "Unidimensional · aplicada amb Excel",
@@ -192,7 +173,10 @@
           "tema": 1,
           "temaTitol": "Tema 1 · Estadística descriptiva unidimensional",
           "obertura": "2026-10-03T22:00:00+02:00",
-          "tancament": "2026-10-05T22:00:00+02:00"
+          "tancament": "2026-10-05T22:00:00+02:00",
+          "excepcionsAcces": [
+            "142858"
+          ]
         },
         {
           "id": "descriptiva-1d-examen",
@@ -205,7 +189,10 @@
           "fitxer": "practiques/estadistica/descriptiva-1d-examen.html",
           "pdf": null,
           "tema": 1,
-          "temaTitol": "Tema 1 · Estadística descriptiva unidimensional"
+          "temaTitol": "Tema 1 · Estadística descriptiva unidimensional",
+          "excepcionsAcces": [
+            "142858"
+          ]
         },
         {
           "id": "descriptiva-2d",
@@ -218,7 +205,10 @@
           "fitxer": "practiques/estadistica/descriptiva-2d.html",
           "pdf": null,
           "tema": 2,
-          "temaTitol": "Tema 2 · Estadística descriptiva bidimensional"
+          "temaTitol": "Tema 2 · Estadística descriptiva bidimensional",
+          "excepcionsAcces": [
+            "142858"
+          ]
         },
         {
           "id": "descriptiva-2d-aplicada",
@@ -231,7 +221,10 @@
           "fitxer": "practiques/estadistica/descriptiva-2d-aplicada.html",
           "pdf": null,
           "tema": 2,
-          "temaTitol": "Tema 2 · Estadística descriptiva bidimensional"
+          "temaTitol": "Tema 2 · Estadística descriptiva bidimensional",
+          "excepcionsAcces": [
+            "142858"
+          ]
         },
         {
           "id": "descriptiva-2d-examen",
@@ -244,7 +237,10 @@
           "fitxer": "practiques/estadistica/descriptiva-2d-examen.html",
           "pdf": null,
           "tema": 2,
-          "temaTitol": "Tema 2 · Estadística descriptiva bidimensional"
+          "temaTitol": "Tema 2 · Estadística descriptiva bidimensional",
+          "excepcionsAcces": [
+            "142858"
+          ]
         },
         {
           "id": "series-temporals-3a",
@@ -257,7 +253,10 @@
           "fitxer": "practiques/estadistica/series-temporals-3a.html",
           "pdf": null,
           "tema": 3,
-          "temaTitol": "Tema 3 · Evolució temporal, nombres índex i sèries temporals"
+          "temaTitol": "Tema 3 · Evolució temporal, nombres índex i sèries temporals",
+          "excepcionsAcces": [
+            "142858"
+          ]
         },
         {
           "id": "series-temporals-3b",
@@ -270,7 +269,10 @@
           "fitxer": "practiques/estadistica/series-temporals-3b.html",
           "pdf": null,
           "tema": 3,
-          "temaTitol": "Tema 3 · Evolució temporal, nombres índex i sèries temporals"
+          "temaTitol": "Tema 3 · Evolució temporal, nombres índex i sèries temporals",
+          "excepcionsAcces": [
+            "142858"
+          ]
         },
         {
           "id": "series-temporals-3c",
@@ -283,7 +285,10 @@
           "fitxer": "practiques/estadistica/series-temporals-3c.html",
           "pdf": null,
           "tema": 3,
-          "temaTitol": "Tema 3 · Evolució temporal, nombres índex i sèries temporals"
+          "temaTitol": "Tema 3 · Evolució temporal, nombres índex i sèries temporals",
+          "excepcionsAcces": [
+            "142858"
+          ]
         },
         {
           "id": "probabilitat-4a",
@@ -296,7 +301,10 @@
           "fitxer": "practiques/estadistica/probabilitat-4a.html",
           "pdf": null,
           "tema": 4,
-          "temaTitol": "Tema 4 · Probabilitat i distribucions"
+          "temaTitol": "Tema 4 · Probabilitat i distribucions",
+          "excepcionsAcces": [
+            "142858"
+          ]
         },
         {
           "id": "probabilitat-4b",
@@ -309,7 +317,10 @@
           "fitxer": "practiques/estadistica/probabilitat-4b.html",
           "pdf": null,
           "tema": 4,
-          "temaTitol": "Tema 4 · Probabilitat i distribucions"
+          "temaTitol": "Tema 4 · Probabilitat i distribucions",
+          "excepcionsAcces": [
+            "142858"
+          ]
         },
         {
           "id": "probabilitat-4c",
@@ -322,7 +333,10 @@
           "fitxer": "practiques/estadistica/probabilitat-4c.html",
           "pdf": null,
           "tema": 4,
-          "temaTitol": "Tema 4 · Probabilitat i distribucions"
+          "temaTitol": "Tema 4 · Probabilitat i distribucions",
+          "excepcionsAcces": [
+            "142858"
+          ]
         },
         {
           "id": "mostreig-5a",
@@ -335,7 +349,10 @@
           "fitxer": "practiques/estadistica/mostreig-5a.html",
           "pdf": null,
           "tema": 5,
-          "temaTitol": "Tema 5 · Mostreig i estimació"
+          "temaTitol": "Tema 5 · Mostreig i estimació",
+          "excepcionsAcces": [
+            "142858"
+          ]
         },
         {
           "id": "mostreig-5b",
@@ -348,7 +365,10 @@
           "fitxer": "practiques/estadistica/mostreig-5b.html?v=3",
           "pdf": null,
           "tema": 5,
-          "temaTitol": "Tema 5 · Mostreig i estimació"
+          "temaTitol": "Tema 5 · Mostreig i estimació",
+          "excepcionsAcces": [
+            "142858"
+          ]
         },
         {
           "id": "mostreig-5c",
@@ -361,7 +381,10 @@
           "fitxer": "practiques/estadistica/mostreig-5c.html",
           "pdf": null,
           "tema": 5,
-          "temaTitol": "Tema 5 · Mostreig i estimació"
+          "temaTitol": "Tema 5 · Mostreig i estimació",
+          "excepcionsAcces": [
+            "142858"
+          ]
         },
         {
           "id": "inferencia-6a",
@@ -374,7 +397,10 @@
           "fitxer": "practiques/estadistica/inferencia-6a.html",
           "pdf": null,
           "tema": 6,
-          "temaTitol": "Tema 6 · Intervals de confiança i contrastos d’hipòtesis"
+          "temaTitol": "Tema 6 · Intervals de confiança i contrastos d’hipòtesis",
+          "excepcionsAcces": [
+            "142858"
+          ]
         },
         {
           "id": "inferencia-6b",
@@ -387,7 +413,10 @@
           "fitxer": "practiques/estadistica/inferencia-6b.html",
           "pdf": null,
           "tema": 6,
-          "temaTitol": "Tema 6 · Intervals de confiança i contrastos d’hipòtesis"
+          "temaTitol": "Tema 6 · Intervals de confiança i contrastos d’hipòtesis",
+          "excepcionsAcces": [
+            "142858"
+          ]
         },
         {
           "id": "inferencia-6c",
@@ -400,7 +429,10 @@
           "fitxer": "practiques/estadistica/inferencia-6c.html",
           "pdf": null,
           "tema": 6,
-          "temaTitol": "Tema 6 · Intervals de confiança i contrastos d’hipòtesis"
+          "temaTitol": "Tema 6 · Intervals de confiança i contrastos d’hipòtesis",
+          "excepcionsAcces": [
+            "142858"
+          ]
         },
         {
           "id": "aplicacions-7a",
@@ -413,7 +445,10 @@
           "fitxer": "practiques/estadistica/aplicacions-7a.html",
           "pdf": null,
           "tema": 7,
-          "temaTitol": "Tema 7 · Aplicacions laborals i demogràfiques"
+          "temaTitol": "Tema 7 · Aplicacions laborals i demogràfiques",
+          "excepcionsAcces": [
+            "142858"
+          ]
         },
         {
           "id": "aplicacions-7b",
@@ -426,7 +461,10 @@
           "fitxer": "practiques/estadistica/aplicacions-7b.html",
           "pdf": null,
           "tema": 7,
-          "temaTitol": "Tema 7 · Aplicacions laborals i demogràfiques"
+          "temaTitol": "Tema 7 · Aplicacions laborals i demogràfiques",
+          "excepcionsAcces": [
+            "142858"
+          ]
         }
       ]
     }
