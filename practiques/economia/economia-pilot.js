@@ -329,7 +329,20 @@
       justifications: justs
     };
 
-    const result = await tracker.submit(payload);
+    // Guarda una còpia local i en memòria abans d'enviar. Una entrega fallida
+    // no ha de poder deixar la pràctica en blanc.
+    tracker.saveDraftNow?.();
+    const submissionSnapshot = {
+      answers: answerControls().map(el => String(el?.value ?? '')),
+      justifications: justifications.map(j => String($(j.id)?.value ?? ''))
+    };
+
+    let result;
+    try {
+      result = await tracker.submit(payload);
+    } catch (error) {
+      result = {ok:false, error};
+    }
 
     if (result.ok) {
       submitted = true;
@@ -343,10 +356,21 @@
         if (el) el.disabled = true;
       });
     } else {
+      answerControls().forEach((el, i) => {
+        if (el) el.value = submissionSnapshot.answers[i] ?? '';
+      });
+      justifications.forEach((j, i) => {
+        const el = $(j.id);
+        if (el) el.value = submissionSnapshot.justifications[i] ?? '';
+      });
+      // Torna a guardar explícitament l'estat restaurat per evitar que un
+      // autosave posterior pugui consolidar un formulari buit.
+      tracker.saveDraftNow?.();
+
       submitBtn.disabled = false;
       submitBtn.textContent = 'Entrega la pràctica';
       submitStatus.className = 'pilot-submit-status bad';
-      submitStatus.textContent = 'No s’ha pogut confirmar l’entrega. No es donarà per entregada; torna-ho a provar.';
+      submitStatus.textContent = 'No s’ha pogut confirmar l’entrega. Les respostes s’han conservat; torna-ho a provar.';
     }
   }
 
