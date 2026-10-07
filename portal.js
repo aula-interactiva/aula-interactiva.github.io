@@ -493,6 +493,52 @@
     return allowed.includes(id);
   }
 
+  function activePracticeExceptions(p) {
+    const now = currentAccessTime();
+    const exceptions = Array.isArray(p?.excepcionsAcces) ? p.excepcionsAcces : [];
+    return exceptions.filter(item => {
+      const value = typeof item === 'object' && item !== null ? item.id : item;
+      const id = tracker.normalizeId(value);
+      if (!/^\d{6}$/.test(id)) return false;
+      // Comptes tècnics de prova: no defineixen l'estat docent de la pràctica.
+      if (id === '142858' || id === '142859') return false;
+      if (typeof item !== 'object' || item === null || !item.fins) return true;
+      const until = parseAccessTime(item.fins);
+      return until === null || now < until;
+    });
+  }
+
+  function anyStudentCanOpenPractice(p) {
+    if (p?.disponible !== true) return false;
+
+    const now = currentAccessTime();
+    const opensAt = parseAccessTime(p.obertura);
+    const closesAt = parseAccessTime(p.tancament);
+    if (opensAt !== null && now < opensAt) return false;
+
+    const allowed = Array.isArray(p.alumnesAcces)
+      ? p.alumnesAcces.map(tracker.normalizeId).filter(id => /^\d{6}$/.test(id))
+      : [];
+
+    if (closesAt !== null && now >= closesAt) {
+      return activePracticeExceptions(p).length > 0;
+    }
+
+    // Si hi ha allowlist, almenys aquests alumnes hi poden accedir.
+    // Si no n'hi ha, la pràctica és oberta a l'alumnat en general.
+    return allowed.length > 0 || p.disponible === true;
+  }
+
+  function practiceCardTone(p, availability, teacher, isApunts) {
+    if (isApunts || p?.obertaAbans !== true) return '';
+
+    if (teacher) {
+      return anyStudentCanOpenPractice(p) ? 'orange' : 'red';
+    }
+
+    return availability?.open ? '' : 'red';
+  }
+
   function practiceAvailability(p) {
     const opensAt = parseAccessTime(p.obertura);
     const closesAt = parseAccessTime(p.tancament);
@@ -616,31 +662,7 @@
         submittedPracticeKeys.has(String(p.fitxer || p.id || ''));
       const canOpen = published || teacher;
       const preview = teacher && !published;
-      const allowedStudentsForVisual = Array.isArray(p.alumnesAcces)
-        ? p.alumnesAcces.map(tracker.normalizeId).filter(id => /^\d{6}$/.test(id))
-        : [];
-      const realExceptionsForVisual = Array.isArray(p.excepcionsAcces)
-        ? p.excepcionsAcces.filter(item => {
-            const value = typeof item === 'object' && item !== null ? item.id : item;
-            const id = tracker.normalizeId(value);
-            return /^\d{6}$/.test(id) && id !== '142858' && id !== '142859';
-          })
-        : [];
-      const hasRealExceptions = !isApunts &&
-        (allowedStudentsForVisual.length > 0 || realExceptionsForVisual.length > 0);
-      const wasOpened = !isApunts && p.obertaAbans === true;
-
-      // Visual state for teacher/student cards:
-      // white = default / never opened
-      // orange = opened before and still available to at least some students
-      // red = opened before and now closed to everyone
-      const stillAvailableToSomeone = !isApunts && wasOpened && (
-        p.disponible === true ||
-        allowedStudentsForVisual.length > 0 ||
-        hasRealExceptions
-      );
-      const exceptionVisual = wasOpened && stillAvailableToSomeone;
-      const closedVisual = wasOpened && !stillAvailableToSomeone;
+      const cardTone = practiceCardTone(p, availability, teacher, isApunts);
       const status = preview
         ? 'Professor'
         : published
@@ -690,7 +712,7 @@
         buttons = pdfBtn + solutionBtn + openBtn;
       }
 
-      return `<article class="practice-card ${canOpen ? 'active' : 'disabled'} ${closedVisual ? 'closed-visual' : ''} ${exceptionVisual ? 'teacher-exception closed-visual' : ''} ${preview ? 'teacher-preview' : ''}">
+      return `<article class="practice-card ${canOpen ? 'active' : 'disabled'} ${cardTone === 'red' ? 'closed-visual' : ''} ${cardTone === 'orange' ? 'teacher-exception closed-visual' : ''} ${preview ? 'teacher-preview' : ''}">
         <div>
           <div class="card-kicker">${esc(p.codi)} · <span class="card-status ${statusClass}">${esc(status)}</span>${esc(timing)}</div>
           ${closingTime}
