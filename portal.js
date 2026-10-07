@@ -484,6 +484,15 @@
     return {id, fins:parseAccessTime(entry.fins)};
   }
 
+  function studentExplicitAccess(p, studentId) {
+    const id = tracker.normalizeId(studentId);
+    if (!/^\d{6}$/.test(id)) return false;
+    const allowed = Array.isArray(p?.alumnesAcces)
+      ? p.alumnesAcces.map(tracker.normalizeId)
+      : [];
+    return allowed.includes(id);
+  }
+
   function practiceAvailability(p) {
     const opensAt = parseAccessTime(p.obertura);
     const closesAt = parseAccessTime(p.tancament);
@@ -532,7 +541,11 @@
     const areas = Object.values(configs.practiques?.arees || {});
     const practices = areas
       .flatMap(a => a?.practiques || [])
-      .filter(p => p && p.visible !== false && p.disponible === true);
+      .filter(p => p && p.disponible === true && (
+        p.visible !== false ||
+        studentAccessException(p, session.id) ||
+        studentExplicitAccess(p, session.id)
+      ));
 
     const checks = await Promise.all(practices.map(async p => {
       const key = String(p.fitxer || p.id || '');
@@ -581,7 +594,10 @@
     const list = source
       .filter(p => {
         if (teacher || p.visible !== false) return true;
-        return !isApunts && session.role === 'student' && !!studentAccessException(p, session.id);
+        return !isApunts && session.role === 'student' && (
+          !!studentAccessException(p, session.id) ||
+          studentExplicitAccess(p, session.id)
+        );
       })
       .sort((x, y) => (x.ordre || 0) - (y.ordre || 0));
     const grid = $('practice-grid');
