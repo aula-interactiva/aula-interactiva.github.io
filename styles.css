@@ -39,9 +39,9 @@ button{cursor:pointer}
 .practice-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:18px}
 .practice-card{border:1px solid var(--line);background:var(--paper);border-radius:10px;padding:14px;min-height:132px;display:flex;flex-direction:column;justify-content:space-between;transition:.18s ease;box-shadow:0 3px 12px rgba(30,32,34,.025)}
 .practice-card.active:hover{transform:translateY(-2px);box-shadow:var(--shadow);border-color:#c6c1b7}
-.practice-card.closed-visual{background:#f8e6e3;border-color:#e3c2bd}
-.practice-card.closed-visual.disabled{opacity:.84}
-.practice-card.closed-visual.teacher-exception{background:#fff0dc;border-color:#e5c99d}
+.practice-card.closed-visual{background:#f5d9d5;border-color:#dca9a2}
+.practice-card.closed-visual.disabled{opacity:1}
+.practice-card.closed-visual.teacher-exception{background:#f9e2bd;border-color:#d9b77f}
 
 .card-kicker{font-size:11px;text-transform:uppercase;letter-spacing:.08em;font-weight:800;color:var(--muted)}
 .card-title{font-size:17px;font-weight:720;line-height:1.18;margin:7px 0 5px}
