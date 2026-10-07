@@ -618,12 +618,14 @@
       const preview = teacher && !published;
       const status = preview
         ? 'Professor'
-        : availability.state === 'closed'
-          ? ''
-          : published
-            ? 'Disponible'
-            : 'Properament';
-      const statusClass = status === 'Disponible' ? 'available' : status === 'Tancat' ? 'closed' : '';
+        : published
+          ? 'Disponible'
+          : 'Tancada';
+      const statusClass = status === 'Disponible'
+        ? 'available'
+        : status === 'Tancada'
+          ? 'closed'
+          : status === 'Tancat' ? 'closed' : '';
       const timing = !isApunts
         ? availability.state === 'upcoming' && availability.opensAt
           ? ` · Obre ${formatAccessDate(availability.opensAt)}`
