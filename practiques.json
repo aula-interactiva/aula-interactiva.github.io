@@ -1,5 +1,5 @@
 {
-  "versio": 30,
+  "versio": 31,
   "ajuda": "visible controla la visibilitat per a l’alumnat; disponible és l’interruptor general d’accés. Opcionalment, obertura i tancament (ISO 8601 amb zona horària, p. ex. 2026-09-20T08:00:00+02:00) limiten automàticament l’accés. El professor pot previsualitzar les pràctiques fora de termini.",
   "arees": {
     "economia": {
@@ -123,17 +123,6 @@
           "pdf": "assets/pdf/equilibri.pdf",
           "excepcionsAcces": [
             "142858"
-          ],
-          "alumnesAcces": [
-            "417563",
-            "864192",
-            "530741",
-            "976254",
-            "356901",
-            "483726",
-            "591304",
-            "638472",
-            "725814"
           ]
         },
         {
@@ -243,17 +232,6 @@
           "temaTitol": "Tema 1 · Estadística descriptiva unidimensional",
           "excepcionsAcces": [
             "142858"
-          ],
-          "alumnesAcces": [
-            "417563",
-            "864192",
-            "530741",
-            "976254",
-            "356901",
-            "483726",
-            "591304",
-            "638472",
-            "725814"
           ]
         },
         {
