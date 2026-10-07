@@ -1,5 +1,5 @@
 {
-  "versio": 34,
+  "versio": 35,
   "ajuda": "visible controla la visibilitat per a l’alumnat; disponible és l’interruptor general d’accés. Opcionalment, obertura i tancament (ISO 8601 amb zona horària, p. ex. 2026-09-20T08:00:00+02:00) limiten automàticament l’accés. El professor pot previsualitzar les pràctiques fora de termini.",
   "arees": {
     "economia": {
@@ -33,7 +33,8 @@
             "638472",
             "725814"
           ],
-          "obertaAbans": true
+          "obertaAbans": true,
+          "tancament": "2026-10-16T18:00:00+02:00"
         },
         {
           "id": "oferta",
@@ -59,7 +60,8 @@
             "638472",
             "725814"
           ],
-          "obertaAbans": true
+          "obertaAbans": true,
+          "tancament": "2026-10-16T18:00:00+02:00"
         },
         {
           "id": "demanda",
@@ -85,7 +87,8 @@
             "638472",
             "725814"
           ],
-          "obertaAbans": true
+          "obertaAbans": true,
+          "tancament": "2026-10-16T18:00:00+02:00"
         },
         {
           "id": "oferta-demanda-repas",
@@ -113,7 +116,8 @@
             "638472",
             "725814"
           ],
-          "obertaAbans": true
+          "obertaAbans": true,
+          "tancament": "2026-10-16T18:00:00+02:00"
         },
         {
           "id": "equilibri",
@@ -126,9 +130,46 @@
           "fitxer": "practiques/economia/equilibri.html",
           "pdf": "assets/pdf/equilibri.pdf",
           "excepcionsAcces": [
-            "142858"
+            "142858",
+            {
+              "id": "417563",
+              "fins": "2026-10-16T18:00:00+02:00"
+            },
+            {
+              "id": "864192",
+              "fins": "2026-10-16T18:00:00+02:00"
+            },
+            {
+              "id": "530741",
+              "fins": "2026-10-16T18:00:00+02:00"
+            },
+            {
+              "id": "976254",
+              "fins": "2026-10-16T18:00:00+02:00"
+            },
+            {
+              "id": "356901",
+              "fins": "2026-10-16T18:00:00+02:00"
+            },
+            {
+              "id": "483726",
+              "fins": "2026-10-16T18:00:00+02:00"
+            },
+            {
+              "id": "591304",
+              "fins": "2026-10-16T18:00:00+02:00"
+            },
+            {
+              "id": "638472",
+              "fins": "2026-10-16T18:00:00+02:00"
+            },
+            {
+              "id": "725814",
+              "fins": "2026-10-16T18:00:00+02:00"
+            }
           ],
-          "obertaAbans": true
+          "obertaAbans": true,
+          "tancament": "2026-10-09T18:00:00+02:00"
         },
         {
           "id": "equilibri-exercicis",
@@ -195,7 +236,8 @@
             "638472",
             "725814"
           ],
-          "obertaAbans": true
+          "obertaAbans": true,
+          "tancament": "2026-10-16T18:00:00+02:00"
         },
         {
           "id": "freq-var",
@@ -223,7 +265,8 @@
             "638472",
             "725814"
           ],
-          "obertaAbans": true
+          "obertaAbans": true,
+          "tancament": "2026-10-16T18:00:00+02:00"
         },
         {
           "id": "descriptiva-1d",
@@ -238,9 +281,46 @@
           "tema": 1,
           "temaTitol": "Tema 1 · Estadística descriptiva unidimensional",
           "excepcionsAcces": [
-            "142858"
+            "142858",
+            {
+              "id": "417563",
+              "fins": "2026-10-16T18:00:00+02:00"
+            },
+            {
+              "id": "864192",
+              "fins": "2026-10-16T18:00:00+02:00"
+            },
+            {
+              "id": "530741",
+              "fins": "2026-10-16T18:00:00+02:00"
+            },
+            {
+              "id": "976254",
+              "fins": "2026-10-16T18:00:00+02:00"
+            },
+            {
+              "id": "356901",
+              "fins": "2026-10-16T18:00:00+02:00"
+            },
+            {
+              "id": "483726",
+              "fins": "2026-10-16T18:00:00+02:00"
+            },
+            {
+              "id": "591304",
+              "fins": "2026-10-16T18:00:00+02:00"
+            },
+            {
+              "id": "638472",
+              "fins": "2026-10-16T18:00:00+02:00"
+            },
+            {
+              "id": "725814",
+              "fins": "2026-10-16T18:00:00+02:00"
+            }
           ],
-          "obertaAbans": true
+          "obertaAbans": true,
+          "tancament": "2026-10-09T18:00:00+02:00"
         },
         {
           "id": "descriptiva-1d-examen",
