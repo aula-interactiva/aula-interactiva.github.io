@@ -209,7 +209,9 @@
         return;
       }
 
-      resetWork();
+      // Si no hi ha una entrega final, conservem qualsevol esborrany que
+      // tracking.js ja hagi restaurat. L'estat inicial ja s'ha netejat en carregar
+      // la pràctica o en canviar d'ID, així que aquí no hem de fer resetWork().
       setAnswersEnabled(true);
       setIdState('ok', 'ID correcte · ja pots començar.');
       answerControls()[0]?.focus();
