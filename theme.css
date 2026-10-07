@@ -310,3 +310,18 @@ input[type="file"]::file-selector-button{
   -webkit-box-shadow:0 0 0 1000px #fff inset!important;
   box-shadow:0 0 0 1000px #fff inset!important;
 }
+
+/* Practice availability emphasis */
+.practice-card.closed-visual{
+  background:#f5d9d5!important;
+  background-color:#f5d9d5!important;
+  border-color:#dca9a2!important;
+}
+.practice-card.closed-visual.disabled{
+  opacity:1!important;
+}
+.practice-card.closed-visual.teacher-exception{
+  background:#f9e2bd!important;
+  background-color:#f9e2bd!important;
+  border-color:#d9b77f!important;
+}
