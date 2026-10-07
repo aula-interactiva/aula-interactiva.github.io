@@ -1,5 +1,5 @@
 {
-  "versio": 29,
+  "versio": 30,
   "ajuda": "visible controla la visibilitat per a l’alumnat; disponible és l’interruptor general d’accés. Opcionalment, obertura i tancament (ISO 8601 amb zona horària, p. ex. 2026-09-20T08:00:00+02:00) limiten automàticament l’accés. El professor pot previsualitzar les pràctiques fora de termini.",
   "arees": {
     "economia": {
@@ -13,7 +13,7 @@
           "id": "fpp",
           "ordre": 1,
           "visible": false,
-          "disponible": false,
+          "disponible": true,
           "codi": "Pràctica 1",
           "titol": "Frontera de possibilitats de producció",
           "descripcio": "Escassetat, eficiència, moviments i desplaçaments de la FPP i cost d'oportunitat.",
@@ -21,13 +21,24 @@
           "pdf": "assets/pdf/fpp.pdf",
           "excepcionsAcces": [
             "142858"
+          ],
+          "alumnesAcces": [
+            "417563",
+            "864192",
+            "530741",
+            "976254",
+            "356901",
+            "483726",
+            "591304",
+            "638472",
+            "725814"
           ]
         },
         {
           "id": "oferta",
           "ordre": 2,
           "visible": false,
-          "disponible": false,
+          "disponible": true,
           "codi": "Pràctica 2a",
           "titol": "Funció i corba d’oferta",
           "descripcio": "Moviments i desplaçaments de l’oferta, costos de producció, impostos i subvencions.",
@@ -35,13 +46,24 @@
           "pdf": "assets/pdf/oferta.pdf",
           "excepcionsAcces": [
             "142858"
+          ],
+          "alumnesAcces": [
+            "417563",
+            "864192",
+            "530741",
+            "976254",
+            "356901",
+            "483726",
+            "591304",
+            "638472",
+            "725814"
           ]
         },
         {
           "id": "demanda",
           "ordre": 3,
           "visible": false,
-          "disponible": false,
+          "disponible": true,
           "codi": "Pràctica 2b",
           "titol": "Funció i corba de demanda",
           "descripcio": "Moviments i desplaçaments de la demanda, renda i preus de béns substitutius i complements.",
@@ -49,13 +71,24 @@
           "pdf": "assets/pdf/demanda.pdf",
           "excepcionsAcces": [
             "142858"
+          ],
+          "alumnesAcces": [
+            "417563",
+            "864192",
+            "530741",
+            "976254",
+            "356901",
+            "483726",
+            "591304",
+            "638472",
+            "725814"
           ]
         },
         {
           "id": "oferta-demanda-repas",
           "ordre": 3.5,
           "visible": false,
-          "disponible": false,
+          "disponible": true,
           "codi": "Pràctica 2c",
           "titol": "Oferta i demanda",
           "descripcio": "Oferta i demanda abans de començar l’equilibri de mercat.",
@@ -65,13 +98,24 @@
           "solucionariTitol": "Solucionari",
           "excepcionsAcces": [
             "142858"
+          ],
+          "alumnesAcces": [
+            "417563",
+            "864192",
+            "530741",
+            "976254",
+            "356901",
+            "483726",
+            "591304",
+            "638472",
+            "725814"
           ]
         },
         {
           "id": "equilibri",
           "ordre": 4,
           "visible": false,
-          "disponible": false,
+          "disponible": true,
           "codi": "Pràctica 2d",
           "titol": "Equilibri de mercat",
           "descripcio": "Oferta, demanda, equilibri, canvis en les condicions del mercat, impostos i subvencions.",
@@ -79,6 +123,17 @@
           "pdf": "assets/pdf/equilibri.pdf",
           "excepcionsAcces": [
             "142858"
+          ],
+          "alumnesAcces": [
+            "417563",
+            "864192",
+            "530741",
+            "976254",
+            "356901",
+            "483726",
+            "591304",
+            "638472",
+            "725814"
           ]
         },
         {
@@ -124,7 +179,7 @@
           "id": "excel-zero",
           "ordre": 0,
           "visible": false,
-          "disponible": false,
+          "disponible": true,
           "codi": "Pràctica 0",
           "titol": "Primer contacte amb Excel",
           "descripcio": "Fórmules, referències relatives i absolutes, funcions bàsiques, ordenar, filtrar i crear un primer gràfic.",
@@ -134,13 +189,24 @@
           "temaTitol": "Introducció · Excel",
           "excepcionsAcces": [
             "142858"
+          ],
+          "alumnesAcces": [
+            "417563",
+            "864192",
+            "530741",
+            "976254",
+            "356901",
+            "483726",
+            "591304",
+            "638472",
+            "725814"
           ]
         },
         {
           "id": "freq-var",
           "ordre": 1,
           "visible": false,
-          "disponible": false,
+          "disponible": true,
           "codi": "Pràctica 1a",
           "titol": "Unidimensional · guiada",
           "descripcio": "Construcció amb Excel de taules de freqüències, mitjana, variància i desviació típica per a tres distribucions.",
@@ -150,13 +216,24 @@
           "temaTitol": "Tema 1 · Estadística descriptiva unidimensional",
           "excepcionsAcces": [
             "142858"
+          ],
+          "alumnesAcces": [
+            "417563",
+            "864192",
+            "530741",
+            "976254",
+            "356901",
+            "483726",
+            "591304",
+            "638472",
+            "725814"
           ]
         },
         {
           "id": "descriptiva-1d",
           "ordre": 2,
           "visible": false,
-          "disponible": false,
+          "disponible": true,
           "codi": "Pràctica 1b",
           "titol": "Unidimensional · aplicada amb Excel",
           "descripcio": "Dades, distribucions, mesures de centre i dispersió, quartils, valors extrems i interpretació amb Excel.",
@@ -166,6 +243,17 @@
           "temaTitol": "Tema 1 · Estadística descriptiva unidimensional",
           "excepcionsAcces": [
             "142858"
+          ],
+          "alumnesAcces": [
+            "417563",
+            "864192",
+            "530741",
+            "976254",
+            "356901",
+            "483726",
+            "591304",
+            "638472",
+            "725814"
           ]
         },
         {
