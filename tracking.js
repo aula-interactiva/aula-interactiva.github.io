@@ -16,6 +16,7 @@
   const SESSION_KEY = 'aula-interactiva-session-v3';
   const SESSION_TTL_MS = 6 * 60 * 60 * 1000;
   const BACKEND_TOTAL_TIMEOUT_MS = 20000;
+  const BACKEND_FILE_TIMEOUT_MS = 40000;
   const BACKEND_ATTEMPT_TIMEOUT_MS = 5000;
   const BACKEND_RETRY_DELAY_MS = 350;
   const LOCAL_SUBMISSION_PREFIX = 'aula-interactiva-submitted-v1:';
@@ -788,7 +789,9 @@
     payload.submissionId = stablePracticeSubmissionId(practiceKey, session.id);
     payload.detail = {...(payload.detail || {}), _practiceKey: practiceKey};
 
-    const deadline = Date.now() + BACKEND_TOTAL_TIMEOUT_MS;
+    const hasAttachments = Array.isArray(payload.attachments) && payload.attachments.length > 0;
+    const totalTimeoutMs = hasAttachments ? BACKEND_FILE_TIMEOUT_MS : BACKEND_TOTAL_TIMEOUT_MS;
+    const deadline = Date.now() + totalTimeoutMs;
 
     while (Date.now() < deadline) {
       try {
