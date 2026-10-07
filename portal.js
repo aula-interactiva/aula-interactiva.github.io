@@ -629,14 +629,18 @@
       const hasRealExceptions = !isApunts &&
         (allowedStudentsForVisual.length > 0 || realExceptionsForVisual.length > 0);
       const wasOpened = !isApunts && p.obertaAbans === true;
-      const generallyClosed = !isApunts && wasOpened && (
-        p.disponible !== true ||
+
+      // Visual state for teacher/student cards:
+      // white = default / never opened
+      // orange = opened before and still available to at least some students
+      // red = opened before and now closed to everyone
+      const stillAvailableToSomeone = !isApunts && wasOpened && (
+        p.disponible === true ||
         allowedStudentsForVisual.length > 0 ||
-        availability.state === 'closed' ||
-        availability.state === 'restricted'
+        hasRealExceptions
       );
-      const closedVisual = generallyClosed && !hasRealExceptions;
-      const exceptionVisual = generallyClosed && hasRealExceptions;
+      const exceptionVisual = wasOpened && stillAvailableToSomeone;
+      const closedVisual = wasOpened && !stillAvailableToSomeone;
       const status = preview
         ? 'Professor'
         : published
