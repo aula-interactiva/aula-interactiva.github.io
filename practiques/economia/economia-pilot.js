@@ -236,14 +236,9 @@
   }
 
   function logProgressUpdate() {
-    if (!validatedId || submitted) return;
-    const results = currentResults();
-    tracker.logActivity('PROGRESS_UPDATE', {
-      practice: cfg.practice,
-      area: cfg.area || 'Economia',
-      title: document.title,
-      progress: NQ ? results.correct / NQ * 100 : 0
-    });
+    // El progrés ja queda registrat pels SESSION_PULSE.
+    // Evitem un POST per resposta: aquests POSTs podien acumular-se i competir
+    // amb l'entrega final pel mateix lock de l'Apps Script.
   }
 
   function currentResults() {
