@@ -616,6 +616,9 @@
         submittedPracticeKeys.has(String(p.fitxer || p.id || ''));
       const canOpen = published || teacher;
       const preview = teacher && !published;
+      const hasExceptions = !isApunts && Array.isArray(p.excepcionsAcces) && p.excepcionsAcces.length > 0;
+      const closedVisual = !isApunts && !published;
+      const teacherExceptionVisual = teacher && closedVisual && hasExceptions;
       const status = preview
         ? 'Professor'
         : published
@@ -665,7 +668,7 @@
         buttons = pdfBtn + solutionBtn + openBtn;
       }
 
-      return `<article class="practice-card ${canOpen ? 'active' : 'disabled'} ${availability.state === 'closed' ? 'closed' : ''} ${preview ? 'teacher-preview' : ''}">
+      return `<article class="practice-card ${canOpen ? 'active' : 'disabled'} ${closedVisual ? 'closed-visual' : ''} ${teacherExceptionVisual ? 'teacher-exception' : ''} ${preview ? 'teacher-preview' : ''}">
         <div>
           <div class="card-kicker">${esc(p.codi)} · <span class="card-status ${statusClass}">${esc(status)}</span>${esc(timing)}</div>
           ${closingTime}
