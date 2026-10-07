@@ -747,7 +747,26 @@
   }
 
   async function submit(payload) {
-    const session = getSession();
+    let session = getSession();
+
+    if (!session) {
+      const fallbackId = normalizeId(payload?.id);
+      if (!/^\d{6}$/.test(fallbackId)) {
+        return {ok: false, error: 'no-session', confirmed: false};
+      }
+
+      const renewed = await validateId(fallbackId);
+      if (!renewed?.ok || renewed.role === 'teacher') {
+        return {ok: false, error: 'session-renewal-failed', confirmed: false};
+      }
+
+      session = saveSession(
+        renewed.id || fallbackId,
+        renewed.role || 'student',
+        renewed.token || ''
+      );
+    }
+
     if (session?.role === 'teacher') {
       return {ok: true, skipped: true, teacher: true};
     }
