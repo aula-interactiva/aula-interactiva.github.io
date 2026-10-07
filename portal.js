@@ -616,9 +616,27 @@
         submittedPracticeKeys.has(String(p.fitxer || p.id || ''));
       const canOpen = published || teacher;
       const preview = teacher && !published;
-      const hasExceptions = !isApunts && Array.isArray(p.excepcionsAcces) && p.excepcionsAcces.length > 0;
-      const closedVisual = !isApunts && !published;
-      const teacherExceptionVisual = teacher && closedVisual && hasExceptions;
+      const allowedStudentsForVisual = Array.isArray(p.alumnesAcces)
+        ? p.alumnesAcces.map(tracker.normalizeId).filter(id => /^\d{6}$/.test(id))
+        : [];
+      const realExceptionsForVisual = Array.isArray(p.excepcionsAcces)
+        ? p.excepcionsAcces.filter(item => {
+            const value = typeof item === 'object' && item !== null ? item.id : item;
+            const id = tracker.normalizeId(value);
+            return /^\d{6}$/.test(id) && id !== '142858' && id !== '142859';
+          })
+        : [];
+      const hasRealExceptions = !isApunts &&
+        (allowedStudentsForVisual.length > 0 || realExceptionsForVisual.length > 0);
+      const wasOpened = !isApunts && p.obertaAbans === true;
+      const generallyClosed = !isApunts && wasOpened && (
+        p.disponible !== true ||
+        allowedStudentsForVisual.length > 0 ||
+        availability.state === 'closed' ||
+        availability.state === 'restricted'
+      );
+      const closedVisual = generallyClosed && !hasRealExceptions;
+      const exceptionVisual = generallyClosed && hasRealExceptions;
       const status = preview
         ? 'Professor'
         : published
@@ -668,7 +686,7 @@
         buttons = pdfBtn + solutionBtn + openBtn;
       }
 
-      return `<article class="practice-card ${canOpen ? 'active' : 'disabled'} ${closedVisual ? 'closed-visual' : ''} ${teacherExceptionVisual ? 'teacher-exception' : ''} ${preview ? 'teacher-preview' : ''}">
+      return `<article class="practice-card ${canOpen ? 'active' : 'disabled'} ${closedVisual ? 'closed-visual' : ''} ${exceptionVisual ? 'teacher-exception closed-visual' : ''} ${preview ? 'teacher-preview' : ''}">
         <div>
           <div class="card-kicker">${esc(p.codi)} · <span class="card-status ${statusClass}">${esc(status)}</span>${esc(timing)}</div>
           ${closingTime}
