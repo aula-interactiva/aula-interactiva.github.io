@@ -15,6 +15,9 @@
   const ENDPOINT = 'https://script.google.com/macros/s/AKfycbxq88klu15RnDmp39XjfwuVhtZ36KrQWm-nbLh_v1aaFL-2tfxwl9HK5H5sKFqXyBzw/exec';
   const SESSION_KEY = 'aula-interactiva-session-v3';
   const SESSION_TTL_MS = 6 * 60 * 60 * 1000;
+  const BACKEND_TOTAL_TIMEOUT_MS = 20000;
+  const BACKEND_ATTEMPT_TIMEOUT_MS = 5000;
+  const BACKEND_RETRY_DELAY_MS = 350;
   const LOCAL_SUBMISSION_PREFIX = 'aula-interactiva-submitted-v1:';
   const LOCAL_DRAFT_PREFIX = 'aula-interactiva-draft-v1:';
   let practiceStartedAt = Date.now();
@@ -177,6 +180,31 @@
       ? Array.from(crypto.getRandomValues(new Uint32Array(2))).map(n => n.toString(36)).join('')
       : Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
     return `${practice}-${id}-${Date.now()}-${random}`;
+  }
+
+  async function retryJsonp(params, totalTimeoutMs = BACKEND_TOTAL_TIMEOUT_MS) {
+    const deadline = Date.now() + totalTimeoutMs;
+    let lastError = null;
+
+    while (Date.now() < deadline) {
+      const remaining = Math.max(1, deadline - Date.now());
+      try {
+        return await Promise.race([
+          jsonp(params),
+          new Promise((_, reject) => setTimeout(
+            () => reject(new Error('backend-attempt-timeout')),
+            Math.min(BACKEND_ATTEMPT_TIMEOUT_MS, remaining)
+          ))
+        ]);
+      } catch (error) {
+        lastError = error;
+      }
+
+      const wait = Math.min(BACKEND_RETRY_DELAY_MS, Math.max(0, deadline - Date.now()));
+      if (wait > 0) await sleep(wait);
+    }
+
+    throw lastError || new Error('backend-timeout');
   }
 
   async function postPayload(payload, {keepalive = false} = {}) {
@@ -656,13 +684,13 @@
       : {code: session.id};
 
     try {
-      return await jsonp({
+      return await retryJsonp({
         action: 'submission',
         ...auth,
         submissionId
       });
-    } catch (error) {
-      return {ok: false, error: 'submission-read-failed', submitted: false};
+    } catch (_) {
+      return {ok: false, error: 'submission-read-timeout', submitted: false};
     }
   }
 
@@ -751,29 +779,48 @@
     if (session?.role === 'teacher') {
       return {ok: true, skipped: true, teacher: true};
     }
+    if (!session) {
+      return {ok: false, error: 'no-session', confirmed: false};
+    }
 
     const practiceKey = normalizeRepoPath(location.pathname);
     payload.practiceKey = practiceKey;
     payload.submissionId = stablePracticeSubmissionId(practiceKey, session.id);
     payload.detail = {...(payload.detail || {}), _practiceKey: practiceKey};
 
-    try {
-      await postPayload(payload);
-      const hasAttachments = Array.isArray(payload.attachments) && payload.attachments.length > 0;
-      const confirmation = await confirmOperation('submission', payload.submissionId, hasAttachments
-        ? {attempts: 1, delayMs: 0}
-        : undefined
-      );
-      if (!confirmation.ok) {
-        return {ok: false, error: 'submission-not-confirmed', confirmed: false};
+    const deadline = Date.now() + BACKEND_TOTAL_TIMEOUT_MS;
+
+    while (Date.now() < deadline) {
+      try {
+        const remaining = Math.max(1, deadline - Date.now());
+        await Promise.race([
+          postPayload(payload),
+          new Promise((_, reject) => setTimeout(
+            () => reject(new Error('backend-attempt-timeout')),
+            Math.min(BACKEND_ATTEMPT_TIMEOUT_MS, remaining)
+          ))
+        ]);
+      } catch (_) {}
+
+      const remaining = Math.max(0, deadline - Date.now());
+      if (!remaining) break;
+
+      const confirmation = await confirmOperation('submission', payload.submissionId, {
+        attempts: 1,
+        delayMs: 0
+      });
+
+      if (confirmation.ok) {
+        rememberLocalSubmission(practiceKey, session.id);
+        clearDraft(practiceKey, session.id);
+        return {ok: true, confirmed: true};
       }
-    } catch (error) {
-      return {ok: false, error, confirmed: false};
+
+      const wait = Math.min(BACKEND_RETRY_DELAY_MS, Math.max(0, deadline - Date.now()));
+      if (wait > 0) await sleep(wait);
     }
 
-    rememberLocalSubmission(practiceKey, session.id);
-    clearDraft(practiceKey, session.id);
-    return {ok: true, confirmed: true};
+    return {ok: false, error: 'submission-confirm-timeout', confirmed: false};
   }
 
   function practiceMeta() {
