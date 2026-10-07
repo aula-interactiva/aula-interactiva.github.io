@@ -722,7 +722,7 @@
           <div class="card-desc">${esc(p.descripcio)}</div>
         </div>
         <div class="card-action">
-          <span class="status-pill ${published ? 'available' : ''} ${preview ? 'teacher' : ''}">${status}</span>
+          <span class="status-pill ${statusClass} ${preview && status === 'Professor' ? 'teacher' : ''}">${status}</span>
           <div class="action-buttons">${buttons}</div>
         </div>
       </article>`;
