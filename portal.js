@@ -663,11 +663,13 @@
       const canOpen = published || teacher;
       const preview = teacher && !published;
       const cardTone = practiceCardTone(p, availability, teacher, isApunts);
-      const status = preview
-        ? 'Professor'
-        : published
-          ? 'Disponible'
-          : 'Tancada';
+      const status = teacher && (cardTone === 'orange' || cardTone === 'red')
+        ? 'Tancada'
+        : preview
+          ? 'Professor'
+          : published
+            ? 'Disponible'
+            : 'Tancada';
       const statusClass = status === 'Disponible'
         ? 'available'
         : status === 'Tancada'
