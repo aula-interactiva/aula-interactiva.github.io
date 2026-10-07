@@ -1,5 +1,5 @@
 {
-  "versio": 31,
+  "versio": 32,
   "ajuda": "visible controla la visibilitat per a l’alumnat; disponible és l’interruptor general d’accés. Opcionalment, obertura i tancament (ISO 8601 amb zona horària, p. ex. 2026-09-20T08:00:00+02:00) limiten automàticament l’accés. El professor pot previsualitzar les pràctiques fora de termini.",
   "arees": {
     "economia": {
@@ -32,7 +32,8 @@
             "591304",
             "638472",
             "725814"
-          ]
+          ],
+          "obertaAbans": true
         },
         {
           "id": "oferta",
@@ -57,7 +58,8 @@
             "591304",
             "638472",
             "725814"
-          ]
+          ],
+          "obertaAbans": true
         },
         {
           "id": "demanda",
@@ -82,7 +84,8 @@
             "591304",
             "638472",
             "725814"
-          ]
+          ],
+          "obertaAbans": true
         },
         {
           "id": "oferta-demanda-repas",
@@ -109,7 +112,8 @@
             "591304",
             "638472",
             "725814"
-          ]
+          ],
+          "obertaAbans": true
         },
         {
           "id": "equilibri",
@@ -123,7 +127,8 @@
           "pdf": "assets/pdf/equilibri.pdf",
           "excepcionsAcces": [
             "142858"
-          ]
+          ],
+          "obertaAbans": true
         },
         {
           "id": "equilibri-exercicis",
@@ -139,7 +144,8 @@
           "solucionariTitol": "Solucionari",
           "excepcionsAcces": [
             "142858"
-          ]
+          ],
+          "obertaAbans": true
         },
         {
           "id": "elasticitat",
@@ -189,7 +195,8 @@
             "591304",
             "638472",
             "725814"
-          ]
+          ],
+          "obertaAbans": true
         },
         {
           "id": "freq-var",
@@ -216,7 +223,8 @@
             "591304",
             "638472",
             "725814"
-          ]
+          ],
+          "obertaAbans": true
         },
         {
           "id": "descriptiva-1d",
@@ -232,7 +240,8 @@
           "temaTitol": "Tema 1 · Estadística descriptiva unidimensional",
           "excepcionsAcces": [
             "142858"
-          ]
+          ],
+          "obertaAbans": true
         },
         {
           "id": "descriptiva-1d-examen",
