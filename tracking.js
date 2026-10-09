@@ -577,19 +577,25 @@
     if (!session) return;
 
     let timer = null;
-    const schedule = () => {
+    let userEdited = false;
+    const schedule = event => {
+      if (event?.isTrusted) userEdited = true;
       clearTimeout(timer);
-      timer = setTimeout(saveDraftNow, 350);
+      timer = setTimeout(saveDraftNow, 250);
     };
 
     document.addEventListener('input', schedule, true);
     document.addEventListener('change', schedule, true);
     window.addEventListener('pagehide', saveDraftNow);
 
-    setTimeout(restoreDraft, 120);
+    // One global recovery path for every practice. The first pass restores
+    // immediately; the second catches practice scripts that initialise a little later.
+    // We never overwrite work once the student has started editing.
+    setTimeout(() => restoreDraft(), 80);
+    setTimeout(() => { if (!userEdited) restoreDraft(); }, 450);
 
     // Dynamic practices often replace their fields when changing block.
-    // Re-apply saved values to newly rendered controls without discarding older blocks.
+    // Re-apply saved values only to newly created controls.
     let applying = false;
     const observer = new MutationObserver(records => {
       if (applying) return;
@@ -637,10 +643,14 @@
 
     button.addEventListener('click', () => {
       const ok = saveDraftNow();
-      button.textContent = ok ? 'Desat ✓' : 'No s’ha pogut desar';
+      if (!ok) {
+        button.textContent = 'No s’ha pogut desar';
+        return;
+      }
+      button.textContent = 'Desat ✓';
       setTimeout(() => {
         location.href = '../../index.html';
-      }, 250);
+      }, 180);
     });
 
     document.body.appendChild(button);
