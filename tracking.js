@@ -779,52 +779,6 @@
     }
   }
 
-  function stripAutomaticAssessment(value) {
-    if (Array.isArray(value)) return value.map(stripAutomaticAssessment);
-    if (!value || typeof value !== 'object') return value;
-    const out = {};
-    for (const [key, item] of Object.entries(value)) {
-      if (/^(correct|expected)$/i.test(key)) continue;
-      if (/(^|_)(auto.?score|objective.?score|excel.?score|score|grade|correction)(_|$)/i.test(key)) continue;
-      out[key] = stripAutomaticAssessment(item);
-    }
-    return out;
-  }
-
-  function prepareSubmissionForManualReview(payload) {
-    const clean = {...(payload || {})};
-    // Global policy: submissions are stored for later teacher review only.
-    // No automatic grade/correction is persisted until explicitly enabled.
-    clean.correct = '';
-    clean.justifications = [];
-    clean.detail = stripAutomaticAssessment(clean.detail || {});
-    return clean;
-  }
-
-  function enforceNoAutomaticAssessmentUi(root = document) {
-    const scope = root?.querySelectorAll ? root : document;
-    scope.querySelectorAll('#score-box,.score-box,.submission-score,.auto-score').forEach(el => {
-      el.classList.add('hidden');
-      el.style.display = 'none';
-      el.innerHTML = '';
-    });
-    scope.querySelectorAll('.score').forEach(el => {
-      if (/\/\s*\d|correcci|nota|\bIA\b/i.test(el.textContent || '')) {
-        el.classList.add('hidden');
-        el.style.display = 'none';
-        el.innerHTML = '';
-      }
-    });
-    scope.querySelectorAll('#submit-status,#comment-status,.submit-status,.comment-status').forEach(el => {
-      const txt = String(el.textContent || '');
-      if (/correcci.*IA|IA.*correcci|pendent de correcci|primera correcci|correcci[oó] autom/i.test(txt)) {
-        el.textContent = /comentari entregat/i.test(txt)
-          ? 'Entrega registrada correctament.'
-          : 'Entrega registrada correctament.';
-      }
-    });
-  }
-
   async function submit(payload) {
     const session = getSession();
     if (session?.role === 'teacher') {
@@ -834,7 +788,6 @@
       return {ok: false, error: 'no-session', confirmed: false};
     }
 
-    payload = prepareSubmissionForManualReview(payload);
     const practiceKey = normalizeRepoPath(location.pathname);
     payload.practiceKey = practiceKey;
     payload.submissionId = stablePracticeSubmissionId(practiceKey, session.id);
@@ -867,8 +820,6 @@
       if (confirmation.ok) {
         rememberLocalSubmission(practiceKey, session.id);
         clearDraft(practiceKey, session.id);
-        setTimeout(() => enforceNoAutomaticAssessmentUi(document), 0);
-        setTimeout(() => enforceNoAutomaticAssessmentUi(document), 250);
         return {ok: true, confirmed: true};
       }
 
@@ -1347,8 +1298,6 @@
 
   installDeterministicPracticeRandom();
 
-  // Keep automatic grades/corrections hidden globally. Practices can still
-  // self-check while the student works; final submission is manual-review only.
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
       enforceNoAutomaticAssessmentUi(document);
