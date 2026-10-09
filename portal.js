@@ -663,18 +663,21 @@
       const canOpen = published || teacher;
       const preview = teacher && !published;
       const cardTone = practiceCardTone(p, availability, teacher, isApunts);
+      const neverOpened = !isApunts && p?.obertaAbans !== true;
       const status = teacher && (cardTone === 'orange' || cardTone === 'red')
         ? 'Tancada'
         : preview
           ? 'Professor'
           : published
             ? 'Disponible'
-            : 'Tancada';
+            : neverOpened
+              ? 'No oberta'
+              : 'Tancada';
       const statusClass = status === 'Disponible'
         ? 'available'
-        : status === 'Tancada'
+        : (status === 'Tancada' || status === 'Tancat') && !neverOpened
           ? 'closed'
-          : status === 'Tancat' ? 'closed' : '';
+          : '';
       const timing = !isApunts
         ? availability.state === 'upcoming' && availability.opensAt
           ? ` · Obre ${formatAccessDate(availability.opensAt)}`
