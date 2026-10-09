@@ -19,6 +19,8 @@
   const BACKEND_FILE_TIMEOUT_MS = 40000;
   const BACKEND_ATTEMPT_TIMEOUT_MS = 5000;
   const BACKEND_RETRY_DELAY_MS = 350;
+  const LOGIN_TOTAL_TIMEOUT_MS = 10000;
+  const LOGIN_ATTEMPT_TIMEOUT_MS = 4000;
   const LOCAL_SUBMISSION_PREFIX = 'aula-interactiva-submitted-v1:';
   const LOCAL_DRAFT_PREFIX = 'aula-interactiva-draft-v1:';
   let practiceStartedAt = Date.now();
@@ -107,7 +109,11 @@
     }
 
     try {
-      const result = await jsonp({action: 'login', code: id});
+      const result = await retryJsonp(
+        {action: 'login', code: id},
+        LOGIN_TOTAL_TIMEOUT_MS,
+        LOGIN_ATTEMPT_TIMEOUT_MS
+      );
       if (!result?.ok) {
         return {ok: false, id, role: '', reason: 'not-found'};
       }
@@ -143,14 +149,14 @@
     return getSession()?.role === 'teacher';
   }
 
-  function jsonp(params = {}) {
+  function jsonp(params = {}, timeoutMs = 20000) {
     return new Promise((resolve, reject) => {
       const callback = '__aulaJsonp_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2);
       const script = document.createElement('script');
       const timer = setTimeout(() => {
         cleanup();
         reject(new Error('backend-timeout'));
-      }, 20000);
+      }, Math.max(1, Number(timeoutMs) || 20000));
 
       function cleanup() {
         clearTimeout(timer);
@@ -183,20 +189,18 @@
     return `${practice}-${id}-${Date.now()}-${random}`;
   }
 
-  async function retryJsonp(params, totalTimeoutMs = BACKEND_TOTAL_TIMEOUT_MS) {
+  async function retryJsonp(
+    params,
+    totalTimeoutMs = BACKEND_TOTAL_TIMEOUT_MS,
+    attemptTimeoutMs = BACKEND_ATTEMPT_TIMEOUT_MS
+  ) {
     const deadline = Date.now() + totalTimeoutMs;
     let lastError = null;
 
     while (Date.now() < deadline) {
       const remaining = Math.max(1, deadline - Date.now());
       try {
-        return await Promise.race([
-          jsonp(params),
-          new Promise((_, reject) => setTimeout(
-            () => reject(new Error('backend-attempt-timeout')),
-            Math.min(BACKEND_ATTEMPT_TIMEOUT_MS, remaining)
-          ))
-        ]);
+        return await jsonp(params, Math.min(attemptTimeoutMs, remaining));
       } catch (error) {
         lastError = error;
       }
