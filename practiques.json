@@ -339,7 +339,7 @@
         {
           "id": "descriptiva-1d-examen",
           "ordre": 2.5,
-          "visible": false,
+          "visible": true,
           "disponible": true,
           "codi": "Pràctica 1c",
           "titol": "Unidimensional · pràctica final",
