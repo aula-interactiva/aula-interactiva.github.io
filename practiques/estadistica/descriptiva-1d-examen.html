@@ -218,6 +218,36 @@ function excelScore(rep){
 
 function setStatus(kind,text){$('submit-status').className='status '+(kind||'');$('submit-status').textContent=text}
 
+function localExamDraftKey(){
+  const id=tracker.getSession()?.id||'';
+  return 'aula-1c-exam-draft-v1:'+id;
+}
+function saveLocalExamDraft(){
+  const s={
+    mean:$('mean')?.value||'',
+    median:$('median')?.value||'',
+    variance:$('variance')?.value||'',
+    sd:$('sd')?.value||'',
+    outliers:$('outliers')?.value||'',
+    shape:$('shape')?.value||'',
+    comment:$('final-comment')?.value||''
+  };
+  try{localStorage.setItem(localExamDraftKey(),JSON.stringify(s));return true}catch(_){return false}
+}
+function restoreLocalExamDraft(){
+  let s=null;
+  try{s=JSON.parse(localStorage.getItem(localExamDraftKey())||'null')}catch(_){}
+  if(!s||typeof s!=='object')return false;
+  const values={mean:s.mean,median:s.median,variance:s.variance,sd:s.sd,outliers:s.outliers,shape:s.shape};
+  Object.entries(values).forEach(([id,value])=>{const el=$(id);if(el&&value!=null)el.value=String(value)});
+  if($('final-comment')&&s.comment!=null)$('final-comment').value=String(s.comment);
+  $('comment-count').textContent=`${$('final-comment').value.trim().length} caràcters · mínim 180`;
+  return true;
+}
+function clearLocalExamDraft(){
+  try{localStorage.removeItem(localExamDraftKey())}catch(_){}
+}
+
 window.AulaDraftState={
   get(){
     return {
@@ -312,6 +342,7 @@ async function submitExam(){
   const res=await tracker.submit(payload);
   if(res.ok){
     submitted=true;
+    clearLocalExamDraft();
     document.querySelectorAll('input,select,textarea').forEach(x=>x.disabled=true);
     $('submit').disabled=true;$('submit').textContent='Pràctica entregada';
     setStatus('ok',res.teacher?'Mode professor: correcció simulada; no s’ha registrat cap entrega.':'Entrega registrada correctament.');
@@ -334,10 +365,18 @@ function init(){
   $('final-comment').oninput=()=>{$('comment-count').textContent=`${$('final-comment').value.trim().length} caràcters · mínim 180`};
   $('submit').onclick=submitExam;
 
-  // Restore only after the practice has finished initialising, so no later
-  // initialisation step can wipe the saved fields.
+  ['mean','median','variance','sd','outliers','shape','final-comment'].forEach(id=>{
+    const el=$(id);
+    if(!el)return;
+    el.addEventListener('input',saveLocalExamDraft);
+    el.addEventListener('change',saveLocalExamDraft);
+  });
+  document.addEventListener('aula:draft-saved',saveLocalExamDraft);
+
+  // Practice-specific recovery is deliberately independent of the generic
+  // draft mechanism so "Desa i surt" cannot lose the final form values.
   setTimeout(()=>{
-    const restored=tracker.restoreDraft();
+    const restored=restoreLocalExamDraft() || tracker.restoreDraft();
     if(restored&&!selectedFile){
       $('filemsg').textContent='Esborrany recuperat · torna a adjuntar l’Excel abans d’entregar.';
     }
