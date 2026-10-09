@@ -203,6 +203,10 @@
       validatedId = result.id;
       startedAt = Date.now();
 
+      document.dispatchEvent(new CustomEvent('aula:student-validated', {
+        detail: {id: validatedId}
+      }));
+
       setIdState('checking', 'Comprovant si ja hi ha una entrega registrada…');
       if (await restoreFinalSubmission()) {
         setIdState('ok', 'ID correcte · mostrant l’entrega registrada.');
