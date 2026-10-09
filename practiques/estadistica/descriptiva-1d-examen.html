@@ -218,6 +218,31 @@ function excelScore(rep){
 
 function setStatus(kind,text){$('submit-status').className='status '+(kind||'');$('submit-status').textContent=text}
 
+window.AulaDraftState={
+  get(){
+    return {
+      mean:$('mean')?.value||'',
+      median:$('median')?.value||'',
+      variance:$('variance')?.value||'',
+      sd:$('sd')?.value||'',
+      outliers:$('outliers')?.value||'',
+      shape:$('shape')?.value||'',
+      comment:$('final-comment')?.value||''
+    };
+  },
+  restore(state){
+    if(!state||typeof state!=='object')return false;
+    const values={mean:state.mean,median:state.median,variance:state.variance,sd:state.sd,outliers:state.outliers,shape:state.shape};
+    Object.entries(values).forEach(([id,value])=>{const el=$(id);if(el&&value!=null)el.value=String(value)});
+    const ta=$('final-comment');
+    if(ta&&state.comment!=null){
+      ta.value=String(state.comment);
+      $('comment-count').textContent=`${ta.value.trim().length} caràcters · mínim 180`;
+    }
+    return true;
+  }
+};
+
 async function submitExam(){
   if(submitted)return;
   const comment=$('final-comment').value.trim();
@@ -308,6 +333,15 @@ function init(){
   $('excel-upload').onchange=e=>{selectedFile=e.target.files?.[0]||null;$('filemsg').textContent=selectedFile?selectedFile.name:'Cap fitxer seleccionat.'};
   $('final-comment').oninput=()=>{$('comment-count').textContent=`${$('final-comment').value.trim().length} caràcters · mínim 180`};
   $('submit').onclick=submitExam;
+
+  // Restore only after the practice has finished initialising, so no later
+  // initialisation step can wipe the saved fields.
+  setTimeout(()=>{
+    const restored=tracker.restoreDraft();
+    if(restored&&!selectedFile){
+      $('filemsg').textContent='Esborrany recuperat · torna a adjuntar l’Excel abans d’entregar.';
+    }
+  },300);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init,120));else setTimeout(init,120);
 })();
