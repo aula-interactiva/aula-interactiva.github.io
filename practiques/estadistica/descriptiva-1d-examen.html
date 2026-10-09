@@ -309,6 +309,17 @@ function init(){
   $('final-comment').oninput=()=>{$('comment-count').textContent=`${$('final-comment').value.trim().length} caràcters · mínim 180`};
   $('submit').onclick=submitExam;
 
+  const refreshRecoveredState=()=>{
+    $('comment-count').textContent=`${$('final-comment').value.trim().length} caràcters · mínim 180`;
+    if(!selectedFile)$('filemsg').textContent='Esborrany recuperat · torna a adjuntar l’Excel abans d’entregar.';
+  };
+  document.addEventListener('aula:draft-restored',refreshRecoveredState);
+
+  // Aquesta pràctica inicialitza la seva interfície després de carregar tracking.js.
+  // Forcem una única restauració final un cop la interfície ja existeix.
+  setTimeout(()=>{
+    if(tracker.restoreDraft())refreshRecoveredState();
+  },350);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init,120));else setTimeout(init,120);
 })();
