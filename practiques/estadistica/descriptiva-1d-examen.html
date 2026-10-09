@@ -266,11 +266,8 @@ async function submitExam(){
   $('submit').disabled=true;$('submit').textContent='Corregint…';
   setStatus('','Analitzant els resultats i el fitxer Excel…');
 
-  const workbook=await inspectWorkbook();
-  if(!workbook.readable){
-    $('submit').disabled=false;$('submit').textContent='Entrega la pràctica';
-    setStatus('bad','No s’ha pogut llegir l’Excel. Desa’l com a .xlsx o .xlsm i torna-ho a provar.');return;
-  }
+  let workbook={readable:false,dataPreserved:false,formulaCount:0,chartCount:0};
+  try{workbook=await inspectWorkbook()}catch(_){}
 
   const detail=objectiveDetail(),correctN=detail.filter(x=>x.correct).length;
   const objectiveScore=correctN/detail.length*6;
