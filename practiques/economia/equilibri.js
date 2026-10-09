@@ -356,6 +356,7 @@
   
   $('reset-model').addEventListener('click',resetModelValues);
   $('student-id').addEventListener('input',resetModelValues);
+  document.addEventListener('aula:student-validated', () => resetModelValues());
   inputIds.forEach(id=>$(id).addEventListener('input',updateModel));
   window.addEventListener('resize',updateModel);
   renderQuestions();resetModelValues();requestAnimationFrame(updateModel);
