@@ -105,7 +105,7 @@ textarea{width:100%;min-height:165px;resize:vertical;border:1px solid #dfca77;ba
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-<script src="../../tracking.js?v=46"></script>
+<script src="../../tracking.js?v=60"></script>
 <script>
 (() => {
 'use strict';
@@ -309,17 +309,6 @@ function init(){
   $('final-comment').oninput=()=>{$('comment-count').textContent=`${$('final-comment').value.trim().length} caràcters · mínim 180`};
   $('submit').onclick=submitExam;
 
-  const refreshRecoveredState=()=>{
-    $('comment-count').textContent=`${$('final-comment').value.trim().length} caràcters · mínim 180`;
-    if(!selectedFile)$('filemsg').textContent='Esborrany recuperat · torna a adjuntar l’Excel abans d’entregar.';
-  };
-  document.addEventListener('aula:draft-restored',refreshRecoveredState);
-
-  // Aquesta pràctica inicialitza la seva interfície després de carregar tracking.js.
-  // Forcem una única restauració final un cop la interfície ja existeix.
-  setTimeout(()=>{
-    if(tracker.restoreDraft())refreshRecoveredState();
-  },350);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init,120));else setTimeout(init,120);
 })();
