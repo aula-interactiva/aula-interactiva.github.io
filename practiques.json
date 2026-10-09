@@ -1,5 +1,5 @@
 {
-  "versio": 39,
+  "versio": 40,
   "ajuda": "visible controla la visibilitat per a l’alumnat; disponible és l’interruptor general d’accés. Opcionalment, obertura i tancament (ISO 8601 amb zona horària, p. ex. 2026-09-20T08:00:00+02:00) limiten automàticament l’accés. El professor pot previsualitzar les pràctiques fora de termini.",
   "arees": {
     "economia": {
@@ -177,7 +177,7 @@
             }
           ],
           "obertaAbans": true,
-          "tancament": "2026-10-09T18:00:00+02:00"
+          "tancament": "2026-10-10T12:00:00+02:00"
         },
         {
           "id": "equilibri-exercicis",
@@ -334,7 +334,7 @@
             }
           ],
           "obertaAbans": true,
-          "tancament": "2026-10-09T18:00:00+02:00"
+          "tancament": "2026-10-10T12:00:00+02:00"
         },
         {
           "id": "descriptiva-1d-examen",
@@ -351,7 +351,8 @@
           "excepcionsAcces": [
             "142858"
           ],
-          "obertaAbans": true
+          "obertaAbans": true,
+          "tancament": "2026-10-10T12:00:00+02:00"
         },
         {
           "id": "descriptiva-2d",
