@@ -171,23 +171,15 @@ function allFilled(){
   return ['mean','median','variance','sd','outliers','shape'].every(id=>String($(id).value||'').trim());
 }
 
-function objectiveDetail(){
-  const answers={
-    mean:parseNum($('mean').value),
-    median:parseNum($('median').value),
-    variance:parseNum($('variance').value),
-    sd:parseNum($('sd').value),
-    outliers:parseNum($('outliers').value),
+function objectiveAnswers(){
+  return {
+    mean:$('mean').value,
+    median:$('median').value,
+    variance:$('variance').value,
+    sd:$('sd').value,
+    outliers:$('outliers').value,
     shape:$('shape').value
   };
-  return[
-    {question:'Mitjana',answer:Number.isFinite(answers.mean)?answers.mean:'',correct:Number.isFinite(answers.mean)&&Math.abs(answers.mean-stats.mean)<=.011},
-    {question:'Mediana',answer:Number.isFinite(answers.median)?answers.median:'',correct:Number.isFinite(answers.median)&&Math.abs(answers.median-stats.median)<=.011},
-    {question:'Variància descriptiva',answer:Number.isFinite(answers.variance)?answers.variance:'',correct:Number.isFinite(answers.variance)&&Math.abs(answers.variance-stats.variance)<=.021},
-    {question:'Desviació típica descriptiva',answer:Number.isFinite(answers.sd)?answers.sd:'',correct:Number.isFinite(answers.sd)&&Math.abs(answers.sd-stats.sd)<=.021},
-    {question:'Nombre de valors atípics',answer:Number.isFinite(answers.outliers)?answers.outliers:'',correct:Number.isFinite(answers.outliers)&&Math.abs(answers.outliers-stats.outliers.length)<.001},
-    {question:'Forma principal',answer:answers.shape,correct:answers.shape===shapeName()}
-  ];
 }
 
 async function inspectWorkbook(){
@@ -263,45 +255,20 @@ async function submitExam(){
   if(!selectedFile){setStatus('bad','Adjunta el fitxer Excel abans d’entregar.');return}
   if(comment.length<180){setStatus('bad','El comentari final ha de tenir com a mínim 180 caràcters.');return}
 
-  $('submit').disabled=true;$('submit').textContent='Corregint…';
-  setStatus('','Analitzant els resultats i el fitxer Excel…');
-
-  let workbook={readable:false,dataPreserved:false,formulaCount:0,chartCount:0};
-  try{workbook=await inspectWorkbook()}catch(_){}
-
-  const detail=objectiveDetail(),correctN=detail.filter(x=>x.correct).length;
-  const objectiveScore=correctN/detail.length*6;
-  const xScore=excelScore(workbook);
-  const autoScore=round(objectiveScore+xScore,2);
+  $('submit').disabled=true;$('submit').textContent='Preparant entrega…';
+  setStatus('','Preparant el fitxer i registrant l’entrega…');
 
   const id=tracker.getSession()?.id||'';
-  const context=
-    `Valora el comentari final de la pràctica 1c com una interpretació global d’una distribució unidimensional. `+
-    `Resultats correctes: n=${stats.n}; mitjana=${round(stats.mean,2)}; mediana=${round(stats.median,2)}; `+
-    `variància descriptiva=${round(stats.variance,2)}; desviació típica=${round(stats.sd,2)}; mínim=${stats.min}; màxim=${stats.max}; `+
-    `Q1=${round(stats.q1,2)}; Q3=${round(stats.q3,2)}; RIQ=${round(stats.iqr,2)}; `+
-    `forma=${shapeName().toLowerCase()}; valors atípics segons 1,5·RIQ=${stats.outliers.length}. `+
-    `Avalua si integra coherentment centre, dispersió, forma, mesures de posició, valors atípics i la tria d’una mesura de centre representativa. `+
-    `No exigeixis que enumeri tots els estadístics. Aquesta part val 1 punt.`;
-
   const payload={
     submissionId:tracker.makeSubmissionId('descriptiva-1d-examen',id),
     id,practice:'Pràctica 1c · Estadística descriptiva unidimensional',area:'Estadística',status:'Entregada',
-    total:detail.length,correct:correctN,attempts:1,progress:100,
-    minutes:Math.max(1,Math.round((Date.now()-startedAt)/60000)),version:'exam-1d-global-3',
+    total:6,correct:'',attempts:1,progress:100,
+    minutes:Math.max(1,Math.round((Date.now()-startedAt)/60000)),version:'exam-1d-global-4',
     detail:{
-      autoScoreOutOf9:autoScore,
-      objectiveScoreOutOf6:round(objectiveScore,2),
-      excelScoreOutOf3:xScore,
-      objectiveCorrect:correctN,objectiveTotal:detail.length,
-      workbook,
-      statistics:{
-        mean:round(stats.mean,2),median:round(stats.median,2),variance:round(stats.variance,2),sd:round(stats.sd,2),
-        q1:round(stats.q1,2),q3:round(stats.q3,2),iqr:round(stats.iqr,2),outliers:stats.outliers.length,shape:shapeName()
-      },
-      answers:detail
+      answers:objectiveAnswers(),
+      finalComment:comment
     },
-    justifications:[{question:context,text:comment}]
+    justifications:[]
   };
 
   $('submit').textContent='Preparant Excel…';setStatus('','Preparant l’Excel per guardar-lo amb l’entrega…');
@@ -325,10 +292,8 @@ async function submitExam(){
     document.querySelectorAll('input,select,textarea').forEach(x=>x.disabled=true);
     $('submit').disabled=true;$('submit').textContent='Pràctica entregada';
     setStatus('ok',res.teacher?'Mode professor: correcció simulada; no s’ha registrat cap entrega.':'Entrega registrada correctament.');
-    $('score-box').classList.remove('hidden');
-    $('score-box').innerHTML=
-      `<strong>${autoScore.toLocaleString('ca-ES',{minimumFractionDigits:2,maximumFractionDigits:2})} / 9</strong> · primera correcció automàtica. `+
-      `El comentari final s’ha enviat també a la correcció amb IA (1 punt).`;
+    $('score-box').classList.add('hidden');
+    $('score-box').innerHTML='';
   }else{
     $('submit').disabled=false;$('submit').textContent='Entrega la pràctica';
     setStatus('bad','No s’ha pogut confirmar l’entrega. Torna-ho a provar.');
