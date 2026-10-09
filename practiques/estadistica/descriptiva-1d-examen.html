@@ -218,6 +218,44 @@ function excelScore(rep){
 
 function setStatus(kind,text){$('submit-status').className='status '+(kind||'');$('submit-status').textContent=text}
 
+window.AulaDraftState={
+  get(){
+    return {
+      mean:$('mean')?.value||'',
+      median:$('median')?.value||'',
+      variance:$('variance')?.value||'',
+      sd:$('sd')?.value||'',
+      outliers:$('outliers')?.value||'',
+      shape:$('shape')?.value||'',
+      comment:$('final-comment')?.value||''
+    };
+  },
+  restore(state){
+    if(!state||typeof state!=='object')return true;
+    const values={
+      mean:state.mean,
+      median:state.median,
+      variance:state.variance,
+      sd:state.sd,
+      outliers:state.outliers,
+      shape:state.shape
+    };
+    Object.entries(values).forEach(([id,value])=>{
+      const el=$(id);
+      if(el&&value!=null)el.value=String(value);
+    });
+    const comment=$('final-comment');
+    if(comment&&state.comment!=null)comment.value=String(state.comment);
+    if($('comment-count')&&comment){
+      $('comment-count').textContent=`${comment.value.trim().length} caràcters · mínim 180`;
+    }
+    if($('filemsg')){
+      $('filemsg').textContent='Esborrany recuperat · torna a adjuntar l’Excel abans d’entregar.';
+    }
+    return true;
+  }
+};
+
 async function submitExam(){
   if(submitted)return;
   const comment=$('final-comment').value.trim();
