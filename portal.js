@@ -181,12 +181,47 @@
     $('login-id').focus();
   }
 
+  async function loginWithFastRetry(id) {
+    const attempts = 3;
+    const attemptTimeoutMs = 3500;
+
+    for (let i = 0; i < attempts; i++) {
+      const existing = tracker.getSession();
+      if (existing && existing.id === id) {
+        return {ok:true, id:existing.id, role:existing.role, session:existing};
+      }
+
+      try {
+        const result = await Promise.race([
+          tracker.login(id),
+          new Promise(resolve => setTimeout(
+            () => resolve({ok:false, reason:'backend-timeout'}),
+            attemptTimeoutMs
+          ))
+        ]);
+
+        if (result?.ok) return result;
+        if (result?.reason === 'format' || result?.reason === 'not-found') return result;
+      } catch (_) {}
+
+      if (i < attempts - 1) {
+        await new Promise(resolve => setTimeout(resolve, 180));
+      }
+    }
+
+    const existing = tracker.getSession();
+    if (existing && existing.id === id) {
+      return {ok:true, id:existing.id, role:existing.role, session:existing};
+    }
+    return {ok:false, id, reason:'backend'};
+  }
+
   async function handleLogin() {
     const id = normalizeLoginInput();
     $('login-button').disabled = true;
     setLoginStatus('checking', 'Comprovant codi…');
 
-    const result = await tracker.login(id);
+    const result = await loginWithFastRetry(id);
     $('login-button').disabled = false;
 
     if (!result.ok) {
