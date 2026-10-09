@@ -182,32 +182,6 @@ function objectiveAnswers(){
   };
 }
 
-async function inspectWorkbook(){
-  const rep={readable:false,dataPreserved:false,formulaCount:0,chartCount:0};
-  if(!selectedFile||!window.XLSX)return rep;
-  const buf=await selectedFile.arrayBuffer();
-  try{
-    const wb=XLSX.read(buf,{type:'array',cellFormula:true});
-    const d=wb.Sheets.DADES;if(!d)return rep;
-    rep.readable=true;
-    rep.dataPreserved=dataset.every((v,i)=>Number(d['B'+(i+6)]?.v)===v);
-    Object.values(wb.Sheets).forEach(sh=>Object.entries(sh).forEach(([k,cell])=>{if(!k.startsWith('!')&&cell&&cell.f)rep.formulaCount++}));
-    if(window.JSZip){
-      const zip=await JSZip.loadAsync(buf);
-      rep.chartCount=Object.keys(zip.files).filter(n=>new RegExp('^xl/charts/chart\\d+\\.xml$','i').test(n)).length;
-    }
-  }catch(_){}
-  return rep;
-}
-
-function excelScore(rep){
-  let s=0;
-  if(rep.dataPreserved)s+=.5;
-  s+=Math.min(rep.formulaCount,8)/8*1.5;
-  if(rep.chartCount>0)s+=1;
-  return round(s,2);
-}
-
 function setStatus(kind,text){$('submit-status').className='status '+(kind||'');$('submit-status').textContent=text}
 
 window.AulaDraftState={
@@ -263,10 +237,11 @@ async function submitExam(){
     submissionId:tracker.makeSubmissionId('descriptiva-1d-examen',id),
     id,practice:'Pràctica 1c · Estadística descriptiva unidimensional',area:'Estadística',status:'Entregada',
     total:6,correct:'',attempts:1,progress:100,
-    minutes:Math.max(1,Math.round((Date.now()-startedAt)/60000)),version:'exam-1d-global-4',
+    minutes:Math.max(1,Math.round((Date.now()-startedAt)/60000)),version:'exam-1d-global-5',
     detail:{
       answers:objectiveAnswers(),
-      finalComment:comment
+      finalComment:comment,
+      correctionStatus:'pending-teacher-request'
     },
     justifications:[]
   };
