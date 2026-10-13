@@ -42,7 +42,7 @@
     if(file.size>10*1024*1024){pdfStatus.textContent='El PDF supera els 10 MB.';return}
     uploadBtn.disabled=true;pdfStatus.textContent='Pujant…';pdfStatus.style.color='';
     const tracker=window.PracticeTracker;
-    const result=await tracker.uploadPdf(file,{practice:"Pràctica 2d · Exercicis d'equilibri de mercat",area:'Economia'});
+    const result=await tracker.uploadPdf(file,{practice:"Pràctica 2e · Exercicis d'equilibri de mercat",area:'Economia'});
     if(result.ok){pdfStatus.textContent='PDF enviat correctament.';pdfStatus.style.color='#26713c'}
     else{pdfStatus.textContent='No s’ha pogut enviar el PDF.';pdfStatus.style.color='#a52a2a';uploadBtn.disabled=false}
   });
