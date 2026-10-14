@@ -49,10 +49,10 @@ let startedAt=Date.now(),submitted=false;
 $('#sid').textContent=session?.role==='teacher'?'Professor':'Alumne · ••••'+id.slice(-2);
 $('#qs').innerHTML=questions.map((x,i)=>'<div class="q"><b>'+(i+1)+'. '+x[0]+'</b><div class="hint">'+x[3]+'</div><div class="ans"><input id="a'+i+'" inputmode="decimal"><button type="button" data-i="'+i+'">Comprova</button><span id="s'+i+'"></span></div></div>').join('');
 
-function details(){
+function numOk(v,a){const vr=Math.round((v+Number.EPSILON)*100)/100,ar=Math.round((a+Number.EPSILON)*100)/100;return Number.isFinite(vr)&&Number.isFinite(ar)&&Math.abs(vr-ar)<=0.01+1e-9}function details(){
   return questions.map((z,j)=>{
     const answer=$('#a'+j).value,v=V(answer);
-    return {question:j+1,answer,correct:Number.isFinite(v)&&Math.abs(v-z[1])<=z[2]};
+    return {question:j+1,answer,correct:numOk(v,z[1])};
   });
 }
 function update(){
@@ -62,7 +62,7 @@ function update(){
   $('#submit-status').textContent=n===questions.length?'Tot correcte. Ja pots entregar.':n+' de '+questions.length+' correctes.';
 }
 $('#qs').querySelectorAll('button[data-i]').forEach(btn=>btn.addEventListener('click',()=>{
-  const i=Number(btn.dataset.i),v=V($('#a'+i).value),q=questions[i],ok=Number.isFinite(v)&&Math.abs(v-q[1])<=q[2],st=$('#s'+i);
+  const i=Number(btn.dataset.i),v=V($('#a'+i).value),q=questions[i],ok=numOk(v,q[1]),st=$('#s'+i);
   st.textContent=ok?'Correcte':'Revisa el càlcul';
   st.className=ok?'ok':'bad';
   update();
