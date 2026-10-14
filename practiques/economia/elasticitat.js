@@ -14,6 +14,7 @@
     return Number(s);
   }
   const r2=(v)=>Number.isFinite(v)?Number(v.toFixed(2)):NaN;
+  const numericMatches=(value,expected)=>{const v=r2(value),e=r2(expected);return Number.isFinite(v)&&Number.isFinite(e)&&Math.abs(v-e)<=0.01+1e-9;};
   function seedFromId(id){const s=String(id??'').trim(),last=s.slice(-4);return /^\d+$/.test(last)?Number(last):6380;}
   function frac(seed,k){return ((Math.imul((seed + k*101)>>>0,1664525)+1013904223)>>>0)/4294967295;}
   function pars(seed){
@@ -103,8 +104,8 @@
       const v=parseNum(raw),expected=d.ans(s);
       if(Number.isFinite(v)&&Number.isFinite(expected)){
         const vv=r2(v),ee=r2(expected);
-        if(d.kind==='elasticity') ok=(vv===ee || vv===r2(-ee) || r2(Math.abs(vv))===r2(Math.abs(ee)));
-        else ok=vv===ee;
+        if(d.kind==='elasticity') ok=(numericMatches(vv,ee) || numericMatches(vv,-ee) || numericMatches(Math.abs(vv),Math.abs(ee)));
+        else ok=numericMatches(vv,ee);
       }
     }
     box.className='q-check '+(ok?'correct':'wrong');box.textContent=ok?'Correcte':'Revisa-ho';
