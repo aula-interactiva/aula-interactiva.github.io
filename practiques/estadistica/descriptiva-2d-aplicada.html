@@ -49,7 +49,7 @@ function makeData(id){const seed=hash(id+'-2b'),r=rng(seed),a=[];const slope=4.3
 function calc(a){const n=a.length,mx=a.reduce((s,d)=>s+d.x,0)/n,my=a.reduce((s,d)=>s+d.y,0)/n,vx=a.reduce((s,d)=>s+(d.x-mx)**2,0)/n,vy=a.reduce((s,d)=>s+(d.y-my)**2,0)/n,cov=a.reduce((s,d)=>s+(d.x-mx)*(d.y-my),0)/n,sdx=Math.sqrt(vx),sdy=Math.sqrt(vy),r=cov/(sdx*sdy),b=cov/vx,A=my-b*mx,r2=r*r;return{n,mx,my,vx,vy,cov,r,b,a:A,r2}}
 function strength(r){const z=Math.abs(r);return z>=.8?'forta':z>=.55?'moderada':'feble'}
 function direction(r){return r>0?'positiva':r<0?'negativa':'nul·la'}
-function correct(d,v){if(d.type==='select')return String(v||'')===d.a;const x=parseNum(v);return Number.isFinite(x)&&Math.abs(x-d.a)<=d.tol}
+function correct(d,v){if(d.type==='select')return String(v||'')===d.a;const x=parseNum(v),xr=Math.round((x+Number.EPSILON)*100)/100,ar=Math.round((d.a+Number.EPSILON)*100)/100;return Number.isFinite(xr)&&Number.isFinite(ar)&&Math.abs(xr-ar)<=0.01+1e-9}
 function buildDefs(){const obs=data[14],pred=stats.a+stats.b*obs.x,res=obs.y-pred,x0=28,p0=stats.a+stats.b*x0;defs=[
  {title:'1 · Núvol de punts',guide:'A Excel: selecciona les dues columnes de dades → Insereix → Dispersió (XY). No utilitzis un gràfic de línies. Observa direcció, forma i intensitat abans de calcular r.',q:[
   {t:'Tipus de gràfic adequat per estudiar la relació entre X i Y.',type:'select',a:'Dispersió (XY)',opts:['Dispersió (XY)','Línies','Sectors']},
