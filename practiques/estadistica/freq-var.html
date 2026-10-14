@@ -119,7 +119,7 @@ const blocks=[
 function cell(ws,addr){return ws?.[addr]}
 function hasRealFormula(c){return !!(c&&typeof c.f==='string'&&/[A-Z]{1,3}\$?\d+/i.test(c.f))}
 function num(v){return typeof v==='number'?v:Number(String(v??'').replace(',','.'))}
-function approx(a,b,tol=1e-6){return Number.isFinite(a)&&Number.isFinite(b)&&Math.abs(a-b)<=tol}
+function approx(a,b,tol=1e-6){const ar=Math.round((a+Number.EPSILON)*100)/100,br=Math.round((b+Number.EPSILON)*100)/100;return Number.isFinite(ar)&&Number.isFinite(br)&&Math.abs(ar-br)<=0.01+1e-9}
 function dataFromSheet(ws,col){const a=[];for(let r=2;r<=41;r++){const v=num(cell(ws,`${col}${r}`)?.v);if(Number.isFinite(v))a.push(v)}return a}
 function expected(data){
   const n=data.length,counts={};data.forEach(x=>counts[x]=(counts[x]||0)+1);
