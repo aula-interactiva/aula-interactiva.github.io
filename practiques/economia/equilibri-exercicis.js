@@ -13,7 +13,7 @@
   function expr(v){return String(v??'').toLocaleLowerCase('ca-ES').replace(/\s+/g,'').replace(/,/g,'.').replace(/[−–—]/g,'-').replace(/[×·*]/g,'').replace(/^q[ds12]?=/,'').replace(/\^1/g,'')}
   function correct(n){
     const d=answers[n],el=$('answer-'+n); if(!d||!el)return false;
-    if(d.t==='num'){const x=num(el.value);return Number.isFinite(x)&&Math.abs(x-d.v)<1e-6}
+    if(d.t==='num'){const x=num(el.value),v=Math.round((x+Number.EPSILON)*100)/100,e=Math.round((d.v+Number.EPSILON)*100)/100;return Number.isFinite(v)&&Number.isFinite(e)&&Math.abs(v-e)<=0.01+1e-9}
     if(d.t==='expr')return expr(el.value)===d.v;
     return txt(el.value)===txt(d.v);
   }
