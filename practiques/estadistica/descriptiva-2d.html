@@ -389,7 +389,7 @@ function isCorrect(d,raw){
   if(raw===''||raw==null)return false;
   if(d.type==='sel')return raw===d.answer;
   const v=parse(raw),a=Number(d.answer);if(!Number.isFinite(v)||!Number.isFinite(a))return false;
-  const tol=d.tol??(Number.isInteger(a)?0.001:.011);return Math.abs(v-a)<=tol;
+  const vr=Math.round((v+Number.EPSILON)*100)/100,ar=Math.round((a+Number.EPSILON)*100)/100;return Number.isFinite(vr)&&Number.isFinite(ar)&&Math.abs(vr-ar)<=0.01+1e-9;
 }
 function validateStage(){
   const qs=questions(current);let all=true;
