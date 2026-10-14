@@ -211,7 +211,7 @@ function objectiveDetail(){
     ['R² (%)',a.r2pct,e.r2pct,.11],
     ['Predicció X=8',a.p8,e.p8,.011],
     ['Mesura lineal sense observació 48',a.rNo,e.rNo,.0011]
-  ].map(([q,v,truth,tol])=>({question:q,answer:Number.isFinite(v)?v:'',correct:Number.isFinite(v)&&Math.abs(v-truth)<=tol}));
+  ].map(([q,v,truth,tol])=>({question:q,answer:Number.isFinite(v)?v:'',correct:(()=>{const vr=Math.round((v+Number.EPSILON)*100)/100,tr=Math.round((truth+Number.EPSILON)*100)/100;return Number.isFinite(vr)&&Number.isFinite(tr)&&Math.abs(vr-tr)<=0.01+1e-9})()}));
   checks.push({question:'Efecte de retirar l’observació 48',answer:a.impact,correct:a.impact===e.impact});
   checks.push({question:'Predicció a X=25',answer:a.p25,correct:a.p25===e.p25});
   return checks;
