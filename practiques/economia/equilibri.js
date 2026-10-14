@@ -23,11 +23,11 @@
     {q:"En aquest mateix cas, quina és la nova quantitat d'equilibri?", unit:'plats/dia', type:'qty', grade:{kind:'eqQty',scenario:'wage75'}, answer:s=>s.wage75.q},
     {reset:true,q:"Aplica un impost de 4 €/plat. Quin és el nou preu d'equilibri?", unit:'€/plat', type:'price', grade:{kind:'eqPrice',scenario:'tax4'}, answer:s=>s.tax4.p},
     {q:"En aquest mateix cas, quina és la nova quantitat d'equilibri?", unit:'plats/dia', type:'qty', grade:{kind:'eqQty',scenario:'tax4'}, answer:s=>s.tax4.q},
-    {q:"En aquest mateix cas, quant ha augmentat el preu respecte de la situació inicial?", unit:'€/plat', type:'price', grade:{kind:'priceDelta',scenario:'tax4'}, answer:s=>roundAsDisplayed(s.tax4.p,2)-roundAsDisplayed(s.base.p,2)},
-    {q:"En aquest mateix cas, quina és la recaptació total diària de l'impost?", unit:'€/dia', type:'money', grade:{kind:'qtyTimes',scenario:'tax4',rate:4}, answer:s=>4*roundAsDisplayed(s.tax4.q,0)},
-    {reset:true,q:"Aplica una subvenció de 3 €/plat. Quina és la variació del preu (nou − inicial)?", unit:'€/plat', type:'price', grade:{kind:'priceDelta',scenario:'sub3'}, answer:s=>roundAsDisplayed(s.sub3.p,2)-roundAsDisplayed(s.base.p,2)},
-    {q:"En aquest mateix cas, quina és la variació de la quantitat (nova − inicial)?", unit:'plats/dia', type:'qty', grade:{kind:'qtyDelta',scenario:'sub3'}, answer:s=>roundAsDisplayed(s.sub3.q,0)-roundAsDisplayed(s.base.q,0)},
-    {q:"En aquest mateix cas, quin és el cost total diari de la subvenció per al govern?", unit:'€/dia', type:'money', grade:{kind:'qtyTimes',scenario:'sub3',rate:3}, answer:s=>3*roundAsDisplayed(s.sub3.q,0)}
+    {q:"En aquest mateix cas, quant ha augmentat el preu respecte de la situació inicial?", unit:'€/plat', type:'price', answer:s=>s.tax4.p-s.base.p},
+    {q:"En aquest mateix cas, quina és la recaptació total diària de l'impost?", unit:'€/dia', type:'money', answer:s=>4*s.tax4.q},
+    {reset:true,q:"Aplica una subvenció de 3 €/plat. Quina és la variació del preu (nou − inicial)?", unit:'€/plat', type:'price', answer:s=>s.sub3.p-s.base.p},
+    {q:"En aquest mateix cas, quina és la variació de la quantitat (nova − inicial)?", unit:'plats/dia', type:'qty', answer:s=>s.sub3.q-s.base.q},
+    {q:"En aquest mateix cas, quin és el cost total diari de la subvenció per al govern?", unit:'€/dia', type:'money', answer:s=>3*s.sub3.q}
   ];
 
   function renderQuestions(){
@@ -191,56 +191,15 @@
     return null;
   }
 
-  function visibleEquilibriumCandidates(key){
-    const m=equilibriumScenarioModel(key);
-    if(!m) return {prices:[],quantities:[]};
-    const eq=equilibrium(currentParams,m);
-    const {D,S}=constants(currentParams,m);
-    const tolerance=Math.max(1,0.005*eq.q);
-    const center=roundAsDisplayed(eq.p,2);
-    const prices=new Set();
-    const quantities=new Set([roundAsDisplayed(eq.q,0)]);
-    // Explorem els preus visibles (cèntims) al voltant de l'equilibri exacte.
-    // Només conservem aquells que la mateixa interfície classifica com a "Equilibri".
-    for(let k=-100;k<=100;k++){
-      const price=roundAsDisplayed(center+k/100,2);
-      if(!Number.isFinite(price) || price<=m.tax) continue;
-      const qd=qDemand(price,currentParams,D);
-      const qs=qSupply(price,currentParams,S,m.tax);
-      if(Number.isFinite(qd)&&Number.isFinite(qs)&&Math.abs(qd-qs)<=tolerance){
-        prices.add(price);
-        quantities.add(roundAsDisplayed(qd,0));
-        quantities.add(roundAsDisplayed(qs,0));
-      }
-    }
-    return {prices:[...prices],quantities:[...quantities]};
-  }
-
   function displayedExpected(def){
     const exact=def.answer(currentScenarios);
     if(def.type==='select') return exact;
     return roundAsDisplayed(exact,2);
   }
 
-  function acceptedNumericValues(def){
-    const g=def.grade;
-    if(!g) return [displayedExpected(def)];
-    const base=visibleEquilibriumCandidates('base');
-    const scenario=g.scenario?visibleEquilibriumCandidates(g.scenario):null;
-    if(g.kind==='eqPrice') return scenario.prices;
-    if(g.kind==='eqQty') return scenario.quantities;
-    if(g.kind==='priceDelta'){
-      const out=new Set();
-      scenario.prices.forEach(n=>base.prices.forEach(b=>out.add(roundAsDisplayed(n-b,2))));
-      return [...out];
-    }
-    if(g.kind==='qtyDelta'){
-      const out=new Set();
-      scenario.quantities.forEach(n=>base.quantities.forEach(b=>out.add(roundAsDisplayed(n-b,2))));
-      return [...out];
-    }
-    if(g.kind==='qtyTimes') return [...new Set(scenario.quantities.map(q=>roundAsDisplayed(g.rate*q,2)))];
-    return [displayedExpected(def)];
+  function numericMatches(value,expected){
+    const v=roundAsDisplayed(value,2), e=roundAsDisplayed(expected,2);
+    return Number.isFinite(v)&&Number.isFinite(e)&&Math.abs(v-e)<=0.01+1e-9;
   }
 
   function checkAnswer(i){
@@ -253,12 +212,7 @@
     else{
       const given=parseNumber(raw);
       if(Number.isFinite(given)){
-        const visibleGiven=roundAsDisplayed(given,2);
-        // Totes les respostes numèriques es comparen exclusivament amb valors que
-        // l'alumne pot veure a pantalla. Si diversos valors visibles són compatibles
-        // amb la tolerància d'"Equilibri", tots es consideren correctes.
-        const accepted=acceptedNumericValues(def);
-        ok=accepted.some(v=>v===visibleGiven);
+        ok=numericMatches(given,displayedExpected(def));
       }
     }
     box.className='q-check '+(ok?'correct':'wrong');
