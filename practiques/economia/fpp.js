@@ -16,6 +16,7 @@
     return Number(s);
   }
   const r2=(v)=>Number.isFinite(v)?Number(v.toFixed(2)):NaN;
+  const numericMatches=(value,expected)=>{const v=r2(value),e=r2(expected);return Number.isFinite(v)&&Number.isFinite(e)&&Math.abs(v-e)<=0.01+1e-9;};
   function seedFromId(id){const s=String(id??'').trim();const last=s.slice(-4);return /^\d+$/.test(last)?Number(last):6380;}
   function pars(seed){
     const u1=((seed*37+11)%997)/996;
@@ -113,11 +114,11 @@
     else if(d.kind==='trend') ok=raw==='Augmenta';
     else{
       const v=parseNum(raw);if(Number.isFinite(v)){const vv=r2(v);const max=visibleY(d.x,p);
-        if(d.kind==='exactY') ok=vv===max;
+        if(d.kind==='exactY') ok=numericMatches(vv,max);
         else if(d.kind==='inefficient') ok=vv>=0 && vv<max;
         else if(d.kind==='unattainable') ok=vv>max;
-        else if(d.kind==='oc') ok=vv===visibleOC(d.x,p);
-        else if(d.kind==='laborTarget'){const shown=r2(yFrontier(d.x,v,.5,.6,p));ok=shown===r2(d.target);}
+        else if(d.kind==='oc') ok=numericMatches(vv,visibleOC(d.x,p));
+        else if(d.kind==='laborTarget'){ok=numericMatches(v,targetLabor(d.x,d.target,p,.5,.6));}
       }
     }
     box.className='q-check '+(ok?'correct':'wrong');box.textContent=ok?'Correcte':'Revisa-ho';
