@@ -20,15 +20,11 @@
     return Number(s);
   }
   const roundN=(v,n)=>Number.isFinite(v)?Number(v.toFixed(n)):NaN;
-  const numericTolerance=(expected)=>Math.max(0.02,Math.abs(expected)*0.005);
   const numericMatches=(value,expected)=>{
     const v=roundN(value,2),e=roundN(expected,2);
-    return Number.isFinite(v)&&Number.isFinite(e)&&Math.abs(v-e)<=numericTolerance(e)+1e-9;
+    return Number.isFinite(v)&&Number.isFinite(e)&&Math.abs(v-e)<=0.01+1e-9;
   };
-  const priceMatches=(value,expected)=>{
-    const v=roundN(value,2),e=roundN(expected,2);
-    return Number.isFinite(v)&&Number.isFinite(e)&&Math.abs(v-e)<=0.05+1e-9;
-  };
+  const priceMatches=numericMatches;
   const mod=(a,m)=>((a%m)+m)%m;
   function seedFromId(id){const s=String(id??'').trim(),last=s.slice(-4);return /^\d+$/.test(last)?Number(last)%10000:6380;}
   function pars(seed){
