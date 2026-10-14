@@ -56,12 +56,12 @@ function expected(){const countChange=pct(data[0].absences,data[35].absences),ra
 function renderData(){$('data-body').innerHTML=data.map((d,i)=>`<tr class="${i===20?'shock':''}"><td>${d.m}</td><td>${d.absences}</td><td>${d.workers}</td></tr>`).join('')}
 function makeWorkbook(){const id=tracker.getSession()?.id||'',wb=XLSX.utils.book_new();const d=[['Pràctica 3c · Sèries temporals'],[],['ID alumne',id],[],['Mes','Absències registrades','Plantilla'],...data.map(x=>[x.m,x.absences,x.workers])];const a=[['ANÀLISI LLIURE'],['Organitza aquest full com consideris més adequat.'],['Construeix variables derivades, índexs, comparacions, mitjanes mòbils i gràfics segons el teu criteri.'],['L’objectiu és valorar si l’absentisme ha empitjorat realment.']];XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(d),'DADES');XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(a),'ANALISI');wb.Sheets.DADES['!cols']=[{wch:12},{wch:22},{wch:14}];wb.Sheets.ANALISI['!cols']=[{wch:95}];XLSX.writeFile(wb,`estadistica_3c_${id}.xlsx`)}
 function allFilled(){return['count-change','rate-change','rate-index','jan-pp','mm3','same-story','shock'].every(id=>String($(id).value||'').trim())}
-function detail(){const e=expected();const vals={c:parseNum($('count-change').value),r:parseNum($('rate-change').value),i:parseNum($('rate-index').value),p:parseNum($('jan-pp').value),m:parseNum($('mm3').value),s:$('same-story').value,h:$('shock').value};return[
- {question:'Canvi recompte (%)',answer:vals.c,correct:Number.isFinite(vals.c)&&Math.abs(vals.c-round(e.countChange,1))<=.11},
- {question:'Canvi taxa (%)',answer:vals.r,correct:Number.isFinite(vals.r)&&Math.abs(vals.r-round(e.rateChange,1))<=.11},
- {question:'Índex final taxa',answer:vals.i,correct:Number.isFinite(vals.i)&&Math.abs(vals.i-round(e.idx,1))<=.11},
- {question:'Canvi interanual Gen-25→Gen-26 en pp',answer:vals.p,correct:Number.isFinite(vals.p)&&Math.abs(vals.p-round(e.janpp,2))<=.011},
- {question:'MM3 taxa Jun-26',answer:vals.m,correct:Number.isFinite(vals.m)&&Math.abs(vals.m-round(e.mm3,2))<=.011},
+function numOk(v,a){const vr=Math.round((v+Number.EPSILON)*100)/100,ar=Math.round((a+Number.EPSILON)*100)/100;return Number.isFinite(vr)&&Number.isFinite(ar)&&Math.abs(vr-ar)<=0.01+1e-9}function detail(){const e=expected();const vals={c:parseNum($('count-change').value),r:parseNum($('rate-change').value),i:parseNum($('rate-index').value),p:parseNum($('jan-pp').value),m:parseNum($('mm3').value),s:$('same-story').value,h:$('shock').value};return[
+ {question:'Canvi recompte (%)',answer:vals.c,correct:numOk(vals.c,e.countChange)},
+ {question:'Canvi taxa (%)',answer:vals.r,correct:numOk(vals.r,e.rateChange)},
+ {question:'Índex final taxa',answer:vals.i,correct:numOk(vals.i,e.idx)},
+ {question:'Canvi interanual Gen-25→Gen-26 en pp',answer:vals.p,correct:numOk(vals.p,e.janpp)},
+ {question:'MM3 taxa Jun-26',answer:vals.m,correct:numOk(vals.m,e.mm3)},
  {question:'Recompte i taxa mateixa conclusió',answer:vals.s,correct:vals.s===e.same},
  {question:'Període irregular',answer:vals.h,correct:vals.h===e.shock}
  ]}
