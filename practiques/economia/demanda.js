@@ -127,8 +127,7 @@
     else{
       const v=parseNum(raw);if(Number.isFinite(v)){
         if(d.kind==='incomeGoal'||d.kind==='wineGoal'||d.kind==='priceGoal'){
-          const e=goalValue(d,p);
-          ok=d.kind==='priceGoal' ? priceMatches(v,e) : numericMatches(v,e);
+          ok=goalMatchesVisibleTarget(d,p,v);
         }else{
           const e=expected(d,p);
           ok=numericMatches(v,e);
