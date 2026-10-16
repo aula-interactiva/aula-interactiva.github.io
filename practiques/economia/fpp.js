@@ -118,7 +118,7 @@
         else if(d.kind==='inefficient') ok=vv>=0 && vv<max;
         else if(d.kind==='unattainable') ok=vv>max;
         else if(d.kind==='oc') ok=numericMatches(vv,visibleOC(d.x,p));
-        else if(d.kind==='laborTarget'){ok=numericMatches(v,targetLabor(d.x,d.target,p,.5,.6));}
+        else if(d.kind==='laborTarget'){const shown=r2(yFrontier(d.x,v,.5,.6,p));ok=numericMatches(shown,d.target);}
       }
     }
     box.className='q-check '+(ok?'correct':'wrong');box.textContent=ok?'Correcte':'Revisa-ho';
