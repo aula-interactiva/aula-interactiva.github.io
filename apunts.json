@@ -1,5 +1,5 @@
 {
-  "versio": 15,
+  "versio": 16,
   "ajuda": "Els apunts publicats poden ser PDF o pàgines HTML. visible controla si la targeta es mostra a l’alumnat; el professor pot previsualitzar també apunts ocults. disponible controla si l’alumnat els pot obrir.",
   "arees": {
     "economia": {
@@ -79,8 +79,8 @@
         {
           "id": "tema-2-descriptiva-bidimensional",
           "ordre": 2,
-          "visible": false,
-          "disponible": false,
+          "visible": true,
+          "disponible": true,
           "codi": "Tema 2",
           "titol": "Estadística descriptiva bidimensional i regressió",
           "descripcio": "Dues variables, diagrama de dispersió, covariància, correlació, regressió lineal, residus, R², predicció i interpretació.",
