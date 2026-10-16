@@ -104,6 +104,24 @@
     return NaN;
   }
 
+  function goalMatchesVisibleTarget(d,p,v){
+    if(d.kind==='priceGoal'){
+      const m=scenario(d.m);m.price=v;
+      return visibleQ(m.price,p,m)===d.target;
+    }
+    if(d.kind==='wageGoal'){
+      const m=scenario(d.m);m.wage=v;
+      return visibleQ(m.price,p,m)===d.target;
+    }
+    if(d.kind==='priceIncrease'){
+      const b=scenario(d.base),m=scenario(d.m);
+      const target=visibleQ(b.price,p,b);
+      m.price=b.price+v;
+      return visibleQ(m.price,p,m)===target;
+    }
+    return false;
+  }
+
   function expected(d,p){
     if(d.kind==='select') return d.answer;
     if(d.kind==='qty'){const m=scenario(d.m);return visibleQ(m.price,p,m);}
@@ -127,10 +145,12 @@
     if(d.kind==='select') ok=raw===expected(d,p);
     else{
       const v=parseNum(raw);if(Number.isFinite(v)){
-        const e=expected(d,p);
-        if(Array.isArray(e)) ok=e.some(x=>numericMatches(v,x));
-        else if(d.kind==='priceGoal'||d.kind==='priceIncrease') ok=priceMatches(v,e);
-        else ok=numericMatches(v,e);
+        if(d.kind==='priceGoal'||d.kind==='wageGoal'||d.kind==='priceIncrease') ok=goalMatchesVisibleTarget(d,p,v);
+        else{
+          const e=expected(d,p);
+          if(Array.isArray(e)) ok=e.some(x=>numericMatches(v,x));
+          else ok=numericMatches(v,e);
+        }
       }
     }
     box.className='q-check '+(ok?'correct':'wrong');box.textContent=ok?'Correcte':'Revisa-ho';
