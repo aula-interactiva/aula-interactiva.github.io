@@ -52,7 +52,7 @@ button,input,select{font:inherit} button{cursor:pointer}.hidden{display:none!imp
 
 .summary-card{padding-bottom:4px}.summary-head{padding:12px 14px 8px}.summary-head strong{font-size:13px}.summary-head div{font-size:10px;color:var(--muted);margin-top:3px}.stats{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;padding:0 12px 12px}.stat{background:white;border:1px solid var(--line);border-radius:9px;padding:9px}.stat .lab{font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:800;letter-spacing:.04em}.stat .val{font-size:16px;font-weight:820;margin-top:3px}.stat.locked .val{color:#aaa;font-size:13px}.stat.unlocked{border-color:#b8d1c9;background:#f8fbfa}
 .insight{margin:0 12px 10px;padding:10px 11px;background:#f0ede7;border-radius:9px;font-size:10.5px;color:#4e5356;line-height:1.4}.insight strong{color:#33383b}
-.submitbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 12px 12px}.submitstatus{font-size:10.5px;border-radius:7px;padding:6px 8px;color:var(--muted)}.submitstatus.ok{background:var(--greenbg);color:var(--green);border:1px solid #b8d8c3}.submitstatus.bad{background:var(--redbg);color:var(--red);border:1px solid #e3b9b3}
+.submitbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 12px 12px}.submitfile{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:10.5px}.submitfile input{font-size:10.5px}.filemsg{color:var(--muted)}.submitstatus{font-size:10.5px;border-radius:7px;padding:6px 8px;color:var(--muted)}.submitstatus.ok{background:var(--greenbg);color:var(--green);border:1px solid #b8d8c3}.submitstatus.bad{background:var(--redbg);color:var(--red);border:1px solid #e3b9b3}
 
 .axis{stroke:#7f8588;stroke-width:1}.gridline{stroke:#ebe7df;stroke-width:1}.tick{font-size:10px;fill:#697074}.axislabel{font-size:11px;fill:#4c5255;font-weight:750}.dot{fill:var(--blue);opacity:.86}.dot.special{fill:var(--orange);stroke:#8b431e;stroke-width:1}.regline{stroke:var(--accent);stroke-width:2.2}.resid{stroke:var(--orange);stroke-width:1.6;stroke-dasharray:4 3}.guide{stroke:#9da3a6;stroke-width:1;stroke-dasharray:3 3}
 
@@ -121,6 +121,11 @@ button,input,select{font:inherit} button{cursor:pointer}.hidden{display:none!imp
           <div class="stats" id="stats"></div>
           <div class="insight" id="insight"><strong>Idea clau.</strong> Una correlació resumeix la intensitat d’una relació lineal, però no prova una relació causal.</div>
           <div class="submitbar">
+            <div class="submitfile">
+              <label for="excel-upload"><strong>Excel treballat:</strong></label>
+              <input id="excel-upload" type="file" accept=".xlsx,.xlsm,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel.sheet.macroenabled.12">
+              <span class="filemsg" id="excel-filemsg">Cap fitxer seleccionat.</span>
+            </div>
             <button class="primary" id="submit-practice" type="button" disabled>Entrega la pràctica</button>
             <span class="submitstatus" id="submit-status"></span>
           </div>
@@ -217,7 +222,7 @@ const stages=[
  {t:'Informe final',s:'Interpretar sense exagerar',intro:'Integra gràfic, correlació i regressió, i diferencia associació de causalitat.'}
 ];
 
-let current=0,completed=new Set(),dataset=[],altered=[],stats=null,statsOut=null,validatedId='',startedAt=null,submitted=false;
+let current=0,completed=new Set(),dataset=[],altered=[],stats=null,statsOut=null,validatedId='',startedAt=null,submitted=false,selectedExcel=null;
 let answers={},attempts={},lastAttemptValue={},showLine=false,showResidual=false,showOutlier=false;
 
 function q(type,text,answer,unit='',options=[],excel=false,tol=null){return {type,text,answer,unit,options,excel,tol}}
@@ -448,7 +453,8 @@ function allQuestionDetail(){
 async function submitPractice(){
   if(submitted||completed.size<stages.length||!validatedId)return;
   const results=allQuestionDetail();if(results.correct<results.total){$('submit-status').className='submitstatus bad';$('submit-status').textContent='Hi ha respostes que ja no consten com a correctes. Revisa els blocs.';return}
-  $('submit-practice').disabled=true;$('submit-practice').textContent='Enviant…';$('submit-status').className='submitstatus';$('submit-status').textContent='Guardant l’entrega…';
+  if(!selectedExcel){$('submit-status').className='submitstatus bad';$('submit-status').textContent='Adjunta l’Excel treballat abans d’entregar.';return}
+  $('submit-practice').disabled=true;$('submit-practice').textContent='Enviant…';$('submit-status').className='submitstatus';$('submit-status').textContent='Guardant l’Excel…';
   const payload={
     submissionId:tracker.makeSubmissionId('descriptiva-2d',validatedId),id:validatedId,
     practice:'Pràctica 2a · Estadística descriptiva bidimensional',area:'Estadística',status:'Entregada',
@@ -456,10 +462,14 @@ async function submitPractice(){
     progress:100,minutes:startedAt?Math.max(1,Math.round((Date.now()-startedAt)/60000)):'',
     version:'pilot-1',detail:{questions:results.detail},justifications:[]
   };
+  const fileSave=await tracker.uploadFile(selectedExcel,{practice:payload.practice,area:payload.area,submissionId:tracker.stablePracticeSubmissionId(location.pathname,validatedId)});
+  if(!fileSave.ok){$('submit-practice').disabled=false;$('submit-practice').textContent='Entrega la pràctica';$('submit-status').className='submitstatus bad';$('submit-status').textContent='No s’ha pogut guardar l’Excel. L’entrega no s’ha registrat. Torna-ho a provar.';return}
+  $('submit-status').textContent='Excel guardat. Registrant l’entrega…';
   const res=await tracker.submit(payload);
-  if(res.ok){submitted=true;$('submit-practice').textContent='Pràctica entregada';$('submit-status').className='submitstatus ok';$('submit-status').textContent='Entrega registrada correctament.';document.querySelectorAll('.ans input,.ans select').forEach(x=>x.disabled=true);$('validate-stage').disabled=true;$('reset-stage').disabled=true}
+  if(res.ok){submitted=true;$('submit-practice').textContent='Pràctica entregada';$('submit-status').className='submitstatus ok';$('submit-status').textContent='Entrega i Excel registrats correctament.';document.querySelectorAll('.ans input,.ans select').forEach(x=>x.disabled=true);$('validate-stage').disabled=true;$('reset-stage').disabled=true;$('excel-upload').disabled=true}
   else{$('submit-practice').disabled=false;$('submit-practice').textContent='Entrega la pràctica';$('submit-status').className='submitstatus bad';$('submit-status').textContent='No s’ha pogut confirmar l’entrega. Torna-ho a provar.'}
 }
+$('excel-upload').addEventListener('change',e=>{selectedExcel=e.target.files?.[0]||null;$('excel-filemsg').textContent=selectedExcel?selectedExcel.name:'Cap fitxer seleccionat.';$('submit-status').className='submitstatus';$('submit-status').textContent='';});
 $('submit-practice').onclick=submitPractice;
 
 /* XLSX minimal generat al navegador */
