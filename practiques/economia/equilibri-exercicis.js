@@ -1,75 +1,93 @@
 (() => {
   'use strict';
-  const $ = id => document.getElementById(id);
+
   const tracker = window.PracticeTracker;
-  const idInput = $('student-id'), validateBtn = $('market-validate-id');
-  const idStatus = $('market-id-status'), pdfInput = $('resolution-pdf');
-  const uploadBtn = $('upload-pdf'), pdfStatus = $('pdf-status');
-  let validatedId = '';
-  function enable() {
-    const ok = !!validatedId;
-    pdfInput.disabled = !ok;
-    uploadBtn.disabled = !ok || !pdfInput.files?.length;
+  const input = document.getElementById('work-pdf');
+  const button = document.getElementById('submit-pdf');
+  const status = document.getElementById('pdf-status');
+  if (!tracker || !input || !button || !status) return;
+
+  const PRACTICE = "Pràctica 2e · Exercicis d'equilibri de mercat";
+  const AREA = 'Economia';
+
+  function setStatus(text, kind = '') {
+    status.textContent = text;
+    status.style.color = kind === 'ok' ? '#26713c' : kind === 'bad' ? '#a52a2a' : '';
   }
-  async function validate() {
-    const id = tracker.normalizeId(idInput.dataset.studentId || idInput.value);
-    validatedId = '';
-    enable();
-    validateBtn.disabled = true;
-    idStatus.textContent = 'Comprovant ID…';
-    const result = await tracker.validateId(id);
-    validateBtn.disabled = false;
-    if (result.ok) {
-      validatedId = result.id;
-      idStatus.className = 'pilot-status ok';
-      idStatus.textContent = 'ID correcte · ja pots pujar el PDF.';
-      document.dispatchEvent(new CustomEvent('aula:student-validated', {detail:{id:validatedId}}));
-    } else {
-      idStatus.className = 'pilot-status bad';
-      idStatus.textContent = result.reason === 'not-found' ? 'Aquest ID no és a la llista d’alumnes.' : 'No s’ha pogut validar l’ID.';
-    }
-    enable();
+
+  function selectedPdf() {
+    const file = input.files?.[0] || null;
+    if (!file) return null;
+    const nameOk = String(file.name || '').toLowerCase().endsWith('.pdf');
+    const typeOk = !file.type || file.type === 'application/pdf';
+    return nameOk && typeOk ? file : null;
   }
-  idInput.addEventListener('input', () => {
-    idInput.dataset.studentId = '';
-    validatedId = '';
-    idStatus.textContent = 'Valida el teu ID per pujar el PDF.';
-    idStatus.className = 'pilot-status';
-    enable();
-  });
-  idInput.addEventListener('keydown', e => {if(e.key === 'Enter'){e.preventDefault();validate();}});
-  validateBtn.addEventListener('click', validate);
-  pdfInput.addEventListener('change', () => {
-    pdfStatus.textContent = '';
-    const file = pdfInput.files?.[0];
-    if(file && !(/\.pdf$/i.test(file.name) || file.type === 'application/pdf')){
-      pdfStatus.textContent = 'Selecciona un fitxer PDF.';
-      pdfInput.value = '';
+
+  input.addEventListener('change', () => {
+    setStatus('');
+    const file = input.files?.[0];
+    if (!file) {
+      button.disabled = true;
+      return;
     }
-    enable();
+    if (!selectedPdf()) {
+      input.value = '';
+      button.disabled = true;
+      setStatus('Selecciona un fitxer PDF.', 'bad');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      input.value = '';
+      button.disabled = true;
+      setStatus('El PDF supera els 10 MB.', 'bad');
+      return;
+    }
+    button.disabled = false;
   });
-  uploadBtn.addEventListener('click', async () => {
-    const file = pdfInput.files?.[0];
-    if (!validatedId || !file) return;
-    if(file.size > 10*1024*1024){pdfStatus.textContent = 'El PDF supera els 10 MB.';return;}
-    uploadBtn.disabled = true;
-    pdfStatus.textContent = 'Pujant…';
+
+  button.addEventListener('click', async () => {
+    const file = selectedPdf();
+    if (!file) return;
+
+    button.disabled = true;
+    input.disabled = true;
+    setStatus('Enviant el PDF…');
+
     try {
-      const result = await tracker.uploadPdf(file,{practice:"Pràctica 2e · Exercicis d'equilibri de mercat",area:'Economia'});
-      pdfStatus.textContent = result.ok ? 'PDF enviat correctament.' : 'No s’ha pogut enviar el PDF.';
-      pdfStatus.style.color = result.ok ? '#26713c' : '#a52a2a';
-    } catch(error) {
-      pdfStatus.textContent = 'No s’ha pogut enviar el PDF.';
-      pdfStatus.style.color = '#a52a2a';
+      const uploaded = await tracker.uploadPdf(file, {practice: PRACTICE, area: AREA});
+      if (!uploaded?.ok) {
+        setStatus('No s’ha pogut enviar el PDF. Torna-ho a provar.', 'bad');
+        button.disabled = false;
+        input.disabled = false;
+        return;
+      }
+
+      const submitted = await tracker.submit({
+        id: tracker.getSession()?.id || '',
+        practice: PRACTICE,
+        area: AREA,
+        answers: [],
+        attempts: [],
+        justifications: [],
+        detail: {
+          tipusEntrega: 'pdf',
+          documentTreballEscanejat: true
+        },
+        status: 'Entrega'
+      });
+
+      if (!submitted?.ok) {
+        setStatus('El PDF s’ha pujat, però no s’ha pogut confirmar l’entrega. Torna-ho a provar.', 'bad');
+        button.disabled = false;
+        input.disabled = false;
+        return;
+      }
+
+      setStatus('Pràctica entregada correctament.', 'ok');
+    } catch (_) {
+      setStatus('No s’ha pogut completar l’entrega. Torna-ho a provar.', 'bad');
+      button.disabled = false;
+      input.disabled = false;
     }
-    enable();
   });
-  const session = tracker.getSession();
-  if(session?.role === 'student' && /^\d{6}$/.test(tracker.normalizeId(session.id))){
-    idInput.dataset.studentId = tracker.normalizeId(session.id);
-    validate();
-  } else {
-    idStatus.textContent = 'Valida el teu ID per pujar el PDF.';
-    enable();
-  }
 })();
