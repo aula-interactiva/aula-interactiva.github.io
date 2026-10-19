@@ -287,7 +287,7 @@
           "id": "descriptiva-1d",
           "ordre": 2,
           "visible": true,
-          "disponible": false,
+          "disponible": true,
           "codi": "Pràctica 1b",
           "titol": "Unidimensional · aplicada amb Excel",
           "descripcio": "Dades, distribucions, mesures de centre i dispersió, quartils, valors extrems i interpretació amb Excel.",
@@ -305,10 +305,13 @@
             "483726",
             "591304",
             "638472",
-            "725814"
+            "725814",
+            "662020"
           ],
           "obertaAbans": true,
-          "alumnesAcces": [],
+          "alumnesAcces": [
+            "662020"
+          ],
           "tancament": "2026-10-10T12:00:00+02:00",
           "alumnesRecuperacio": [
             "619527",
