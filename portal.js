@@ -572,6 +572,8 @@
       const opensAt = parseAccessTime(p.obertura);
       const closesAt = parseAccessTime(p.tancament);
 
+      if (opensAt !== null && now < opensAt) return '';
+
       if (
         p?.disponible === true &&
         (opensAt === null || now >= opensAt) &&
@@ -594,6 +596,9 @@
     const exception = session?.role === 'student' ? studentAccessException(p, session.id) : null;
     const exceptionOpen = !!exception && (exception.fins === null || now < exception.fins);
 
+    if (opensAt !== null && now < opensAt) {
+      return {open:false, state:'upcoming', opensAt, closesAt};
+    }
     if (p.disponible !== true) return {open:false, state:'unavailable', opensAt, closesAt};
 
     const allowedStudents = Array.isArray(p.alumnesAcces)
@@ -607,7 +612,6 @@
       return {open:false, state:'restricted', opensAt, closesAt};
     }
 
-    if (opensAt !== null && now < opensAt) return {open:false, state:'upcoming', opensAt, closesAt};
     if (closesAt !== null && now >= closesAt && !exceptionOpen) return {open:false, state:'closed', opensAt, closesAt};
     return {
       open:true,
@@ -711,15 +715,17 @@
       const preview = teacher && !published;
       const cardTone = practiceCardTone(p, availability, teacher, isApunts);
       const neverOpened = !isApunts && p?.obertaAbans !== true;
-      const status = teacher && (cardTone === 'orange' || cardTone === 'red')
-        ? 'Tancada'
-        : preview
-          ? 'Professor'
-          : published
-            ? 'Disponible'
-            : neverOpened
-              ? 'No oberta'
-              : 'Tancada';
+      const status = availability.state === 'upcoming'
+        ? 'Properament'
+        : teacher && (cardTone === 'orange' || cardTone === 'red')
+          ? 'Tancada'
+          : preview
+            ? 'Professor'
+            : published
+              ? 'Disponible'
+              : neverOpened
+                ? 'No oberta'
+                : 'Tancada';
       const statusClass = status === 'Disponible'
         ? 'available'
         : (status === 'Tancada' || status === 'Tancat') && !neverOpened
@@ -872,7 +878,7 @@
     render();
   });
 
-  loadJsonConfig('practiques.json?v=49', 'practiques', {syncServerClock: true})
+  loadJsonConfig('practiques.json?v=50', 'practiques', {syncServerClock: true})
     .then(() => {
       render();
       refreshSubmissionStates();
