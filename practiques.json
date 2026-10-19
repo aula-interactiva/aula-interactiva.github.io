@@ -34,7 +34,10 @@
             "725814",
             "142859"
           ],
-          "obertaAbans": true
+          "obertaAbans": true,
+          "alumnesRecuperacio": [
+            "619527"
+          ]
         },
         {
           "id": "oferta",
@@ -61,7 +64,10 @@
             "725814",
             "142859"
           ],
-          "obertaAbans": true
+          "obertaAbans": true,
+          "alumnesRecuperacio": [
+            "619527"
+          ]
         },
         {
           "id": "demanda",
@@ -88,7 +94,10 @@
             "725814",
             "142859"
           ],
-          "obertaAbans": true
+          "obertaAbans": true,
+          "alumnesRecuperacio": [
+            "619527"
+          ]
         },
         {
           "id": "oferta-demanda-repas",
@@ -117,7 +126,10 @@
             "725814",
             "142859"
           ],
-          "obertaAbans": true
+          "obertaAbans": true,
+          "alumnesRecuperacio": [
+            "619527"
+          ]
         },
         {
           "id": "equilibri",
@@ -143,7 +155,10 @@
           ],
           "obertaAbans": true,
           "alumnesAcces": [],
-          "tancament": "2026-10-10T12:00:00+02:00"
+          "tancament": "2026-10-10T12:00:00+02:00",
+          "alumnesRecuperacio": [
+            "619527"
+          ]
         },
         {
           "id": "equilibri-exercicis",
@@ -216,7 +231,10 @@
             "725814",
             "142859"
           ],
-          "obertaAbans": true
+          "obertaAbans": true,
+          "alumnesRecuperacio": [
+            "619527"
+          ]
         },
         {
           "id": "freq-var",
@@ -245,7 +263,10 @@
             "725814",
             "142859"
           ],
-          "obertaAbans": true
+          "obertaAbans": true,
+          "alumnesRecuperacio": [
+            "619527"
+          ]
         },
         {
           "id": "descriptiva-1d",
@@ -273,7 +294,10 @@
           ],
           "obertaAbans": true,
           "alumnesAcces": [],
-          "tancament": "2026-10-10T12:00:00+02:00"
+          "tancament": "2026-10-10T12:00:00+02:00",
+          "alumnesRecuperacio": [
+            "619527"
+          ]
         },
         {
           "id": "descriptiva-1d-examen",
@@ -301,7 +325,10 @@
           ],
           "obertaAbans": true,
           "alumnesAcces": [],
-          "tancament": "2026-10-10T12:00:00+02:00"
+          "tancament": "2026-10-10T12:00:00+02:00",
+          "alumnesRecuperacio": [
+            "619527"
+          ]
         },
         {
           "id": "descriptiva-2d",
