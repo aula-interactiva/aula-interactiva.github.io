@@ -1,5 +1,5 @@
 {
-  "versio": 50,
+  "versio": 51,
   "ajuda": "visible controla la visibilitat per a l’alumnat; disponible és l’interruptor general d’accés. Opcionalment, obertura i tancament (ISO 8601 amb zona horària, p. ex. 2026-09-20T08:00:00+02:00) limiten automàticament l’accés. El professor pot previsualitzar les pràctiques fora de termini.",
   "arees": {
     "economia": {
@@ -148,7 +148,7 @@
         {
           "id": "equilibri-exercicis",
           "ordre": 5,
-          "visible": false,
+          "visible": true,
           "disponible": false,
           "codi": "Pràctica 2e",
           "titol": "Exercicis d’equilibri de mercat",
@@ -163,7 +163,8 @@
           "alumnesAcces": [
             "142858",
             "142859"
-          ]
+          ],
+          "obertura": "2026-10-19T17:00:00+02:00"
         },
         {
           "id": "elasticitat",
