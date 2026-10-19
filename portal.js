@@ -532,6 +532,17 @@
     return allowed.includes(id);
   }
 
+  // Accés de recuperació per alumnat nou: fa la pràctica visible i accessible
+  // individualment, però no altera l'estat docent ni els colors del professor.
+  function studentCatchupAccess(p, studentId) {
+    const id = tracker.normalizeId(studentId);
+    if (!/^\d{6}$/.test(id)) return false;
+    const allowed = Array.isArray(p?.alumnesRecuperacio)
+      ? p.alumnesRecuperacio.map(tracker.normalizeId)
+      : [];
+    return allowed.includes(id);
+  }
+
   function activePracticeExceptions(p) {
     const now = currentAccessTime();
     const exceptions = Array.isArray(p?.excepcionsAcces) ? p.excepcionsAcces : [];
@@ -592,11 +603,16 @@
     const session = tracker.getSession();
     const exception = session?.role === 'student' ? studentAccessException(p, session.id) : null;
     const exceptionOpen = !!exception && (exception.fins === null || now < exception.fins);
+    const catchupOpen = session?.role === 'student' && studentCatchupAccess(p, session.id);
 
     // 142859 és un compte tècnic de prova del professor:
     // pot obrir qualsevol pràctica sense alterar l'estat docent ni els colors.
     if (isTechnicalPracticeTester(session)) {
       return {open:true, state:'open', opensAt, closesAt, technicalTest:true};
+    }
+
+    if (catchupOpen) {
+      return {open:true, state:'open', opensAt, closesAt:null, catchup:true};
     }
 
     if (opensAt !== null && now < opensAt) {
@@ -644,7 +660,8 @@
       .filter(p => p && p.disponible === true && (
         p.visible !== false ||
         studentAccessException(p, session.id) ||
-        studentExplicitAccess(p, session.id)
+        studentExplicitAccess(p, session.id) ||
+        studentCatchupAccess(p, session.id)
       ));
 
     const checks = await Promise.all(practices.map(async p => {
@@ -697,7 +714,8 @@
         return !isApunts && session.role === 'student' && (
           isTechnicalPracticeTester(session) ||
           !!studentAccessException(p, session.id) ||
-          studentExplicitAccess(p, session.id)
+          studentExplicitAccess(p, session.id) ||
+          studentCatchupAccess(p, session.id)
         );
       })
       .sort((x, y) => (x.ordre || 0) - (y.ordre || 0));
