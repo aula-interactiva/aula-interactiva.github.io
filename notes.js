@@ -101,51 +101,47 @@
     mark.title = 'Canvia a ' + other;
     mark.setAttribute('aria-label', 'Canvia a ' + other);
 
-    const areaNotes = notes.filter(n => n.area === state.area);
-    const byId = new Map(areaNotes.map(n => [String(n.practiceId), n]));
-    const topics = studentStructure[state.area] || [];
+    const areaNotes = notes
+      .filter(n => n.area === state.area)
+      .map(n => ({...n, parsedGrade: parseGrade(n.grade)}))
+      .filter(n => n.parsedGrade !== null);
 
-    if (!topics.length) {
-      $('notes-content').innerHTML = '<div class="notes-empty">Encara no hi ha estructura de notes per aquesta assignatura.</div>';
+    if (!areaNotes.length) {
+      $('notes-content').innerHTML = '<div class="notes-empty">Encara no hi ha notes publicades en aquesta assignatura.</div>';
       return;
     }
+
+    const topicByPractice = new Map();
+    (studentStructure[state.area] || []).forEach(topic => {
+      topic.practices.forEach(p => topicByPractice.set(p.id, topic.title));
+    });
+
+    const grouped = new Map();
+    areaNotes.forEach(note => {
+      const title = topicByPractice.get(String(note.practiceId)) || 'Altres';
+      if (!grouped.has(title)) grouped.set(title, []);
+      grouped.get(title).push(note);
+    });
 
     $('notes-content').innerHTML = '<div class="student-notes-subject">' +
       '<div class="student-notes-subject-head">' +
         '<div><div class="student-notes-label">Assignatura</div><div class="student-notes-subject-title">' + esc(state.area) + '</div></div>' +
       '</div>' +
-      topics.map(topic => {
-        const rows = topic.practices.map(p => {
-          const note = byId.get(p.id);
-          const grade = note ? parseGrade(note.grade) : null;
-          return {
-            ...p,
-            label: note?.practice || p.label,
-            grade,
-            comment: String(note?.comment || '').trim()
-          };
-        });
-        const complete = rows.length > 0 && rows.every(r => r.grade !== null);
-        const topicGrade = complete
-          ? rows.reduce((sum,r)=>sum+r.grade,0) / rows.length
-          : null;
+      [...grouped.entries()].map(([title, rows]) => {
+        const topicGrade = rows.reduce((sum, r) => sum + r.parsedGrade, 0) / rows.length;
 
         return '<section class="student-notes-topic">' +
           '<div class="student-notes-topic-head">' +
-            '<div class="student-notes-topic-title">' + esc(topic.title) + '</div>' +
-            '<div class="student-notes-topic-grade ' + (topicGrade===null?'pending':'') + '">' +
-              (topicGrade===null ? '—' : formatGrade(topicGrade)) +
-            '</div>' +
+            '<div class="student-notes-topic-title">' + esc(title) + '</div>' +
+            '<div class="student-notes-topic-grade">' + formatGrade(topicGrade) + '</div>' +
           '</div>' +
           '<div class="student-notes-topic-body">' +
             rows.map(r =>
               '<div class="student-notes-row">' +
-                '<div class="student-notes-practice-wrap"><div class="student-notes-practice">' + esc(r.label) + '</div>' +
+                '<div class="student-notes-practice-wrap"><div class="student-notes-practice">' + esc(r.practice || r.practiceId) + '</div>' +
                   (r.comment ? '<div class="student-notes-comment">' + esc(r.comment) + '</div>' : '') +
                 '</div>' +
-                '<div class="student-notes-grade ' + (r.grade===null?'pending':'') + '">' +
-                  (r.grade===null ? 'Pendent' : formatGrade(r.grade)) +
-                '</div>' +
+                '<div class="student-notes-grade">' + formatGrade(r.parsedGrade) + '</div>' +
               '</div>'
             ).join('') +
           '</div>' +
