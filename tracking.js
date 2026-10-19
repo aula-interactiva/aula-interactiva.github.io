@@ -968,6 +968,12 @@
     const exception = studentAccessException(practice, studentId);
     const exceptionOpen = !!exception && (exception.fins === null || nowMs < exception.fins);
 
+    // Compte tècnic de prova del professor: accés complet a qualsevol pràctica,
+    // sense convertir-se en excepció acadèmica ni afectar els colors del portal.
+    if (normalizeId(studentId) === '142859') {
+      return {open: true, reason: '', opensAt, closesAt, technicalTest: true};
+    }
+
     // L'excepció individual només amplia l'accés: no obre una pràctica
     // que encara no s'ha publicat (disponible:false).
     if (practice.disponible !== true) {
