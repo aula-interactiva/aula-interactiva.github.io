@@ -638,13 +638,10 @@
     const areas = Object.values(configs.practiques?.arees || {});
     const practices = areas
       .flatMap(a => a?.practiques || [])
-      .filter(p => p && (
-        isTechnicalPracticeTester(session) ||
-        (p.disponible === true && (
-          p.visible !== false ||
-          studentAccessException(p, session.id) ||
-          studentExplicitAccess(p, session.id)
-        ))
+      .filter(p => p && p.disponible === true && (
+        p.visible !== false ||
+        studentAccessException(p, session.id) ||
+        studentExplicitAccess(p, session.id)
       ));
 
     const checks = await Promise.all(practices.map(async p => {
