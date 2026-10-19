@@ -1,5 +1,5 @@
 {
-  "versio": 49,
+  "versio": 50,
   "ajuda": "visible controla la visibilitat per a l’alumnat; disponible és l’interruptor general d’accés. Opcionalment, obertura i tancament (ISO 8601 amb zona horària, p. ex. 2026-09-20T08:00:00+02:00) limiten automàticament l’accés. El professor pot previsualitzar les pràctiques fora de termini.",
   "arees": {
     "economia": {
@@ -324,7 +324,7 @@
           "id": "descriptiva-2d-aplicada",
           "ordre": 4,
           "visible": true,
-          "disponible": true,
+          "disponible": false,
           "codi": "Pràctica 2b",
           "titol": "Bidimensional · aplicada amb Excel",
           "descripcio": "Anàlisi aplicada amb dades individualitzades, gràfic XY, covariància, correlació, regressió, predicció, residuals, R² i interpretació final.",
