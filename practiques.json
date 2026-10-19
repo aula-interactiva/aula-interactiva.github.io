@@ -177,7 +177,7 @@
           ],
           "alumnesAcces": [],
           "obertura": "2026-10-19T17:00:00+02:00",
-          "tancament": "2026-10-19T19:30:00+02:00",
+          "tancament": null,
           "obertaAbans": true
         },
         {
@@ -364,7 +364,8 @@
           "excepcionsAcces": [
             "142858"
           ],
-          "obertaAbans": true},
+          "obertaAbans": true
+        },
         {
           "id": "descriptiva-2d-aplicada",
           "ordre": 4,
@@ -382,7 +383,7 @@
           ],
           "obertaAbans": true,
           "obertura": "2026-10-19T19:00:00+02:00",
-          "tancament": "2026-10-19T22:00:00+02:00"
+          "tancament": null
         },
         {
           "id": "descriptiva-2d-examen",
