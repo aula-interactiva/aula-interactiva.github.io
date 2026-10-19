@@ -83,6 +83,7 @@ async function inspectWorkbook(){
   const rep={readable:false,dataPreserved:false,formulaCount:0,valuesCorrect:0,chart:false};
   if(!selectedFile)return rep;
   const buf=await selectedFile.arrayBuffer();
+
   try{
     const wb=XLSX.read(buf,{type:'array',cellFormula:true});
     const d=wb.Sheets.DADES,t=wb.Sheets.TREBALL;
@@ -101,33 +102,22 @@ async function inspectWorkbook(){
       data[14].y-(stats.a+stats.b*data[14].x)
     ];
     for(let i=0;i<vals.length;i++){
-      const cell=t['B'+(i+4)];
-      const x=Number(cell?.v);
+      const x=Number(t['B'+(i+4)]?.v);
       if(numOk(x,vals[i]))rep.valuesCorrect++;
     }
 
     if(window.JSZip){
       const zip=await JSZip.loadAsync(buf);
 
-      // Comprova les fórmules directament a l'XML del full TREBALL.
-      const workbookXml=await zip.file('xl/workbook.xml')?.async('text');
-      const relsXml=await zip.file('xl/_rels/workbook.xml.rels')?.async('text');
-      if(workbookXml&&relsXml){
-        const sheetTag=(workbookXml.match(/<sheet\b[^>]*\bname="TREBALL"[^>]*>/i)||[])[0]||'';
-        const relId=(sheetTag.match(/\br:id="([^"]+)"/i)||[])[1]||'';
-        if(relId){
-          const relTags=relsXml.match(/<Relationship\b[^>]*>/gi)||[];
-          const relTag=relTags.find(tag=>tag.includes('Id="'+relId+'"'))||'';
-          const target=(relTag.match(/\bTarget="([^"]+)"/i)||[])[1]||'';
-          if(target){
-            const sheetPath=target.startsWith('/')?target.replace(/^\//,''):'xl/'+target.replace(/^\.\//,'');
-            const sheetXml=await zip.file(sheetPath)?.async('text');
-            if(sheetXml)rep.formulaCount=(sheetXml.match(/<f(?:\s|>)/gi)||[]).length;
-          }
-        }
+      // Comptem fórmules directament als XML dels fulls.
+      // Evita dependre de com Excel relaciona workbook.xml amb cada worksheet.
+      const sheetPaths=Object.keys(zip.files).filter(n=>/^xl\/worksheets\/sheet\d+\.xml$/i.test(n));
+      for(const sheetPath of sheetPaths){
+        const xml=await zip.file(sheetPath)?.async('text');
+        if(xml)rep.formulaCount+=(xml.match(/<(?:\w+:)?f(?:\s|>)/gi)||[]).length;
       }
 
-      // Exigeix un gràfic XY amb tendència lineal, equació i R².
+      // Gràfic XY amb línia de tendència lineal, equació i R².
       const chartPaths=Object.keys(zip.files).filter(n=>/^xl\/charts\/chart\d+\.xml$/i.test(n));
       for(const chartPath of chartPaths){
         const xml=await zip.file(chartPath)?.async('text');
@@ -135,8 +125,9 @@ async function inspectWorkbook(){
           xml &&
           /<(?:\w+:)?scatterChart\b/i.test(xml) &&
           /<(?:\w+:)?trendline\b/i.test(xml) &&
+          /<(?:\w+:)?trendlineType\b[^>]*\bval="linear"/i.test(xml) &&
           /<(?:\w+:)?dispEq\b[^>]*\bval="1"/i.test(xml) &&
-          /<(?:\w+:)?dispRSq\b[^>]*\bval="1"/i.test(xml)
+          /<(?:\w+:)?dispRSqr?\b[^>]*\bval="1"/i.test(xml)
         ){
           rep.chart=true;
           break;
