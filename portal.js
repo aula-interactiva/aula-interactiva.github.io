@@ -577,7 +577,7 @@
         (opensAt === null || now >= opensAt) &&
         (closesAt === null || now < closesAt)
       ) {
-        return '';
+        return 'green';
       }
 
       return anyStudentCanOpenPractice(p) ? 'orange' : 'red';
@@ -764,7 +764,7 @@
         buttons = pdfBtn + solutionBtn + openBtn;
       }
 
-      return `<article class="practice-card ${canOpen ? 'active' : 'disabled'} ${cardTone === 'red' ? 'closed-visual' : ''} ${cardTone === 'orange' ? 'teacher-exception closed-visual' : ''} ${preview ? 'teacher-preview' : ''}">
+      return `<article class="practice-card ${canOpen ? 'active' : 'disabled'} ${cardTone === 'red' ? 'closed-visual' : ''} ${cardTone === 'orange' ? 'teacher-exception closed-visual' : ''} ${cardTone === 'green' ? 'teacher-open' : ''} ${preview ? 'teacher-preview' : ''}">
         <div>
           <div class="card-kicker">${esc(p.codi)} · <span class="card-status ${statusClass}">${esc(status)}</span>${esc(timing)}</div>
           ${closingTime}
