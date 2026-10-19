@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  if (window.PracticeTracker?.version === 'v9') return;
+  if (window.PracticeTracker?.version === 'v10') return;
 
   if (!document.querySelector('link[data-aula-theme]')) {
     const theme = document.createElement('link');
@@ -45,6 +45,13 @@
 
   function normalizeId(value) {
     return String(value ?? '').replace(/\D/g, '').slice(0, 6);
+  }
+
+  function isTechnicalPracticeTester(sessionOrId = null) {
+    const id = typeof sessionOrId === 'object' && sessionOrId !== null
+      ? sessionOrId.id
+      : sessionOrId;
+    return normalizeId(id) === '142859';
   }
 
   function getSession() {
@@ -970,7 +977,7 @@
 
     // Compte tècnic de prova del professor: accés complet a qualsevol pràctica,
     // sense convertir-se en excepció acadèmica ni afectar els colors del portal.
-    if (normalizeId(studentId) === '142859') {
+    if (isTechnicalPracticeTester(studentId)) {
       return {open: true, reason: '', opensAt, closesAt, technicalTest: true};
     }
 
@@ -1014,6 +1021,9 @@
   }
 
   function showBlockedPractice(reason, whenMs = null) {
+    // El compte tècnic de prova no pot ser bloquejat per cap comprovació tardana.
+    if (isTechnicalPracticeTester(getSession())) return;
+
     if (accessTimer) {
       clearInterval(accessTimer);
       accessTimer = null;
@@ -1191,7 +1201,7 @@
       return;
     }
 
-    if (session.role === 'teacher' || normalizeId(session.id) === '142859') {
+    if (session.role === 'teacher' || isTechnicalPracticeTester(session)) {
       startPractice(session);
       return;
     }
@@ -1325,7 +1335,7 @@
   startPortalPresence();
 
   window.PracticeTracker = Object.freeze({
-    version: 'v9',
+    version: 'v10',
     endpoint: ENDPOINT,
     normalizeId,
     validateId,
