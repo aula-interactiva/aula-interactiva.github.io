@@ -730,7 +730,7 @@
           ? ` · Obre ${formatAccessDate(availability.opensAt)}`
           : ''
         : '';
-      const closingTime = !isApunts && availability.closesAt
+      const closingTime = !isApunts && availability.closesAt && p.disponible === true
         ? availability.state === 'closed'
           ? '<span class="practice-closing">TANCADA</span>'
           : `<span class="practice-closing">TANCA · ${esc(formatAccessDate(availability.closesAt)).toUpperCase()}</span>`
