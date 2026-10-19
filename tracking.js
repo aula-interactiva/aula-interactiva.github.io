@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  if (window.PracticeTracker?.version === 'v10') return;
+  if (window.PracticeTracker?.version === 'v11') return;
 
   if (!document.querySelector('link[data-aula-theme]')) {
     const theme = document.createElement('link');
@@ -975,12 +975,6 @@
     const exception = studentAccessException(practice, studentId);
     const exceptionOpen = !!exception && (exception.fins === null || nowMs < exception.fins);
 
-    // Compte tècnic de prova del professor: accés complet a qualsevol pràctica,
-    // sense convertir-se en excepció acadèmica ni afectar els colors del portal.
-    if (isTechnicalPracticeTester(studentId)) {
-      return {open: true, reason: '', opensAt, closesAt, technicalTest: true};
-    }
-
     // L'excepció individual només amplia l'accés: no obre una pràctica
     // que encara no s'ha publicat (disponible:false).
     if (practice.disponible !== true) {
@@ -1021,9 +1015,6 @@
   }
 
   function showBlockedPractice(reason, whenMs = null) {
-    // El compte tècnic de prova no pot ser bloquejat per cap comprovació tardana.
-    if (isTechnicalPracticeTester(getSession())) return;
-
     if (accessTimer) {
       clearInterval(accessTimer);
       accessTimer = null;
@@ -1335,7 +1326,7 @@
   startPortalPresence();
 
   window.PracticeTracker = Object.freeze({
-    version: 'v10',
+    version: 'v11',
     endpoint: ENDPOINT,
     normalizeId,
     validateId,
