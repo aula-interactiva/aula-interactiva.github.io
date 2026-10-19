@@ -356,7 +356,7 @@
           "id": "descriptiva-2d",
           "ordre": 3,
           "visible": true,
-          "disponible": false,
+          "disponible": true,
           "codi": "Pràctica 2a",
           "titol": "Bidimensional · guiada",
           "descripcio": "Parelles de dades, núvol de punts, covariància, correlació, regressió, residuals, R² i extrapolació amb guia pas a pas i suport d’Excel.",
