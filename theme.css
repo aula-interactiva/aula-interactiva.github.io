@@ -331,3 +331,17 @@ input[type="file"]::file-selector-button{
   background-color:#e4f1e7!important;
   border-color:#b8d2bf!important;
 }
+
+/* Scheduled practice dates */
+.practice-opening{
+  display:block;
+  margin-top:5px;
+  font-size:10px!important;
+  line-height:1.2!important;
+  font-weight:750!important;
+  letter-spacing:.025em!important;
+  color:#3f7a52!important;
+}
+.practice-closing{
+  color:#b8453f!important;
+}
