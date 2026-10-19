@@ -965,6 +965,15 @@
     return {id, fins: parseAccessTime(entry.fins)};
   }
 
+  function studentCatchupAccess(practice, studentId) {
+    const id = normalizeId(studentId);
+    if (!/^\d{6}$/.test(id)) return false;
+    const allowed = Array.isArray(practice?.alumnesRecuperacio)
+      ? practice.alumnesRecuperacio.map(normalizeId)
+      : [];
+    return allowed.includes(id);
+  }
+
   function accessState(practice, nowMs = currentAccessTime(), studentId = '') {
     if (!practice) {
       return {open: false, reason: 'unavailable', opensAt: null, closesAt: null};
@@ -974,6 +983,12 @@
     const closesAt = parseAccessTime(practice.tancament);
     const exception = studentAccessException(practice, studentId);
     const exceptionOpen = !!exception && (exception.fins === null || nowMs < exception.fins);
+
+    // Accés de recuperació per alumnat nou: pot obrir la pràctica encara que
+    // estigui tancada o retirada del calendari general.
+    if (studentCatchupAccess(practice, studentId)) {
+      return {open: true, reason: '', opensAt, closesAt: null, catchup: true};
+    }
 
     // L'excepció individual només amplia l'accés: no obre una pràctica
     // que encara no s'ha publicat (disponible:false).
