@@ -325,3 +325,9 @@ input[type="file"]::file-selector-button{
   background-color:#f9e2bd!important;
   border-color:#d9b77f!important;
 }
+
+.practice-card.teacher-open{
+  background:#e4f1e7!important;
+  background-color:#e4f1e7!important;
+  border-color:#b8d2bf!important;
+}
