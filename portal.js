@@ -568,6 +568,18 @@
     if (isApunts || p?.obertaAbans !== true) return '';
 
     if (teacher) {
+      const now = currentAccessTime();
+      const opensAt = parseAccessTime(p.obertura);
+      const closesAt = parseAccessTime(p.tancament);
+
+      if (
+        p?.disponible === true &&
+        (opensAt === null || now >= opensAt) &&
+        (closesAt === null || now < closesAt)
+      ) {
+        return '';
+      }
+
       return anyStudentCanOpenPractice(p) ? 'orange' : 'red';
     }
 
