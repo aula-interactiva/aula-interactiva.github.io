@@ -721,10 +721,8 @@
         : (status === 'Tancada' || status === 'Tancat') && !neverOpened
           ? 'closed'
           : '';
-      const timing = !isApunts
-        ? availability.state === 'upcoming' && availability.opensAt
-          ? ` · Obre ${formatAccessDate(availability.opensAt)}`
-          : ''
+      const openingTime = !isApunts && availability.state === 'upcoming' && availability.opensAt
+        ? `<span class="practice-opening">OBRE · ${esc(formatAccessDate(availability.opensAt)).toUpperCase()}</span>`
         : '';
       const closingTime = !isApunts && availability.closesAt && p.disponible === true
         ? availability.state === 'closed'
@@ -762,7 +760,8 @@
 
       return `<article class="practice-card ${canOpen ? 'active' : 'disabled'} ${cardTone === 'red' ? 'closed-visual' : ''} ${cardTone === 'orange' ? 'teacher-exception closed-visual' : ''} ${cardTone === 'green' ? 'teacher-open' : ''} ${preview ? 'teacher-preview' : ''}">
         <div>
-          <div class="card-kicker">${esc(p.codi)} · <span class="card-status ${statusClass}">${esc(status)}</span>${esc(timing)}</div>
+          <div class="card-kicker">${esc(p.codi)} · <span class="card-status ${statusClass}">${esc(status)}</span></div>
+          ${openingTime}
           ${closingTime}
           <div class="card-title">${esc(p.titol)}</div>
           <div class="card-desc">${esc(p.descripcio)}</div>
@@ -868,7 +867,7 @@
     render();
   });
 
-  loadJsonConfig('practiques.json?v=50', 'practiques', {syncServerClock: true})
+  loadJsonConfig('practiques.json?v=51', 'practiques', {syncServerClock: true})
     .then(() => {
       render();
       refreshSubmissionStates();
