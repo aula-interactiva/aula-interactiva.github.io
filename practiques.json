@@ -123,7 +123,7 @@
           "id": "equilibri",
           "ordre": 4,
           "visible": true,
-          "disponible": true,
+          "disponible": false,
           "codi": "Pràctica 2d",
           "titol": "Equilibri de mercat",
           "descripcio": "Oferta, demanda, equilibri, canvis en les condicions del mercat, impostos i subvencions.",
