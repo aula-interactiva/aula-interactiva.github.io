@@ -149,7 +149,7 @@
           "id": "equilibri-exercicis",
           "ordre": 5,
           "visible": false,
-          "disponible": true,
+          "disponible": false,
           "codi": "Pràctica 2e",
           "titol": "Exercicis d’equilibri de mercat",
           "descripcio": "Exercicis sobre oferta, demanda i equilibri de mercat.",
