@@ -128,12 +128,9 @@
         '<div><div class="student-notes-label">Assignatura</div><div class="student-notes-subject-title">' + esc(state.area) + '</div></div>' +
       '</div>' +
       [...grouped.entries()].map(([title, rows]) => {
-        const topicGrade = rows.reduce((sum, r) => sum + r.parsedGrade, 0) / rows.length;
-
         return '<section class="student-notes-topic">' +
           '<div class="student-notes-topic-head">' +
             '<div class="student-notes-topic-title">' + esc(title) + '</div>' +
-            '<div class="student-notes-topic-grade">' + formatGrade(topicGrade) + '</div>' +
           '</div>' +
           '<div class="student-notes-topic-body">' +
             rows.map(r =>
