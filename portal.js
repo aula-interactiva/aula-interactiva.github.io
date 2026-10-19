@@ -568,20 +568,10 @@
     if (isApunts || p?.obertaAbans !== true) return '';
 
     if (teacher) {
-      const now = currentAccessTime();
-      const opensAt = parseAccessTime(p.obertura);
-      const closesAt = parseAccessTime(p.tancament);
-
-      if (opensAt !== null && now < opensAt) return '';
-
-      if (
-        p?.disponible === true &&
-        (opensAt === null || now >= opensAt) &&
-        (closesAt === null || now < closesAt)
-      ) {
-        return 'green';
-      }
-
+      // El color representa exclusivament l'estat d'accés.
+      // Les dates només determinen si la pràctica és futura, oberta o tancada.
+      if (availability?.state === 'upcoming') return '';
+      if (availability?.open === true) return 'green';
       return anyStudentCanOpenPractice(p) ? 'orange' : 'red';
     }
 
