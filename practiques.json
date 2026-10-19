@@ -186,11 +186,27 @@
           "ordre": 6,
           "visible": false,
           "disponible": false,
-          "codi": "Pràctica 3",
+          "codi": "Pràctica 3a",
           "titol": "Elasticitat de la demanda",
           "descripcio": "Mètode del punt mig, demanda elàstica i inelàstica, i relació entre preu i despesa total.",
           "fitxer": "practiques/economia/elasticitat.html",
           "pdf": "assets/pdf/elasticitat.pdf",
+          "excepcionsAcces": [
+            "142858"
+          ]
+        },
+        {
+          "id": "elasticitat-exercicis",
+          "ordre": 7,
+          "visible": false,
+          "disponible": false,
+          "codi": "Pràctica 3b",
+          "titol": "Exercicis d’elasticitat",
+          "descripcio": "Cinc exercicis progressius d’elasticitat-preu, despesa total, pendent, estimació i decisió econòmica.",
+          "fitxer": "practiques/economia/elasticitat-exercicis.html",
+          "pdf": null,
+          "solucionari": "https://drive.google.com/file/d/1oF87Q6tEotMxnu9t_CU1ZtOnaRI4Q3hY/view?usp=drivesdk",
+          "solucionariTitol": "Solucionari PDF",
           "excepcionsAcces": [
             "142858"
           ]
