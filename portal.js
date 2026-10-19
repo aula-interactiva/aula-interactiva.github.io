@@ -507,6 +507,10 @@
     return Date.now() + serverTimeOffsetMs;
   }
 
+  function isTechnicalPracticeTester(session) {
+    return session?.role === 'student' && tracker.normalizeId(session.id) === '142859';
+  }
+
   function studentAccessException(p, studentId) {
     const id = tracker.normalizeId(studentId);
     const exceptions = Array.isArray(p?.excepcionsAcces) ? p.excepcionsAcces : [];
@@ -586,6 +590,12 @@
     const exception = session?.role === 'student' ? studentAccessException(p, session.id) : null;
     const exceptionOpen = !!exception && (exception.fins === null || now < exception.fins);
 
+    // 142859 és un compte tècnic de prova del professor:
+    // pot obrir qualsevol pràctica sense alterar l'estat docent ni els colors.
+    if (isTechnicalPracticeTester(session)) {
+      return {open:true, state:'open', opensAt, closesAt, technicalTest:true};
+    }
+
     if (opensAt !== null && now < opensAt) {
       return {open:false, state:'upcoming', opensAt, closesAt};
     }
@@ -628,10 +638,13 @@
     const areas = Object.values(configs.practiques?.arees || {});
     const practices = areas
       .flatMap(a => a?.practiques || [])
-      .filter(p => p && p.disponible === true && (
-        p.visible !== false ||
-        studentAccessException(p, session.id) ||
-        studentExplicitAccess(p, session.id)
+      .filter(p => p && (
+        isTechnicalPracticeTester(session) ||
+        (p.disponible === true && (
+          p.visible !== false ||
+          studentAccessException(p, session.id) ||
+          studentExplicitAccess(p, session.id)
+        ))
       ));
 
     const checks = await Promise.all(practices.map(async p => {
@@ -682,6 +695,7 @@
       .filter(p => {
         if (teacher || p.visible !== false) return true;
         return !isApunts && session.role === 'student' && (
+          isTechnicalPracticeTester(session) ||
           !!studentAccessException(p, session.id) ||
           studentExplicitAccess(p, session.id)
         );
