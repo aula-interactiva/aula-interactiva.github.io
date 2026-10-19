@@ -266,8 +266,8 @@ function questions(i){
       q('sel','Un residual positiu indica que el valor observat queda per sobre de la recta?','Sí','',['Sí','No'])
     ];
     case 6:return [
-      q('num','Calcula R².',round(s.r2,3),'',[],true,.0011),
-      q('num','Expressa R² com a percentatge.',round(s.r2*100,1),'%',[],false,.11),
+      q('num','Calcula R².',round(s.r2,2),'',[],true,.011),
+      q('num','Expressa R² com a percentatge.',round(s.r2*100,2),'%',[],false,.011),
       q('sel','Predir la puntuació per a X = 20 hores seria interpolació o extrapolació?','Extrapolació','',['Interpolació','Extrapolació']),
       q('sel','Una extrapolació lluny del rang observat s’ha d’interpretar amb més prudència?','Sí','',['Sí','No'])
     ];
@@ -411,7 +411,7 @@ function renderStats(){
   const items=[
     ['n',stats.n,0],['Mitjana X',fmt(stats.mx,2),0],['Mitjana Y',fmt(stats.my,2),0],
     ['Covariància',fmt(stats.cov,3),2],['r',fmt(stats.r,3),2],['Pendent b',fmt(stats.b,3),4],
-    ['Intercept a',fmt(stats.a,3),4],['R²',fmt(stats.r2,3),6]
+    ['Intercept a',fmt(stats.a,3),4],['R²',fmt(stats.r2,2),6]
   ];
   $('stats').innerHTML=items.map(([lab,val,unlock])=>`<div class="stat ${completed.has(unlock)||completed.size===stages.length?'unlocked':'locked'}"><div class="lab">${lab}</div><div class="val">${completed.has(unlock)||completed.size===stages.length?val:'—'}</div></div>`).join('');
 }
