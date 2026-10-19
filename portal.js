@@ -569,12 +569,15 @@
   }
 
   function practiceCardTone(p, availability, teacher, isApunts) {
-    if (isApunts || p?.obertaAbans !== true) return '';
+    if (isApunts) return '';
+
+    // Una pràctica programada per obrir-se en el futur és sempre neutra (blanca),
+    // independentment de disponible, obertaAbans, rol o excepcions.
+    if (availability?.state === 'upcoming') return '';
+
+    if (p?.obertaAbans !== true) return '';
 
     if (teacher) {
-      // El color representa exclusivament l'estat d'accés.
-      // Les dates només determinen si la pràctica és futura, oberta o tancada.
-      if (availability?.state === 'upcoming') return '';
       if (availability?.open === true) return 'green';
       return anyStudentCanOpenPractice(p) ? 'orange' : 'red';
     }
