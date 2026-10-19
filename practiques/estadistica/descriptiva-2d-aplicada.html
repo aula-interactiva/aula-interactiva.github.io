@@ -26,13 +26,12 @@ textarea{width:100%;min-height:150px;resize:vertical;border:1px solid #dfca77;ba
 <section class="card"><div class="head">DADES I FITXER DE TREBALL</div><div class="body"><div class="data"><table class="datatable"><thead><tr><th>Dia</th><th>Temperatura X (°C)</th><th>Consum Y (kWh)</th></tr></thead><tbody id="data-body"></tbody></table></div><div class="actions"><button class="btn secondary" id="download" type="button">↓ Descarrega Excel</button><span class="status">El fitxer inclou DADES, TREBALL i INFORME.</span></div></div></section>
 <section class="card"><div class="head">TREBALL GUIAT · COMPROVA CADA BLOC</div><div class="body"><div class="steps" id="steps"></div></div></section>
 <section class="card"><div class="head">FITXER EXCEL I INTERPRETACIÓ FINAL</div><div class="body final">
-<div><div class="guide"><strong>Abans d’entregar:</strong> el teu Excel ha de conservar les dades, contenir fórmules als resultats principals i incloure un <strong>gràfic de dispersió XY</strong> amb recta de tendència lineal, equació i R².</div><div class="fileline"><input id="excel-upload" type="file" accept=".xlsx,.xlsm"><span class="filemsg" id="filemsg">Cap fitxer seleccionat.</span></div><div class="status" id="excel-status" style="margin-top:8px"></div></div>
+<div><div class="guide"><strong>Abans d’entregar:</strong> el teu Excel ha de conservar les dades, contenir fórmules als resultats principals i incloure un <strong>gràfic de dispersió XY</strong> amb recta de tendència lineal, equació i R².</div><div class="fileline"><input id="excel-upload" type="file" accept=".xlsx,.xlsm"><span class="filemsg" id="filemsg">Cap fitxer seleccionat.</span></div></div>
 <div><label for="final-comment" style="font-size:11px;font-weight:800;display:block;margin-bottom:6px">Comentari final (5–8 línies)</label><textarea id="final-comment" maxlength="1600" placeholder="Interpreta conjuntament el núvol de punts, r, la recta, R², possibles punts especials i els límits de la interpretació causal."></textarea><div class="count" id="comment-count">0 caràcters · mínim 180</div></div>
 </div></section>
 <section class="card"><div class="body submitbox"><div><div class="status" id="submit-status">Completa tots els blocs, adjunta l’Excel i escriu el comentari.</div><div class="score hidden" id="score-box"></div></div><button class="btn primary" id="submit" type="button">Entrega la pràctica</button></div></section>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script src="../../tracking.js?v=65"></script>
 <script>
 (() => {
@@ -79,69 +78,53 @@ function render(){const body=$('data-body');body.innerHTML=data.map((d,i)=>`<tr>
 function checkBlock(bi){let all=true;defs[bi].q.forEach((d,qi)=>{const v=$(`a-${bi}-${qi}`).value,ok=correct(d,v),c=$(`c-${bi}-${qi}`);c.className='check '+(ok?'ok':'bad');c.textContent=ok?'Correcte':'Revisa';if(!ok)all=false});const s=$(`s-${bi}`);s.className='status '+(all?'ok':'bad');s.textContent=all?'Bloc completat.':'Revisa les respostes marcades.';if(all)checked.add(bi);else checked.delete(bi)}
 function allAnswers(){const out=[];defs.forEach((b,bi)=>b.q.forEach((d,qi)=>{const v=$(`a-${bi}-${qi}`).value;out.push({question:`${bi+1}.${qi+1}`,answer:v,correct:correct(d,v)})}));return out}
 function makeWorkbook(){const id=tracker.getSession()?.id||'';const wb=XLSX.utils.book_new(),rows=[['Pràctica 2b · Estadística descriptiva bidimensional'],[],['ID alumne',id],[],['Dia','Temperatura X (°C)','Consum Y (kWh)'],...data.map((d,i)=>[i+1,d.x,d.y])];const work=[['TREBALL · fes els càlculs amb fórmules'],[],['Mesura','Resultat'],['Mitjana X',''],['Mitjana Y',''],['Covariància descriptiva',''],['Correlació r',''],['Pendent b',''],['Intercept a',''],['R²',''],['Predicció X=28',''],['Predicció obs. 15',''],['Residual obs. 15','']];const inf=[['INFORME'],['1. Crea aquí o al full DADES un gràfic de dispersió XY.'],['2. Afegeix recta de tendència lineal, equació i R².'],['3. Utilitza aquest espai si vols preparar el comentari final.']];XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),'DADES');XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(work),'TREBALL');XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(inf),'INFORME');wb.Sheets.DADES['!cols']=[{wch:10},{wch:22},{wch:20}];wb.Sheets.TREBALL['!cols']=[{wch:30},{wch:18}];wb.Sheets.INFORME['!cols']=[{wch:90}];XLSX.writeFile(wb,`estadistica_2b_${id}.xlsx`)}
-async function inspectWorkbook(){
-  const rep={readable:false,dataPreserved:false,formulaCount:0,valuesCorrect:0,chart:false};
-  if(!selectedFile)return rep;
-  const buf=await selectedFile.arrayBuffer();
+async function submit(){
+  if(submitted)return;
+  const ans=allAnswers(),comment=$('final-comment').value.trim();
+  if(checked.size<defs.length||ans.some(x=>!x.correct)){setSubmit('bad','Completa correctament els quatre blocs abans d’entregar.');return}
+  if(!selectedFile){setSubmit('bad','Adjunta el fitxer Excel.');return}
+  if(comment.length<180){setSubmit('bad','El comentari final ha de tenir com a mínim 180 caràcters.');return}
 
-  try{
-    const wb=XLSX.read(buf,{type:'array',cellFormula:true});
-    const d=wb.Sheets.DADES,t=wb.Sheets.TREBALL;
-    if(!d||!t)return rep;
+  const id=tracker.getSession()?.id||'',obs=data[14],pred=stats.a+stats.b*obs.x,res=obs.y-pred;
+  const context=`Valora el comentari final de la pràctica 2b. Resultats reals de l’alumne: n=${stats.n}; mitjana X=${round(stats.mx,2)}; mitjana Y=${round(stats.my,2)}; covariància=${round(stats.cov,3)}; r=${round(stats.r,3)} (${direction(stats.r)}, ${strength(stats.r)}); recta ŷ=${round(stats.a,3)}+${round(stats.b,3)}x; R²=${round(stats.r2,3)}; per l’observació 15 residual=${round(res,2)}. Avalua si integra correctament núvol de punts, direcció/intensitat, pendent, R², possibles punts especials i el límit entre associació i causalitat. No exigeixis que mencioni tots els valors.`;
+  const payload={
+    submissionId:tracker.makeSubmissionId('descriptiva-2d-b',id),id,
+    practice:'Pràctica 2b · Estadística descriptiva bidimensional',area:'Estadística',status:'Entregada',
+    total:ans.length,correct:ans.filter(x=>x.correct).length,attempts:1,progress:100,
+    minutes:Math.max(1,Math.round((Date.now()-startedAt)/60000)),version:'aplicada-2',
+    detail:{
+      questions:ans,
+      excelFile:{name:selectedFile.name||'',size:Number(selectedFile.size||0),type:selectedFile.type||''},
+      statistics:{mx:round(stats.mx,2),my:round(stats.my,2),cov:round(stats.cov,3),r:round(stats.r,3),slope:round(stats.b,3),intercept:round(stats.a,3),r2:round(stats.r2,3)}
+    },
+    justifications:[{question:context,text:comment}]
+  };
 
-    rep.readable=true;
-    rep.dataPreserved=data.every((v,i)=>
-      Number(d['B'+(i+6)]?.v)===v.x &&
-      Number(d['C'+(i+6)]?.v)===v.y
-    );
+  $('submit').disabled=true;$('submit').textContent='Guardant Excel…';
+  setSubmit('','Guardant l’Excel amb l’entrega…');
+  const fileSave=await tracker.uploadFile(selectedFile,{practice:payload.practice,area:payload.area,submissionId:tracker.stablePracticeSubmissionId(location.pathname,id)});
+  if(!fileSave.ok){
+    $('submit').disabled=false;$('submit').textContent='Entrega la pràctica';
+    setSubmit('bad','No s’ha pogut guardar l’Excel. L’entrega no s’ha registrat. Torna-ho a provar.');
+    return;
+  }
 
-    const vals=[
-      stats.mx,stats.my,stats.cov,stats.r,stats.b,stats.a,stats.r2,
-      stats.a+stats.b*28,
-      stats.a+stats.b*data[14].x,
-      data[14].y-(stats.a+stats.b*data[14].x)
-    ];
-    for(let i=0;i<vals.length;i++){
-      const x=Number(t['B'+(i+4)]?.v);
-      if(numOk(x,vals[i]))rep.valuesCorrect++;
-    }
-
-    if(window.JSZip){
-      const zip=await JSZip.loadAsync(buf);
-
-      // Comptem fórmules directament als XML dels fulls.
-      // Evita dependre de com Excel relaciona workbook.xml amb cada worksheet.
-      const sheetPaths=Object.keys(zip.files).filter(n=>/^xl\/worksheets\/sheet\d+\.xml$/i.test(n));
-      for(const sheetPath of sheetPaths){
-        const xml=await zip.file(sheetPath)?.async('text');
-        if(xml)rep.formulaCount+=(xml.match(/<(?:\w+:)?f(?:\s|>)/gi)||[]).length;
-      }
-
-      // Gràfic XY amb línia de tendència lineal, equació i R².
-      const chartPaths=Object.keys(zip.files).filter(n=>/^xl\/charts\/chart\d+\.xml$/i.test(n));
-      for(const chartPath of chartPaths){
-        const xml=await zip.file(chartPath)?.async('text');
-        if(
-          xml &&
-          /<(?:\w+:)?scatterChart\b/i.test(xml) &&
-          /<(?:\w+:)?trendline\b/i.test(xml) &&
-          /<(?:\w+:)?trendlineType\b[^>]*\bval="linear"/i.test(xml) &&
-          /<(?:\w+:)?dispEq\b[^>]*\bval="1"/i.test(xml) &&
-          /<(?:\w+:)?dispRSqr?\b[^>]*\bval="1"/i.test(xml)
-        ){
-          rep.chart=true;
-          break;
-        }
-      }
-    }
-  }catch(_){}
-  return rep;
+  $('submit').textContent='Enviant…';
+  const resSubmit=await tracker.submit(payload);
+  if(resSubmit.ok){
+    submitted=true;
+    document.querySelectorAll('input,select,textarea,button.check-block').forEach(x=>x.disabled=true);
+    $('submit').disabled=true;$('submit').textContent='Pràctica entregada';
+    setSubmit('ok',resSubmit.teacher?'Mode professor: prova completada sense registrar entrega.':'Entrega registrada i Excel guardat correctament.');
+    $('score-box').classList.remove('hidden');
+    $('score-box').textContent='2B completada · Excel adjuntat per a la correcció.';
+  }else{
+    $('submit').disabled=false;$('submit').textContent='Entrega la pràctica';
+    setSubmit('bad','No s’ha pogut confirmar l’entrega. Torna-ho a provar.');
+  }
 }
-async function submit(){if(submitted)return;const ans=allAnswers(),comment=$('final-comment').value.trim();if(checked.size<defs.length||ans.some(x=>!x.correct)){setSubmit('bad','Completa correctament els quatre blocs abans d’entregar.');return}if(!selectedFile){setSubmit('bad','Adjunta el fitxer Excel.');return}if(comment.length<180){setSubmit('bad','El comentari final ha de tenir com a mínim 180 caràcters.');return}$('submit').disabled=true;$('submit').textContent='Comprovant Excel…';const rep=await inspectWorkbook();if(!rep.readable||!rep.dataPreserved){$('submit').disabled=false;$('submit').textContent='Entrega la pràctica';setSubmit('bad','No s’ha pogut validar el fitxer o les dades originals han canviat.');return}if(rep.formulaCount<5||!rep.chart){$('submit').disabled=false;$('submit').textContent='Entrega la pràctica';$('excel-status').className='status bad';$('excel-status').textContent=`Revisa l’Excel: fórmules detectades ${rep.formulaCount}/5 mínim · gràfic XY ${rep.chart?'sí':'no'}.`;return}$('excel-status').className='status ok';$('excel-status').textContent=`Excel correcte: dades conservades, ${rep.formulaCount} fórmules i gràfic detectat.`;
- const id=tracker.getSession()?.id||'',obs=data[14],pred=stats.a+stats.b*obs.x,res=obs.y-pred;const context=`Valora el comentari final de la pràctica 2b. Resultats reals de l’alumne: n=${stats.n}; mitjana X=${round(stats.mx,2)}; mitjana Y=${round(stats.my,2)}; covariància=${round(stats.cov,3)}; r=${round(stats.r,3)} (${direction(stats.r)}, ${strength(stats.r)}); recta ŷ=${round(stats.a,3)}+${round(stats.b,3)}x; R²=${round(stats.r2,3)}; per l’observació 15 residual=${round(res,2)}. Avalua si integra correctament núvol de punts, direcció/intensitat, pendent, R², possibles punts especials i el límit entre associació i causalitat. No exigeixis que mencioni tots els valors.`;
- const payload={submissionId:tracker.makeSubmissionId('descriptiva-2d-b',id),id,practice:'Pràctica 2b · Estadística descriptiva bidimensional',area:'Estadística',status:'Entregada',total:ans.length,correct:ans.filter(x=>x.correct).length,attempts:1,progress:100,minutes:Math.max(1,Math.round((Date.now()-startedAt)/60000)),version:'aplicada-1',detail:{questions:ans,workbook:rep,statistics:{mx:round(stats.mx,2),my:round(stats.my,2),cov:round(stats.cov,3),r:round(stats.r,3),slope:round(stats.b,3),intercept:round(stats.a,3),r2:round(stats.r2,3)}},justifications:[{question:context,text:comment}]};$('submit').textContent='Enviant…';const fileSave=await tracker.uploadFile(selectedFile,{practice:payload.practice,area:payload.area,submissionId:tracker.stablePracticeSubmissionId(location.pathname,id)});if(!fileSave.ok){$('submit').disabled=false;$('submit').textContent='Entrega la pràctica';setStatus('bad','No s’ha pogut guardar l’Excel. L’entrega no s’ha registrat. Torna-ho a provar.');return}const resSubmit=await tracker.submit(payload);if(resSubmit.ok){submitted=true;document.querySelectorAll('input,select,textarea,button.check-block').forEach(x=>x.disabled=true);$('submit').disabled=true;$('submit').textContent='Pràctica entregada';setSubmit('ok',resSubmit.teacher?'Mode professor: prova completada sense registrar entrega.':'Entrega registrada. El comentari s’ha enviat també a la primera correcció amb IA.');$('score-box').classList.remove('hidden');$('score-box').textContent='2B completada · càlculs i Excel validats.'}else{$('submit').disabled=false;$('submit').textContent='Entrega la pràctica';setSubmit('bad','No s’ha pogut confirmar l’entrega. Torna-ho a provar.')}}
 function setSubmit(k,t){$('submit-status').className='status '+(k||'');$('submit-status').textContent=t}
-function init(){const s=tracker.getSession();if(!s)return;$('student-code').textContent=s.role==='teacher'?'Professor':'Alumne · ••••'+s.id.slice(-2);data=makeData(s.id);stats=calc(data);buildDefs();render();$('download').onclick=makeWorkbook;$('excel-upload').onchange=e=>{selectedFile=e.target.files?.[0]||null;$('filemsg').textContent=selectedFile?selectedFile.name:'Cap fitxer seleccionat.';$('excel-status').textContent=''};$('final-comment').oninput=()=>{$('comment-count').textContent=`${$('final-comment').value.trim().length} caràcters · mínim 180`};$('submit').onclick=submit}
+function init(){const s=tracker.getSession();if(!s)return;$('student-code').textContent=s.role==='teacher'?'Professor':'Alumne · ••••'+s.id.slice(-2);data=makeData(s.id);stats=calc(data);buildDefs();render();$('download').onclick=makeWorkbook;$('excel-upload').onchange=e=>{selectedFile=e.target.files?.[0]||null;$('filemsg').textContent=selectedFile?selectedFile.name:'Cap fitxer seleccionat.'};$('final-comment').oninput=()=>{$('comment-count').textContent=`${$('final-comment').value.trim().length} caràcters · mínim 180`};$('submit').onclick=submit}
 window.AulaDraftState = {
   get(){ return {checked:Array.from(checked)}; },
   restore(state){
