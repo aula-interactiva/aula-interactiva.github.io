@@ -353,7 +353,7 @@
           "id": "descriptiva-2d",
           "ordre": 3,
           "visible": true,
-          "disponible": true,
+          "disponible": false,
           "codi": "Pràctica 2a",
           "titol": "Bidimensional · guiada",
           "descripcio": "Parelles de dades, núvol de punts, covariància, correlació, regressió, residuals, R² i extrapolació amb guia pas a pas i suport d’Excel.",
@@ -364,9 +364,7 @@
           "excepcionsAcces": [
             "142858"
           ],
-          "obertaAbans": true,
-          "tancament": "2026-10-19T19:00:00+02:00"
-        },
+          "obertaAbans": true},
         {
           "id": "descriptiva-2d-aplicada",
           "ordre": 4,
