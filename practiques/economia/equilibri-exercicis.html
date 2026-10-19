@@ -5,44 +5,55 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Exercicis d'equilibri de mercat · Pràctica 2e</title>
 <link rel="stylesheet" href="../../styles.css?v=6" />
-<link rel="stylesheet" href="economia-pilot.css?v=8" />
+<link rel="stylesheet" href="economia-pilot.css" />
 <style>
-  .eq-shell{max-width:1120px;margin:0 auto;padding:18px 18px 60px}
-  .eq-intro{background:#f3f3f3;border:1px solid #ddd;border-radius:10px;padding:14px 16px;margin:14px 0 18px;font-size:14px;line-height:1.45}
-  .exercise-card{background:#fff;border:1px solid #d9d9d9;border-radius:10px;margin:0 0 16px;overflow:hidden}
-  .exercise-head{background:#444;color:#fff;padding:10px 14px;font-weight:800;font-size:14px}
-  .exercise-body{padding:16px}
-  .exercise-body p,.exercise-body li{font-size:14px;line-height:1.5}
-  .exercise-questions{margin:14px 0 0;padding-left:25px}
-  .exercise-question{display:block!important;margin:8px 0!important;padding:0!important;color:#222!important;font-size:15px!important;line-height:1.5!important}
-  .equation{font-family:"Cambria Math","Times New Roman",serif;font-size:18px;text-align:center;margin:9px 0}
-  .data-table{border-collapse:collapse;margin:10px auto 14px;min-width:360px;max-width:100%}
-  .data-table th,.data-table td{border:1px solid #ccc;padding:7px 12px;text-align:center}
-  .pdf-box{border:1px solid #ccc;border-radius:10px;padding:16px;margin-top:18px;background:#fafafa}
-  .pdf-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
+  .eq-shell{max-width:900px;margin:0 auto;padding:18px 18px 60px}
+  .eq-intro{background:#f3f3f3;border:1px solid #ddd;border-radius:10px;padding:16px;margin:16px 0;font-size:14px;line-height:1.5}
+  .document-box,.pdf-box{background:#fff;border:1px solid #d9d9d9;border-radius:10px;padding:18px;margin:16px 0}
+  .document-box h2,.pdf-box h2{font-size:16px;margin:0 0 8px}
+  .document-box p,.pdf-box p{font-size:14px;line-height:1.5;color:#555}
+  .document-btn{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;border-radius:7px;background:#444;color:#fff;padding:9px 13px;font-weight:800;font-size:13px}
+  .document-btn:hover{background:#333}
+  .pdf-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}
   .pdf-row input[type=file]{max-width:100%}
-  .pdf-help{font-size:13px;color:#666;margin-top:7px}
+  .pdf-row button{border:0;border-radius:7px;background:#444;color:#fff;padding:8px 12px;font-weight:800}
+  .pdf-row button:disabled{opacity:.5;cursor:not-allowed}
   .pdf-status{font-size:13px;font-weight:700}
+  .pdf-help{font-size:13px;color:#666;margin-top:8px}
 </style>
 </head>
 <body>
 <div class="eq-shell">
 <header class="app-topbar">
-  <div class="app-title-wrap"><a class="back-btn" href="../../index.html?area=economia">← Pràctiques</a><div class="app-title">EXERCICIS D'EQUILIBRI DE MERCAT <small>Pràctica 2e · 5 exercicis</small></div></div>
-  <div class="pilot-id-tools"><label class="student-id">ID alumne <input aria-label="ID alumne" autocomplete="off" id="student-id" inputmode="numeric" maxlength="6" placeholder="6 dígits"/></label><button id="market-validate-id" type="button">Valida ID</button><span id="market-id-status" class="pilot-status"></span></div>
+  <div class="app-title-wrap">
+    <a class="back-btn" href="../../index.html?area=economia">← Pràctiques</a>
+    <div class="app-title">EXERCICIS D'EQUILIBRI DE MERCAT <small>Pràctica 2e</small></div>
+  </div>
 </header>
-<section class="eq-intro">Descarrega els enunciats dels cinc exercicis, resol-los i lliura un únic PDF amb les respostes. No cal introduir cap resposta a la web.</section>
-<section style="border:2px solid #24517b;border-radius:12px;background:#edf5ff;padding:24px;margin:18px 0;text-align:center">
-<h2 style="margin:0 0 12px;color:#142b42">ENUNCIATS COMPLETS · PRÀCTICA 2e</h2>
-<p>Document amb els 5 exercicis i les 38 preguntes.</p>
-<a href="enunciats-practica-2e.pdf" download="enunciats-practica-2e.pdf" style="display:inline-block;background:#24517b;color:#fff;font-size:19px;font-weight:800;padding:18px 25px;border-radius:9px;text-decoration:none">OBRE I DESCARREGA ELS ENUNCIATS EN PDF</a>
-<p style="font-size:13px;margin-top:12px">El document PDF es descarrega directament.</p>
-</section>
-<section class="pdf-box"><strong>Entrega les respostes en un únic PDF</strong><div class="pdf-row"><input id="resolution-pdf" type="file" accept="application/pdf,.pdf" disabled><button id="upload-pdf" type="button" disabled>Adjunta el PDF</button><span id="pdf-status" class="pdf-status"></span></div></section>
+
+<div class="eq-intro">
+  <strong>Instruccions.</strong> Descarrega el document amb els enunciats, resol els exercicis en paper i, quan hagis acabat, escaneja el document de treball complet en un únic PDF.
 </div>
 
-<script src="../../tracking.js?v=65"></script>
-<script src="equilibri-exercicis.js?v=8"></script>
+<section class="document-box">
+  <h2>Enunciats de la pràctica</h2>
+  <p>El document conté els cinc exercicis complets de la Pràctica 2e.</p>
+  <a class="document-btn" href="https://drive.google.com/file/d/1Lv7_RYz_-IcCV03XlspRniotMlIduAHd/view?usp=drivesdk" target="_blank" rel="noopener">Obrir / descarregar PDF d'enunciats</a>
+</section>
 
+<section class="pdf-box">
+  <h2>Entrega</h2>
+  <p>Adjunta un únic PDF amb l'escaneig complet del document de treball.</p>
+  <div class="pdf-help">Format admès: PDF · Màxim 10 MB.</div>
+  <div class="pdf-row">
+    <input id="work-pdf" type="file" accept="application/pdf,.pdf">
+    <button id="submit-pdf" type="button" disabled>Entrega el PDF</button>
+    <span id="pdf-status" class="pdf-status" aria-live="polite"></span>
+  </div>
+</section>
+</div>
+
+<script src="../../tracking.js?v=66"></script>
+<script src="equilibri-exercicis.js?v=4"></script>
 </body>
 </html>
