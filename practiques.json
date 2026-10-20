@@ -1,5 +1,5 @@
 {
-  "versio": 59,
+  "versio": 60,
   "ajuda": "visible controla la visibilitat per a l’alumnat; disponible és l’interruptor general d’accés. Opcionalment, obertura i tancament (ISO 8601 amb zona horària, p. ex. 2026-09-20T08:00:00+02:00) limiten automàticament l’accés. El professor pot previsualitzar les pràctiques fora de termini.",
   "arees": {
     "economia": {
@@ -188,7 +188,7 @@
           "codi": "Exercici d'equilibri de mercat",
           "titol": "Exercici d'equilibri de mercat",
           "descripcio": "Prova individual de verificació d'oferta, demanda i equilibri de mercat.",
-          "fitxer": "practiques/economia/exercici-equilibri-mercat.html",
+          "fitxer": "practiques/economia/exercici-equilibri-mercat-v2.html",
           "pdf": null,
           "excepcionsAcces": [
             "142858"
@@ -403,7 +403,7 @@
           "codi": "Exercici bidimensional",
           "titol": "Exercici bidimensional",
           "descripcio": "Prova individual de verificació de l'estadística bidimensional, amb Excel, regressió i interpretació.",
-          "fitxer": "practiques/estadistica/exercici-bidimensional.html",
+          "fitxer": "practiques/estadistica/exercici-bidimensional-v2.html",
           "pdf": null,
           "tema": 2,
           "temaTitol": "Tema 2 · Estadística descriptiva bidimensional",
