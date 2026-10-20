@@ -899,7 +899,7 @@
     render();
   });
 
-  loadJsonConfig('practiques.json?v=61', 'practiques', {syncServerClock: true})
+  loadJsonConfig('practiques.json?v=62', 'practiques', {syncServerClock: true})
     .then(() => {
       render();
       refreshSubmissionStates();
