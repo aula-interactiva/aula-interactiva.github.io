@@ -1,5 +1,5 @@
 {
-  "versio": 58,
+  "versio": 59,
   "ajuda": "visible controla la visibilitat per a l’alumnat; disponible és l’interruptor general d’accés. Opcionalment, obertura i tancament (ISO 8601 amb zona horària, p. ex. 2026-09-20T08:00:00+02:00) limiten automàticament l’accés. El professor pot previsualitzar les pràctiques fora de termini.",
   "arees": {
     "economia": {
@@ -179,6 +179,20 @@
           "obertura": "2026-10-19T17:00:00+02:00",
           "tancament": null,
           "obertaAbans": true
+        },
+        {
+          "id": "exercici-equilibri-mercat",
+          "ordre": 5.5,
+          "visible": false,
+          "disponible": false,
+          "codi": "Exercici d'equilibri de mercat",
+          "titol": "Exercici d'equilibri de mercat",
+          "descripcio": "Prova individual de verificació d'oferta, demanda i equilibri de mercat.",
+          "fitxer": "practiques/economia/exercici-equilibri-mercat.html",
+          "pdf": null,
+          "excepcionsAcces": [
+            "142858"
+          ]
         },
         {
           "id": "elasticitat",
