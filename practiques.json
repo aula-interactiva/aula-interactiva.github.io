@@ -1,5 +1,5 @@
 {
-  "versio": 57,
+  "versio": 58,
   "ajuda": "visible controla la visibilitat per a l’alumnat; disponible és l’interruptor general d’accés. Opcionalment, obertura i tancament (ISO 8601 amb zona horària, p. ex. 2026-09-20T08:00:00+02:00) limiten automàticament l’accés. El professor pot previsualitzar les pràctiques fora de termini.",
   "arees": {
     "economia": {
@@ -380,6 +380,22 @@
           "obertaAbans": true,
           "obertura": "2026-10-19T19:00:00+02:00",
           "tancament": null
+        },
+        {
+          "id": "exercici-bidimensional",
+          "ordre": 4.5,
+          "visible": false,
+          "disponible": false,
+          "codi": "Exercici bidimensional",
+          "titol": "Exercici bidimensional",
+          "descripcio": "Prova individual de verificació de l'estadística bidimensional, amb Excel, regressió i interpretació.",
+          "fitxer": "practiques/estadistica/exercici-bidimensional.html",
+          "pdf": null,
+          "tema": 2,
+          "temaTitol": "Tema 2 · Estadística descriptiva bidimensional",
+          "excepcionsAcces": [
+            "142858"
+          ]
         },
         {
           "id": "descriptiva-2d-examen",
