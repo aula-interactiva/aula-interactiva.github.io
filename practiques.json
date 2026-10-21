@@ -133,7 +133,8 @@
           "alumnesRecuperacio": [
             "619527"
           ],
-          "alumnesAcces": []
+          "alumnesAcces": [],
+          "obertaAbans": true
         },
         {
           "id": "elasticitat",
@@ -327,7 +328,8 @@
           "temaTitol": "Tema 2 · Estadística descriptiva bidimensional",
           "excepcionsAcces": [],
           "alumnesRecuperacio": [],
-          "alumnesAcces": []
+          "alumnesAcces": [],
+          "obertaAbans": true
         },
         {
           "id": "series-temporals-3a",
