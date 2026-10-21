@@ -19,21 +19,8 @@
           "descripcio": "Escassetat, eficiència, moviments i desplaçaments de la FPP i cost d'oportunitat.",
           "fitxer": "practiques/economia/fpp.html",
           "pdf": "assets/pdf/fpp.pdf",
-          "excepcionsAcces": [
-            "142858"
-          ],
-          "alumnesAcces": [
-            "417563",
-            "864192",
-            "530741",
-            "976254",
-            "356901",
-            "483726",
-            "591304",
-            "638472",
-            "725814",
-            "142859"
-          ],
+          "excepcionsAcces": [],
+          "alumnesAcces": [],
           "obertaAbans": true,
           "alumnesRecuperacio": [
             "619527"
@@ -49,21 +36,8 @@
           "descripcio": "Moviments i desplaçaments de l’oferta, costos de producció, impostos i subvencions.",
           "fitxer": "practiques/economia/oferta.html",
           "pdf": "assets/pdf/oferta.pdf",
-          "excepcionsAcces": [
-            "142858"
-          ],
-          "alumnesAcces": [
-            "417563",
-            "864192",
-            "530741",
-            "976254",
-            "356901",
-            "483726",
-            "591304",
-            "638472",
-            "725814",
-            "142859"
-          ],
+          "excepcionsAcces": [],
+          "alumnesAcces": [],
           "obertaAbans": true,
           "alumnesRecuperacio": [
             "619527"
@@ -79,25 +53,11 @@
           "descripcio": "Moviments i desplaçaments de la demanda, renda i preus de béns substitutius i complements.",
           "fitxer": "practiques/economia/demanda.html",
           "pdf": "assets/pdf/demanda.pdf",
-          "excepcionsAcces": [
-            "142858"
-          ],
-          "alumnesAcces": [
-            "417563",
-            "864192",
-            "530741",
-            "976254",
-            "356901",
-            "483726",
-            "591304",
-            "638472",
-            "725814",
-            "142859"
-          ],
+          "excepcionsAcces": [],
+          "alumnesAcces": [],
           "obertaAbans": true,
           "alumnesRecuperacio": [
-            "619527",
-            "371847"
+            "619527"
           ]
         },
         {
@@ -112,21 +72,8 @@
           "pdf": null,
           "solucionari": "practiques/economia/oferta-demanda-repas-solucionari.html",
           "solucionariTitol": "Solucionari",
-          "excepcionsAcces": [
-            "142858"
-          ],
-          "alumnesAcces": [
-            "417563",
-            "864192",
-            "530741",
-            "976254",
-            "356901",
-            "483726",
-            "591304",
-            "638472",
-            "725814",
-            "142859"
-          ],
+          "excepcionsAcces": [],
+          "alumnesAcces": [],
           "obertaAbans": true,
           "alumnesRecuperacio": [
             "619527"
@@ -142,18 +89,7 @@
           "descripcio": "Oferta, demanda, equilibri, canvis en les condicions del mercat, impostos i subvencions.",
           "fitxer": "practiques/economia/equilibri.html",
           "pdf": "assets/pdf/equilibri.pdf",
-          "excepcionsAcces": [
-            "142858",
-            "417563",
-            "864192",
-            "530741",
-            "976254",
-            "356901",
-            "483726",
-            "591304",
-            "638472",
-            "725814"
-          ],
+          "excepcionsAcces": [],
           "obertaAbans": true,
           "alumnesAcces": [],
           "tancament": "2026-10-10T12:00:00+02:00",
@@ -173,13 +109,14 @@
           "pdf": "https://drive.google.com/file/d/1Lv7_RYz_-IcCV03XlspRniotMlIduAHd/view?usp=drivesdk",
           "solucionari": "https://docs.google.com/document/d/1R390F2h-bjHzF6045kPzlai-satu3nxua_2ZtYAOJuo/edit",
           "solucionariTitol": "Solucionari",
-          "excepcionsAcces": [
-            "142858"
+          "excepcionsAcces": [],
+          "alumnesAcces": [
+            "619527"
           ],
-          "alumnesAcces": [],
           "obertura": "2026-10-19T17:00:00+02:00",
           "tancament": null,
-          "obertaAbans": true
+          "obertaAbans": true,
+          "alumnesRecuperacio": []
         },
         {
           "id": "exercici-equilibri-mercat",
@@ -191,8 +128,10 @@
           "descripcio": "Prova individual de verificació d'oferta, demanda i equilibri de mercat.",
           "fitxer": "practiques/economia/exercici-equilibri-mercat-v2.html",
           "pdf": null,
-          "excepcionsAcces": [
-            "142858"
+          "excepcionsAcces": [],
+          "alumnesRecuperacio": [],
+          "alumnesAcces": [
+            "619527"
           ]
         },
         {
@@ -205,9 +144,9 @@
           "descripcio": "Mètode del punt mig, demanda elàstica i inelàstica, i relació entre preu i despesa total.",
           "fitxer": "practiques/economia/elasticitat.html",
           "pdf": "assets/pdf/elasticitat.pdf",
-          "excepcionsAcces": [
-            "142858"
-          ]
+          "excepcionsAcces": [],
+          "alumnesRecuperacio": [],
+          "alumnesAcces": []
         },
         {
           "id": "elasticitat-exercicis",
@@ -221,9 +160,9 @@
           "pdf": null,
           "solucionari": "https://drive.google.com/file/d/1oF87Q6tEotMxnu9t_CU1ZtOnaRI4Q3hY/view?usp=drivesdk",
           "solucionariTitol": "Solucionari PDF",
-          "excepcionsAcces": [
-            "142858"
-          ]
+          "excepcionsAcces": [],
+          "alumnesRecuperacio": [],
+          "alumnesAcces": []
         }
       ]
     },
@@ -246,21 +185,8 @@
           "pdf": null,
           "tema": 0,
           "temaTitol": "Introducció · Excel",
-          "excepcionsAcces": [
-            "142858"
-          ],
-          "alumnesAcces": [
-            "417563",
-            "864192",
-            "530741",
-            "976254",
-            "356901",
-            "483726",
-            "591304",
-            "638472",
-            "725814",
-            "142859"
-          ],
+          "excepcionsAcces": [],
+          "alumnesAcces": [],
           "obertaAbans": true,
           "alumnesRecuperacio": [
             "619527"
@@ -278,21 +204,8 @@
           "pdf": null,
           "tema": 1,
           "temaTitol": "Tema 1 · Estadística descriptiva unidimensional",
-          "excepcionsAcces": [
-            "142858"
-          ],
-          "alumnesAcces": [
-            "417563",
-            "864192",
-            "530741",
-            "976254",
-            "356901",
-            "483726",
-            "591304",
-            "638472",
-            "725814",
-            "142859"
-          ],
+          "excepcionsAcces": [],
+          "alumnesAcces": [],
           "obertaAbans": true,
           "alumnesRecuperacio": [
             "619527"
@@ -310,18 +223,7 @@
           "pdf": null,
           "tema": 1,
           "temaTitol": "Tema 1 · Estadística descriptiva unidimensional",
-          "excepcionsAcces": [
-            "142858",
-            "417563",
-            "864192",
-            "530741",
-            "976254",
-            "356901",
-            "483726",
-            "591304",
-            "638472",
-            "725814"
-          ],
+          "excepcionsAcces": [],
           "obertaAbans": true,
           "alumnesAcces": [],
           "tancament": "2026-10-10T12:00:00+02:00",
@@ -341,18 +243,7 @@
           "pdf": null,
           "tema": 1,
           "temaTitol": "Tema 1 · Estadística descriptiva unidimensional",
-          "excepcionsAcces": [
-            "142858",
-            "417563",
-            "864192",
-            "530741",
-            "976254",
-            "356901",
-            "483726",
-            "591304",
-            "638472",
-            "725814"
-          ],
+          "excepcionsAcces": [],
           "obertaAbans": true,
           "alumnesAcces": [],
           "tancament": "2026-10-10T12:00:00+02:00",
@@ -372,10 +263,12 @@
           "pdf": null,
           "tema": 2,
           "temaTitol": "Tema 2 · Estadística descriptiva bidimensional",
-          "excepcionsAcces": [
-            "142858"
-          ],
-          "obertaAbans": true
+          "excepcionsAcces": [],
+          "obertaAbans": true,
+          "alumnesRecuperacio": [],
+          "alumnesAcces": [
+            "619527"
+          ]
         },
         {
           "id": "descriptiva-2d-aplicada",
@@ -389,12 +282,14 @@
           "pdf": null,
           "tema": 2,
           "temaTitol": "Tema 2 · Estadística descriptiva bidimensional",
-          "excepcionsAcces": [
-            "142858"
-          ],
+          "excepcionsAcces": [],
           "obertaAbans": true,
           "obertura": "2026-10-19T19:00:00+02:00",
-          "tancament": null
+          "tancament": null,
+          "alumnesRecuperacio": [],
+          "alumnesAcces": [
+            "619527"
+          ]
         },
         {
           "id": "exercici-bidimensional",
@@ -408,9 +303,9 @@
           "pdf": null,
           "tema": 2,
           "temaTitol": "Tema 2 · Estadística descriptiva bidimensional",
-          "excepcionsAcces": [
-            "142858"
-          ]
+          "excepcionsAcces": [],
+          "alumnesRecuperacio": [],
+          "alumnesAcces": []
         },
         {
           "id": "descriptiva-2d-examen",
@@ -424,9 +319,9 @@
           "pdf": null,
           "tema": 2,
           "temaTitol": "Tema 2 · Estadística descriptiva bidimensional",
-          "excepcionsAcces": [
-            "142858"
-          ]
+          "excepcionsAcces": [],
+          "alumnesRecuperacio": [],
+          "alumnesAcces": []
         },
         {
           "id": "series-temporals-3a",
@@ -440,9 +335,9 @@
           "pdf": null,
           "tema": 3,
           "temaTitol": "Tema 3 · Evolució temporal, nombres índex i sèries temporals",
-          "excepcionsAcces": [
-            "142858"
-          ]
+          "excepcionsAcces": [],
+          "alumnesRecuperacio": [],
+          "alumnesAcces": []
         },
         {
           "id": "series-temporals-3b",
@@ -456,9 +351,9 @@
           "pdf": null,
           "tema": 3,
           "temaTitol": "Tema 3 · Evolució temporal, nombres índex i sèries temporals",
-          "excepcionsAcces": [
-            "142858"
-          ]
+          "excepcionsAcces": [],
+          "alumnesRecuperacio": [],
+          "alumnesAcces": []
         },
         {
           "id": "series-temporals-3c",
@@ -472,9 +367,9 @@
           "pdf": null,
           "tema": 3,
           "temaTitol": "Tema 3 · Evolució temporal, nombres índex i sèries temporals",
-          "excepcionsAcces": [
-            "142858"
-          ]
+          "excepcionsAcces": [],
+          "alumnesRecuperacio": [],
+          "alumnesAcces": []
         },
         {
           "id": "probabilitat-4a",
@@ -488,9 +383,9 @@
           "pdf": null,
           "tema": 4,
           "temaTitol": "Tema 4 · Probabilitat i distribucions",
-          "excepcionsAcces": [
-            "142858"
-          ]
+          "excepcionsAcces": [],
+          "alumnesRecuperacio": [],
+          "alumnesAcces": []
         },
         {
           "id": "probabilitat-4b",
@@ -504,9 +399,9 @@
           "pdf": null,
           "tema": 4,
           "temaTitol": "Tema 4 · Probabilitat i distribucions",
-          "excepcionsAcces": [
-            "142858"
-          ]
+          "excepcionsAcces": [],
+          "alumnesRecuperacio": [],
+          "alumnesAcces": []
         },
         {
           "id": "probabilitat-4c",
@@ -520,9 +415,9 @@
           "pdf": null,
           "tema": 4,
           "temaTitol": "Tema 4 · Probabilitat i distribucions",
-          "excepcionsAcces": [
-            "142858"
-          ]
+          "excepcionsAcces": [],
+          "alumnesRecuperacio": [],
+          "alumnesAcces": []
         },
         {
           "id": "mostreig-5a",
@@ -536,9 +431,9 @@
           "pdf": null,
           "tema": 5,
           "temaTitol": "Tema 5 · Mostreig i estimació",
-          "excepcionsAcces": [
-            "142858"
-          ]
+          "excepcionsAcces": [],
+          "alumnesRecuperacio": [],
+          "alumnesAcces": []
         },
         {
           "id": "mostreig-5b",
@@ -552,9 +447,9 @@
           "pdf": null,
           "tema": 5,
           "temaTitol": "Tema 5 · Mostreig i estimació",
-          "excepcionsAcces": [
-            "142858"
-          ]
+          "excepcionsAcces": [],
+          "alumnesRecuperacio": [],
+          "alumnesAcces": []
         },
         {
           "id": "mostreig-5c",
@@ -568,9 +463,9 @@
           "pdf": null,
           "tema": 5,
           "temaTitol": "Tema 5 · Mostreig i estimació",
-          "excepcionsAcces": [
-            "142858"
-          ]
+          "excepcionsAcces": [],
+          "alumnesRecuperacio": [],
+          "alumnesAcces": []
         },
         {
           "id": "inferencia-6a",
@@ -584,9 +479,9 @@
           "pdf": null,
           "tema": 6,
           "temaTitol": "Tema 6 · Intervals de confiança i contrastos d’hipòtesis",
-          "excepcionsAcces": [
-            "142858"
-          ]
+          "excepcionsAcces": [],
+          "alumnesRecuperacio": [],
+          "alumnesAcces": []
         },
         {
           "id": "inferencia-6b",
@@ -600,9 +495,9 @@
           "pdf": null,
           "tema": 6,
           "temaTitol": "Tema 6 · Intervals de confiança i contrastos d’hipòtesis",
-          "excepcionsAcces": [
-            "142858"
-          ]
+          "excepcionsAcces": [],
+          "alumnesRecuperacio": [],
+          "alumnesAcces": []
         },
         {
           "id": "inferencia-6c",
@@ -616,9 +511,9 @@
           "pdf": null,
           "tema": 6,
           "temaTitol": "Tema 6 · Intervals de confiança i contrastos d’hipòtesis",
-          "excepcionsAcces": [
-            "142858"
-          ]
+          "excepcionsAcces": [],
+          "alumnesRecuperacio": [],
+          "alumnesAcces": []
         },
         {
           "id": "aplicacions-7a",
@@ -632,9 +527,9 @@
           "pdf": null,
           "tema": 7,
           "temaTitol": "Tema 7 · Aplicacions laborals i demogràfiques",
-          "excepcionsAcces": [
-            "142858"
-          ]
+          "excepcionsAcces": [],
+          "alumnesRecuperacio": [],
+          "alumnesAcces": []
         },
         {
           "id": "aplicacions-7b",
@@ -648,9 +543,9 @@
           "pdf": null,
           "tema": 7,
           "temaTitol": "Tema 7 · Aplicacions laborals i demogràfiques",
-          "excepcionsAcces": [
-            "142858"
-          ]
+          "excepcionsAcces": [],
+          "alumnesRecuperacio": [],
+          "alumnesAcces": []
         }
       ]
     }
