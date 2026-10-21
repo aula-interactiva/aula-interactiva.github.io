@@ -94,8 +94,7 @@
           "alumnesAcces": [],
           "tancament": "2026-10-10T12:00:00+02:00",
           "alumnesRecuperacio": [
-            "619527",
-            "371847"
+            "619527"
           ]
         },
         {
@@ -210,8 +209,7 @@
           "alumnesAcces": [],
           "obertaAbans": true,
           "alumnesRecuperacio": [
-            "619527",
-            "530741"
+            "619527"
           ]
         },
         {
@@ -232,7 +230,6 @@
           "tancament": "2026-10-10T12:00:00+02:00",
           "alumnesRecuperacio": [
             "619527",
-            "530741",
             "662020"
           ]
         },
@@ -254,7 +251,6 @@
           "tancament": "2026-10-10T12:00:00+02:00",
           "alumnesRecuperacio": [
             "619527",
-            "530741",
             "562795"
           ]
         },
