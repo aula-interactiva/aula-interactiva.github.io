@@ -101,7 +101,7 @@
           "id": "equilibri-exercicis",
           "ordre": 5,
           "visible": true,
-          "disponible": true,
+          "disponible": false,
           "codi": "Pràctica 2e",
           "titol": "Exercicis d’equilibri de mercat",
           "descripcio": "Cinc exercicis d’oferta, demanda i equilibri de mercat. Els enunciats es treballen en PDF i l’entrega es fa amb l’escaneig del document resolt.",
@@ -110,29 +110,29 @@
           "solucionari": "https://docs.google.com/document/d/1R390F2h-bjHzF6045kPzlai-satu3nxua_2ZtYAOJuo/edit",
           "solucionariTitol": "Solucionari",
           "excepcionsAcces": [],
-          "alumnesAcces": [
-            "619527"
-          ],
+          "alumnesAcces": [],
           "obertura": "2026-10-19T17:00:00+02:00",
           "tancament": null,
           "obertaAbans": true,
-          "alumnesRecuperacio": []
+          "alumnesRecuperacio": [
+            "619527"
+          ]
         },
         {
           "id": "exercici-equilibri-mercat",
           "ordre": 5.5,
           "visible": true,
-          "disponible": true,
+          "disponible": false,
           "codi": "Exercici d'equilibri de mercat",
           "titol": "Exercici d'equilibri de mercat",
           "descripcio": "Prova individual de verificació d'oferta, demanda i equilibri de mercat.",
           "fitxer": "practiques/economia/exercici-equilibri-mercat-v2.html",
           "pdf": null,
           "excepcionsAcces": [],
-          "alumnesRecuperacio": [],
-          "alumnesAcces": [
+          "alumnesRecuperacio": [
             "619527"
-          ]
+          ],
+          "alumnesAcces": []
         },
         {
           "id": "elasticitat",
@@ -260,7 +260,7 @@
           "id": "descriptiva-2d",
           "ordre": 3,
           "visible": true,
-          "disponible": true,
+          "disponible": false,
           "codi": "Pràctica 2a",
           "titol": "Bidimensional · guiada",
           "descripcio": "Parelles de dades, núvol de punts, covariància, correlació, regressió, residuals, R² i extrapolació amb guia pas a pas i suport d’Excel.",
@@ -270,16 +270,16 @@
           "temaTitol": "Tema 2 · Estadística descriptiva bidimensional",
           "excepcionsAcces": [],
           "obertaAbans": true,
-          "alumnesRecuperacio": [],
-          "alumnesAcces": [
+          "alumnesRecuperacio": [
             "619527"
-          ]
+          ],
+          "alumnesAcces": []
         },
         {
           "id": "descriptiva-2d-aplicada",
           "ordre": 4,
           "visible": true,
-          "disponible": true,
+          "disponible": false,
           "codi": "Pràctica 2b",
           "titol": "Bidimensional · aplicada amb Excel",
           "descripcio": "Anàlisi aplicada amb dades individualitzades, gràfic XY, covariància, correlació, regressió, predicció, residuals, R² i interpretació final.",
@@ -291,10 +291,10 @@
           "obertaAbans": true,
           "obertura": "2026-10-19T19:00:00+02:00",
           "tancament": null,
-          "alumnesRecuperacio": [],
-          "alumnesAcces": [
+          "alumnesRecuperacio": [
             "619527"
-          ]
+          ],
+          "alumnesAcces": []
         },
         {
           "id": "exercici-bidimensional",
