@@ -56,69 +56,13 @@ textarea{width:100%;min-height:165px;resize:vertical;border:1px solid #dfca77;ba
     <div class="actions"><button class="btn secondary" id="download" type="button">↓ Descarrega les dades</button><span class="filemsg">El fitxer conté DADES i un full ANALISI lliure.</span></div>
   </div></section>
 
-  <section class="card"><div class="head">RESULTATS CLAU DE L’ANÀLISI</div><div class="body">
-    <div class="exam-note" style="margin-bottom:10px">Omple aquesta fitxa <strong>quan hagis acabat l’anàlisi</strong>. No hi ha correcció intermèdia. Són només els resultats clau necessaris per registrar i corregir l’entrega.</div>
-    <div class="result-grid">
-      <div class="result-card">
-        <h2>Relació lineal</h2>
-        <p>Resumeix numèricament la direcció i la intensitat de l’associació lineal.</p>
-        <div class="fields">
-          <div class="field full"><label for="r-value">Mesura lineal adequada (3 decimals)</label><input id="r-value" inputmode="decimal" placeholder="Resultat"></div>
-        </div>
-      </div>
-      <div class="result-card">
-        <h2>Model ajustat</h2>
-        <p>Escriu els dos coeficients del model lineal de Y sobre X.</p>
-        <div class="fields">
-          <div class="field"><label for="intercept">Intercept a (3 decimals)</label><input id="intercept" inputmode="decimal" placeholder="a"></div>
-          <div class="field"><label for="slope">Pendent b (3 decimals)</label><input id="slope" inputmode="decimal" placeholder="b"></div>
-        </div>
-      </div>
-      <div class="result-card">
-        <h2>Capacitat descriptiva del model</h2>
-        <p>Expressa en percentatge la proporció de variabilitat de Y associada linealment amb X.</p>
-        <div class="fields">
-          <div class="field full"><label for="r2-pct">Percentatge (1 decimal)</label><input id="r2-pct" inputmode="decimal" placeholder="%"></div>
-        </div>
-      </div>
-      <div class="result-card">
-        <h2>Predicció dins de la mostra</h2>
-        <p>Utilitza el teu model per estimar el lloguer quan X = 8 km.</p>
-        <div class="fields">
-          <div class="field full"><label for="pred-8">Lloguer predit (€; 2 decimals)</label><input id="pred-8" inputmode="decimal" placeholder="€"></div>
-        </div>
-      </div>
-      <div class="result-card">
-        <h2>Sensibilitat a l’observació 48</h2>
-        <p>Repeteix només l’anàlisi necessària per valorar si aquesta observació condiciona el resum lineal.</p>
-        <div class="fields">
-          <div class="field"><label for="r-no48">Mesura lineal sense l’observació 48 (3 decimals)</label><input id="r-no48" inputmode="decimal" placeholder="Resultat"></div>
-          <div class="field"><label for="impact">En retirar-la, la força lineal...</label><select id="impact"><option value="">— Tria —</option><option>Augmenta</option><option>Disminueix</option><option>No canvia de manera apreciable</option></select></div>
-        </div>
-      </div>
-      <div class="result-card">
-        <h2>Límit de predicció</h2>
-        <p>Valora una predicció per a un habitatge situat a 25 km del centre.</p>
-        <div class="fields">
-          <div class="field full"><label for="prediction-25">La consideraries una predicció fiable amb aquesta mostra?</label><select id="prediction-25"><option value="">— Tria —</option><option>Sí, és interpolació dins del rang observat</option><option>No, és extrapolació fora del rang observat</option></select></div>
-        </div>
-      </div>
-    </div>
-  </div></section>
-
   <section class="card"><div class="head">FITXER EXCEL</div><div class="body">
     <div class="exam-note">Adjunta el fitxer que has utilitzat. Es comprovarà que conservi les dades, que hi hagi treball amb fórmules i que inclogui un <strong>gràfic de dispersió XY amb ajust lineal, equació i R²</strong>. L’organització interna del full és lliure.</div>
     <div class="actions"><input id="excel-upload" type="file" accept=".xlsx,.xlsm"><span class="filemsg" id="filemsg">Cap fitxer seleccionat.</span></div>
   </div></section>
 
-  <section class="card"><div class="head">COMENTARI FINAL</div><div class="body">
-    <label for="final-comment" style="font-size:11px;font-weight:800;display:block;margin-bottom:7px">Redacta una conclusió global de 5–8 línies.</label>
-    <textarea id="final-comment" maxlength="1800" placeholder="Integra el patró gràfic, la intensitat, el model, la interpretació dels coeficients i R², l’observació 48, els límits de predicció i la diferència entre associació i causalitat."></textarea>
-    <div class="count" id="comment-count">0 caràcters · mínim 180</div>
-  </div></section>
-
   <section class="card"><div class="body submitbox">
-    <div><div class="status" id="submit-status">Completa la fitxa final, adjunta l’Excel i escriu el comentari abans d’entregar.</div><div class="score hidden" id="score-box"></div></div>
+    <div><div class="status" id="submit-status">Adjunta el fitxer Excel per entregar la pràctica.</div><div class="score hidden" id="score-box"></div></div>
     <button class="btn primary" id="submit" type="button">Entrega la pràctica</button>
   </div></section>
 </main>
@@ -182,147 +126,21 @@ function makeWorkbook(){
   XLSX.writeFile(wb,`estadistica_2c_${id}.xlsx`);
 }
 
-function expected(){
-  const r=stats.r,a=stats.a,b=stats.b,r2pct=stats.r2*100,p8=a+b*8,rNo=statsNo48.r;
-  const delta=Math.abs(rNo)-Math.abs(r);
-  const impact=Math.abs(delta)<.01?'No canvia de manera apreciable':delta>0?'Augmenta':'Disminueix';
-  return{r,a,b,r2pct,p8,rNo,impact,p25:'No, és extrapolació fora del rang observat'};
-}
-
-function collectAnswers(){
-  return{
-    r:parseNum($('r-value').value),
-    a:parseNum($('intercept').value),
-    b:parseNum($('slope').value),
-    r2pct:parseNum($('r2-pct').value),
-    p8:parseNum($('pred-8').value),
-    rNo:parseNum($('r-no48').value),
-    impact:$('impact').value,
-    p25:$('prediction-25').value
-  };
-}
-
-function objectiveDetail(){
-  const e=expected(),a=collectAnswers();
-  const checks=[
-    ['Mesura lineal',a.r,e.r,.0011],
-    ['Intercept',a.a,e.a,.0011],
-    ['Pendent',a.b,e.b,.0011],
-    ['R² (%)',a.r2pct,e.r2pct,.11],
-    ['Predicció X=8',a.p8,e.p8,.011],
-    ['Mesura lineal sense observació 48',a.rNo,e.rNo,.0011]
-  ].map(([q,v,truth,tol])=>({question:q,answer:Number.isFinite(v)?v:'',correct:(()=>{const vr=Math.round((v+Number.EPSILON)*100)/100,tr=Math.round((truth+Number.EPSILON)*100)/100;return Number.isFinite(vr)&&Number.isFinite(tr)&&Math.abs(vr-tr)<=0.01+1e-9})()}));
-  checks.push({question:'Efecte de retirar l’observació 48',answer:a.impact,correct:a.impact===e.impact});
-  checks.push({question:'Predicció a X=25',answer:a.p25,correct:a.p25===e.p25});
-  return checks;
-}
-
-function allFilled(){
-  const ids=['r-value','intercept','slope','r2-pct','pred-8','r-no48','impact','prediction-25'];
-  return ids.every(id=>String($(id).value||'').trim());
-}
-
-async function inspectWorkbook(){
-  const rep={readable:false,dataPreserved:false,formulaCount:0,chart:false,linearTrendline:false,showsEquation:false,showsR2:false};
-  if(!selectedFile||!window.XLSX)return rep;
-  const buf=await selectedFile.arrayBuffer();
-  try{
-    const wb=XLSX.read(buf,{type:'array',cellFormula:true});
-    const d=wb.Sheets.DADES;if(!d)return rep;
-    rep.readable=true;
-    rep.dataPreserved=data.every((v,i)=>Number(d['B'+(i+6)]?.v)===v.x&&Number(d['C'+(i+6)]?.v)===v.y);
-    Object.values(wb.Sheets).forEach(sh=>Object.entries(sh).forEach(([k,cell])=>{if(!k.startsWith('!')&&cell&&cell.f)rep.formulaCount++}));
-    if(window.JSZip){
-      const zip=await JSZip.loadAsync(buf);
-      const names=Object.keys(zip.files).filter(n=>new RegExp('^xl/charts/chart\\d+\\.xml$','i').test(n));
-      rep.chart=names.length>0;
-      for(const name of names){
-        const xml=await zip.file(name).async('string');
-        if(/trendlineType[^>]*val=["']linear["']/i.test(xml))rep.linearTrendline=true;
-        if(/dispEq[^>]*val=["']1["']/i.test(xml))rep.showsEquation=true;
-        if(/dispRSq[^>]*val=["']1["']/i.test(xml))rep.showsR2=true;
-      }
-    }
-  }catch(_){}
-  return rep;
-}
-
-function excelScore(rep){
-  let s=0;
-  if(rep.dataPreserved)s+=.4;
-  s+=Math.min(rep.formulaCount,6)/6*1.0;
-  if(rep.chart)s+=.5;
-  if(rep.linearTrendline)s+=.4;
-  if(rep.showsEquation)s+=.35;
-  if(rep.showsR2)s+=.35;
-  return round(s,2);
-}
-
 function setStatus(kind,text){$('submit-status').className='status '+(kind||'');$('submit-status').textContent=text}
 
 async function submitExam(){
-  if(submitted)return;
-  const comment=$('final-comment').value.trim();
-  if(!allFilled()){setStatus('bad','Falten resultats clau a la fitxa final.');return}
-  if(!selectedFile){setStatus('bad','Adjunta el fitxer Excel abans d’entregar.');return}
-  if(comment.length<180){setStatus('bad','El comentari final ha de tenir com a mínim 180 caràcters.');return}
-
-  $('submit').disabled=true;$('submit').textContent='Corregint…';
-  setStatus('','Analitzant els resultats i el fitxer Excel…');
-
-  const workbook=await inspectWorkbook();
-  if(!workbook.readable){
-    $('submit').disabled=false;$('submit').textContent='Entrega la pràctica';
-    setStatus('bad','No s’ha pogut llegir l’Excel. Desa’l com a .xlsx o .xlsm i torna-ho a provar.');return;
-  }
-
-  const detail=objectiveDetail(),correctN=detail.filter(x=>x.correct).length;
-  const objectiveScore=correctN/detail.length*6;
-  const xScore=excelScore(workbook);
-  const autoScore=round(objectiveScore+xScore,2);
-
-  const id=tracker.getSession()?.id||'',e=expected();
-  const context=
-    `Valora el comentari final de la pràctica 2c com una interpretació global d’un cas bidimensional. `+
-    `Resultats correctes: n=${stats.n}; r=${round(stats.r,3)} (${direction(stats.r)}, ${strength(stats.r)}); `+
-    `recta ŷ=${round(stats.a,3)}+${round(stats.b,3)}x; R²=${round(stats.r2,3)} (${round(stats.r2*100,1)}%); `+
-    `predicció per X=8: ${round(e.p8,2)}; r sense l’observació 48=${round(statsNo48.r,3)} i, en retirar-la, la força lineal ${e.impact.toLowerCase()}; `+
-    `rang X observat aproximat=[${round(stats.minx,1)}, ${round(stats.maxx,1)}], de manera que X=25 és extrapolació. `+
-    `Avalua si integra coherentment el patró gràfic, intensitat i direcció, interpretació del pendent, significat de R², influència de l’observació 48, prudència en extrapolació i diferència entre associació i causalitat. `+
-    `No exigeixis que enumeri tots els valors. Aquesta part val 1 punt.`;
-
-  const payload={
-    submissionId:tracker.makeSubmissionId('descriptiva-2d-examen',id),
-    id,practice:'Pràctica 2c · Estadística descriptiva bidimensional',area:'Estadística',status:'Entregada',
-    total:detail.length,correct:correctN,attempts:1,progress:100,
-    minutes:Math.max(1,Math.round((Date.now()-startedAt)/60000)),version:'exam-2d-global-2',
-    detail:{
-      autoScoreOutOf9:autoScore,
-      objectiveScoreOutOf6:round(objectiveScore,2),
-      excelScoreOutOf3:xScore,
-      objectiveCorrect:correctN,objectiveTotal:detail.length,
-      workbook,
-      statistics:{r:round(stats.r,3),slope:round(stats.b,3),intercept:round(stats.a,3),r2:round(stats.r2,3),rWithout48:round(statsNo48.r,3),xMin:round(stats.minx,1),xMax:round(stats.maxx,1)},
-      answers:detail
-    },
-    justifications:[{question:context,text:comment}]
-  };
-
-  $('submit').textContent='Enviant…';setStatus('','Guardant l’entrega i la primera correcció…');
-  const fileSave=await tracker.uploadFile(selectedFile,{practice:payload.practice,area:payload.area,submissionId:tracker.stablePracticeSubmissionId(location.pathname,id)});if(!fileSave.ok){$('submit').disabled=false;$('submit').textContent='Entrega la pràctica';setStatus('bad','No s’ha pogut guardar l’Excel. L’entrega no s’ha registrat. Torna-ho a provar.');return}const res=await tracker.submit(payload);
-  if(res.ok){
-    submitted=true;
-    document.querySelectorAll('input,select,textarea').forEach(x=>x.disabled=true);
-    $('submit').disabled=true;$('submit').textContent='Pràctica entregada';
-    setStatus('ok',res.teacher?'Mode professor: correcció simulada; no s’ha registrat cap entrega.':'Entrega registrada correctament.');
-    $('score-box').classList.remove('hidden');
-    $('score-box').innerHTML=
-      `<strong>${autoScore.toLocaleString('ca-ES',{minimumFractionDigits:2,maximumFractionDigits:2})} / 9</strong> · primera correcció automàtica. `+
-      `El comentari final s’ha enviat també a la correcció amb IA (1 punt).`;
-  }else{
-    $('submit').disabled=false;$('submit').textContent='Entrega la pràctica';
-    setStatus('bad','No s’ha pogut confirmar l’entrega. Torna-ho a provar.');
-  }
+ if(submitted)return;
+ if(!selectedFile){setStatus('bad','Adjunta el fitxer Excel abans d’entregar.');return}
+ $('submit').disabled=true;$('submit').textContent='Enviant…';setStatus('','Guardant el fitxer Excel…');
+ const id=tracker.getSession()?.id||'';
+ const payload={submissionId:tracker.makeSubmissionId('descriptiva-2d-examen',id),id,practice:'Pràctica 2c · Estadística descriptiva bidimensional',area:'Estadística',status:'Entregada',total:0,correct:0,attempts:1,progress:100,minutes:Math.max(1,Math.round((Date.now()-startedAt)/60000)),version:'exam-2d-excel-only',detail:{excelFile:{name:selectedFile.name||'',size:Number(selectedFile.size||0),type:selectedFile.type||''}},justifications:[]};
+ try{
+ const fileSave=await tracker.uploadFile(selectedFile,{practice:payload.practice,area:payload.area,submissionId:tracker.stablePracticeSubmissionId(location.pathname,id)});
+ if(!fileSave.ok){$('submit').disabled=false;$('submit').textContent='Entrega la pràctica';setStatus('bad','No s’ha pogut guardar l’Excel. L’entrega no s’ha registrat. Torna-ho a provar.');return}
+ const res=await tracker.submit(payload);
+ if(res.ok){submitted=true;$('excel-upload').disabled=true;$('submit').disabled=true;$('submit').textContent='Pràctica entregada';setStatus('ok',res.teacher?'Mode professor: entrega simulada; no s’ha registrat cap entrega.':'Entrega registrada correctament.')}
+ else{$('submit').disabled=false;$('submit').textContent='Entrega la pràctica';setStatus('bad','No s’ha pogut confirmar l’entrega. Torna-ho a provar.')}
+ }catch(_){$('submit').disabled=false;$('submit').textContent='Entrega la pràctica';setStatus('bad','Error en l’entrega. Torna-ho a provar.')}
 }
 
 function init(){
@@ -331,7 +149,6 @@ function init(){
   data=makeData(s.id);stats=calc(data);statsNo48=calc(data.slice(0,47));renderData();
   $('download').onclick=makeWorkbook;
   $('excel-upload').onchange=e=>{selectedFile=e.target.files?.[0]||null;$('filemsg').textContent=selectedFile?selectedFile.name:'Cap fitxer seleccionat.'};
-  $('final-comment').oninput=()=>{$('comment-count').textContent=`${$('final-comment').value.trim().length} caràcters · mínim 180`};
   $('submit').onclick=submitExam;
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init,120));else setTimeout(init,120);
