@@ -316,7 +316,7 @@
         {
           "id": "descriptiva-2d-examen",
           "ordre": 5,
-          "visible": false,
+          "visible": true,
           "disponible": true,
           "codi": "Pràctica 2c",
           "titol": "Bidimensional · pràctica final",
