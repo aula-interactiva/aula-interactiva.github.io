@@ -558,41 +558,32 @@
     });
   }
 
-  function anyStudentCanOpenPractice(p) {
-    if (p?.disponible !== true) return false;
-
+  // Estat general de l'activitat: independent de la sessió del professor,
+  // de les recuperacions i de les excepcions individuals.
+  function generalPracticeState(p) {
     const now = currentAccessTime();
     const opensAt = parseAccessTime(p.obertura);
     const closesAt = parseAccessTime(p.tancament);
-    if (opensAt !== null && now < opensAt) return false;
-
+    if (opensAt !== null && now < opensAt) return 'upcoming';
+    if (p.disponible !== true || (closesAt !== null && now >= closesAt)) {
+      return p.obertaAbans === true ? 'closed' : 'unpublished';
+    }
     const allowed = Array.isArray(p.alumnesAcces)
       ? p.alumnesAcces.map(tracker.normalizeId).filter(id => /^\d{6}$/.test(id))
       : [];
-
-    if (closesAt !== null && now >= closesAt) {
-      return activePracticeExceptions(p).length > 0;
-    }
-
-    // Si hi ha allowlist, almenys aquests alumnes hi poden accedir.
-    // Si no n'hi ha, la pràctica és oberta a l'alumnat en general.
-    return allowed.length > 0 || p.disponible === true;
+    return allowed.length ? 'restricted' : 'open';
   }
 
   function practiceCardTone(p, availability, teacher, isApunts) {
     if (isApunts) return '';
-
-    // Una pràctica programada per obrir-se en el futur és sempre neutra (blanca),
-    // independentment de disponible, obertaAbans, rol o excepcions.
-    if (availability?.state === 'upcoming') return '';
-
-    if (p?.obertaAbans !== true) return '';
-
     if (teacher) {
-      if (availability?.open === true) return 'green';
-      return anyStudentCanOpenPractice(p) ? 'orange' : 'red';
+      const state = generalPracticeState(p);
+      if (state === 'open') return 'green';
+      if (state === 'closed' || state === 'restricted') return 'red';
+      return '';
     }
-
+    if (availability?.state === 'upcoming') return '';
+    if (p?.obertaAbans !== true && !availability?.open) return '';
     return availability?.open ? '' : 'red';
   }
 
@@ -736,23 +727,20 @@
       const canOpen = published || teacher;
       const preview = teacher && !published;
       const cardTone = practiceCardTone(p, availability, teacher, isApunts);
+      const generalState = teacher && !isApunts ? generalPracticeState(p) : null;
       const neverOpened = !isApunts && p?.obertaAbans !== true;
-      const status = availability.state === 'upcoming'
-        ? 'Properament'
-        : teacher && (cardTone === 'orange' || cardTone === 'red')
-          ? 'Tancada'
-          : preview
-            ? 'Professor'
-            : published
-              ? 'Disponible'
-              : neverOpened
-                ? 'No oberta'
-                : 'Tancada';
-      const statusClass = status === 'Disponible'
-        ? 'available'
-        : (status === 'Tancada' || status === 'Tancat') && !neverOpened
-          ? 'closed'
-          : '';
+      const status = teacher && !isApunts
+        ? generalState === 'open' ? 'Disponible'
+          : generalState === 'upcoming' ? 'Properament'
+          : generalState === 'unpublished' ? 'No oberta'
+          : generalState === 'restricted' ? 'Restringida'
+          : 'Tancada'
+        : availability.state === 'upcoming' ? 'Properament'
+          : preview ? 'Professor'
+          : published ? 'Disponible'
+          : neverOpened ? 'No oberta' : 'Tancada';
+      const statusClass = status === 'Disponible' ? 'available'
+        : status === 'Tancada' || status === 'Restringida' ? 'closed' : '';
       const openingTime = !isApunts && availability.state === 'upcoming' && availability.opensAt
         ? `<span class="practice-opening">OBRE · ${esc(formatAccessDate(availability.opensAt)).toUpperCase()}</span>`
         : '';
