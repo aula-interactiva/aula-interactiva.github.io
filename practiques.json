@@ -329,7 +329,8 @@
           "excepcionsAcces": [],
           "alumnesRecuperacio": [],
           "alumnesAcces": [],
-          "obertaAbans": true
+          "obertaAbans": true,
+          "tancament": "2026-10-23T16:30:00+02:00"
         },
         {
           "id": "series-temporals-3a",
