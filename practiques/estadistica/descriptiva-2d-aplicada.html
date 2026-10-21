@@ -48,7 +48,7 @@ function makeData(id){const seed=hash(id+'-2b'),r=rng(seed),a=[];const slope=4.3
 function calc(a){const n=a.length,mx=a.reduce((s,d)=>s+d.x,0)/n,my=a.reduce((s,d)=>s+d.y,0)/n,vx=a.reduce((s,d)=>s+(d.x-mx)**2,0)/n,vy=a.reduce((s,d)=>s+(d.y-my)**2,0)/n,cov=a.reduce((s,d)=>s+(d.x-mx)*(d.y-my),0)/n,sdx=Math.sqrt(vx),sdy=Math.sqrt(vy),r=cov/(sdx*sdy),b=cov/vx,A=my-b*mx,r2=r*r;return{n,mx,my,vx,vy,cov,r,b,a:A,r2}}
 function strength(r){const z=Math.abs(r);return z>=.8?'forta':z>=.55?'moderada':'feble'}
 function direction(r){return r>0?'positiva':r<0?'negativa':'nul·la'}
-function correct(d,v){if(d.type==='select')return String(v||'')===d.a;const x=parseNum(v),xr=Math.round((x+Number.EPSILON)*100)/100,ar=Math.round((d.a+Number.EPSILON)*100)/100;return Number.isFinite(xr)&&Number.isFinite(ar)&&Math.abs(xr-ar)<=0.01+1e-9}
+function correct(d,v){if(d.type==='select')return String(v||'')===d.a;const x=parseNum(v);if(!Number.isFinite(x))return false;const tolerance=Number.isFinite(d.tol)?d.tol:0.011;return Math.abs(x-d.a)<=tolerance+1e-9}
 function buildDefs(){const obs=data[14],pred=stats.a+stats.b*obs.x,res=obs.y-pred,x0=28,p0=stats.a+stats.b*x0;defs=[
  {title:'1 · Núvol de punts',guide:'A Excel: selecciona les dues columnes de dades → Insereix → Dispersió (XY). No utilitzis un gràfic de línies. Observa direcció, forma i intensitat abans de calcular r.',q:[
   {t:'Tipus de gràfic adequat per estudiar la relació entre X i Y.',type:'select',a:'Dispersió (XY)',opts:['Dispersió (XY)','Línies','Sectors']},
@@ -67,9 +67,9 @@ function buildDefs(){const obs=data[14],pred=stats.a+stats.b*obs.x,res=obs.y-pre
   {t:'R² (3 decimals).',type:'num',a:round(stats.r2,3),tol:.0011}
  ]},
  {title:'4 · Predicció, residual i interpretació',guide:'Utilitza la recta obtinguda. Recorda: residual = valor observat − valor predit. Una predicció fora del rang observat és una extrapolació.',q:[
-  {t:'Predicció de Y per X = 28 °C (2 decimals).',type:'num',a:round(p0,2),tol:.011},
-  {t:`Valor predit per a l’observació 15 (X=${obs.x}, Y=${obs.y}) (2 decimals).`,type:'num',a:round(pred,2),tol:.011},
-  {t:'Residual de l’observació 15, y − ŷ (2 decimals).',type:'num',a:round(res,2),tol:.011},
+  {t:'Predicció de Y per X = 28 °C (2 decimals).',type:'num',a:round(p0,2),tol:.055},
+  {t:`Valor predit per a l’observació 15 (X=${obs.x}, Y=${obs.y}) (2 decimals).`,type:'num',a:round(pred,2),tol:.055},
+  {t:'Residual de l’observació 15, y − ŷ (2 decimals).',type:'num',a:round(res,2),tol:.11},
   {t:'R² indica la proporció de variabilitat de Y associada linealment amb X en aquesta mostra.',type:'select',a:'Sí',opts:['Sí','No']},
   {t:'Amb aquestes dades soles podem demostrar causalitat entre temperatura i consum?',type:'select',a:'No',opts:['Sí','No']}
  ]}
