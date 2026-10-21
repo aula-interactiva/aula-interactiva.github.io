@@ -137,7 +137,7 @@ async function checkFile(){
     const dws=wb.Sheets['DADES'],tws=wb.Sheets['TREBALL'],iws=wb.Sheets['INSTRUCCIONS'],rws=wb.Sheets['INTERPRETACIO'];
     const report={items:[],correct:0,total:0,allOk:false,justifications:[],detail:[]};
     if(!dws||!tws||!iws||!rws){addCheck(report,'Estructura del fitxer',false,'Falten fulls de la plantilla.');report.total=1;render(report);return}
-    const ver=String(cell(iws,'B9')?.v||'').trim();addCheck(report,'Plantilla correcta',ver==='freq-var-v1',ver==='freq-var-v1'?'':'Versió de plantilla no reconeguda.');
+    const ver=String(cell(iws,'B9')?.v||'').trim();const numbersLayout=ver!=='freq-var-v1' && !!cell(tws,'F5') && !!cell(rws,'A7');addCheck(report,'Plantilla correcta',ver==='freq-var-v1'||numbersLayout,(ver==='freq-var-v1'||numbersLayout)?'':'Versió de plantilla no reconeguda.');
     for(const b of blocks){
       const data=dataFromSheet(dws,b.dataCol),e=expected(data);let tableOk=true;const tableErrors=[];
       const [r1,r2]=b.rows;
@@ -163,7 +163,7 @@ async function checkFile(){
         }
       }
       addCheck(report,`${b.name} · taula de freqüències`,tableOk,tableOk?'Fórmules i resultats correctes.':tableErrors.join(' · '));
-      const metricAddr=[`H${b.summary[0]}`,`H${b.summary[0]+1}`,`H${b.summary[0]+2}`],metricExp=[e.mean,e.variance,e.sd],metricNames=['mitjana','variància','desviació típica'];
+      const metricCol=numbersLayout?'F':'H';const metricAddr=[`${metricCol}${b.summary[0]}`,`${metricCol}${b.summary[0]+1}`,`${metricCol}${b.summary[0]+2}`],metricExp=[e.mean,e.variance,e.sd],metricNames=['mitjana','variància','desviació típica'];
       metricAddr.forEach((addr,j)=>{const z=formulaValue(tws,addr,metricExp[j],.002);addCheck(report,`${b.name} · ${metricNames[j]}`,z.formula&&z.value,z.formula?(z.value?'Correcte.':'La fórmula hi és però el resultat no és correcte.'):'Cal una fórmula que faci referència a altres cel·les.');});
     }
     const qs=[
@@ -171,17 +171,17 @@ async function checkFile(){
       'Identificació i explicació de la distribució més asimètrica',
       'Què ens diu la comparació 1–2 sobre la mitjana'
     ];
-    ['B3','B4','B5'].forEach((addr,j)=>{const text=String(cell(rws,addr)?.v||'').trim();report.justifications.push({question:qs[j],text});addCheck(report,`Interpretació ${j+1}`,text.length>=50,text.length>=50?'Resposta preparada per a correcció.':'Escriu una resposta una mica més desenvolupada (mínim 50 caràcters).')});
+    (numbersLayout?['A7','A8','A9']:['B3','B4','B5']).forEach((addr,j)=>{const text=String(cell(rws,addr)?.v||'').trim();report.justifications.push({question:qs[j],text});addCheck(report,`Interpretació ${j+1}`,text.length>=50,text.length>=50?'Resposta preparada per a correcció.':'Escriu una resposta una mica més desenvolupada (mínim 50 caràcters).')});
     report.total=report.items.length;report.allOk=report.correct===report.total;
     report.detail=report.items.map((x,i)=>({question:i+1,label:x.label,correct:x.ok}));
-    lastReport=report;render(report);$('submit').disabled=!report.allOk||submitted;
+    lastReport=report;render(report);$('submit').disabled=submitted;
   }catch(e){lastReport=null;$('summary').textContent='No s’ha pogut llegir el fitxer.';setStatus('submit-status','bad','Comprova que sigui un .xlsx desat correctament.')}
   finally{$('check-file').disabled=false}
 }
 function render(report){
   $('results').innerHTML=report.items.map(x=>`<div class="check ${x.ok?'ok':'bad'}"><strong>${x.ok?'✓':'×'} ${x.label}</strong><div>${x.detail||''}</div></div>`).join('');
   $('summary').textContent=`${report.correct} de ${report.total} comprovacions correctes.`;
-  setStatus('submit-status',report.allOk?'ok':'bad',report.allOk?'Fitxer correcte. Ja el pots entregar.':'Encara hi ha elements per revisar.');
+  setStatus('submit-status',report.allOk?'ok':'bad',report.allOk?'Fitxer correcte. Ja el pots entregar.':'Hi ha errors detectats. Pots revisar-los o entregar el fitxer perquè quedin registrats.');
 }
 window.AulaDraftState = {
   get(){
@@ -200,7 +200,7 @@ window.AulaDraftState = {
 };
 
 $('submit').onclick=async()=>{
-  if(!lastReport?.allOk||!validatedId||submitted)return;
+  if(!lastReport||!validatedId||submitted)return;
   $('submit').disabled=true;$('submit').textContent='Enviant…';setStatus('submit-status','','Guardant l’entrega…');
   let attachment;
   try{
@@ -220,13 +220,13 @@ $('submit').onclick=async()=>{
   const payload={
     submissionId:tracker.makeSubmissionId('freq-var',validatedId),id:validatedId,
     practice:'Pràctica 1a · Taules de freqüències i dispersió',area:'Estadística',status:'Entregada',
-    total:lastReport.total,correct:lastReport.correct,attempts:checkAttempts,progress:100,
+    total:lastReport.total,correct:lastReport.correct,attempts:checkAttempts,progress:lastReport.total?Math.round(100*lastReport.correct/lastReport.total):0,
     minutes:startedAt?Math.max(1,Math.round((elapsedBeforeMs+Math.max(0,Date.now()-startedAt))/60000)):'',
     version:'pilot-1',detail:{checks:lastReport.detail},justifications:lastReport.justifications,
     attachments:[attachment]
   };
   const r=await tracker.submit(payload);
-  if(r.ok){submitted=true;$('submit').textContent='Pràctica entregada';setStatus('submit-status','ok','Entrega registrada i Excel guardat. Les 3 interpretacions queden pendents de correcció IA.')}
+  if(r.ok){submitted=true;$('submit').textContent='Pràctica entregada';setStatus('submit-status','ok','Entrega registrada i Excel guardat. Els errors detectats i les interpretacions queden registrats per a correcció.')}
   else{$('submit').disabled=false;$('submit').textContent='Entrega la pràctica';setStatus('submit-status','bad','No s’ha pogut confirmar l’entrega ni guardar l’Excel. Torna-ho a provar.')}
 };
 })();
