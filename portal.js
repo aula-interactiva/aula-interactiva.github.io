@@ -537,10 +537,15 @@
   function studentCatchupAccess(p, studentId) {
     const id = tracker.normalizeId(studentId);
     if (!/^\d{6}$/.test(id)) return false;
-    const allowed = Array.isArray(p?.alumnesRecuperacio)
-      ? p.alumnesRecuperacio.map(tracker.normalizeId)
-      : [];
-    return allowed.includes(id);
+    const allowed = Array.isArray(p?.alumnesRecuperacio) ? p.alumnesRecuperacio : [];
+    const now = currentAccessTime();
+    return allowed.some(entry => {
+      const entryId = tracker.normalizeId(typeof entry === 'object' && entry !== null ? entry.id : entry);
+      if (entryId !== id) return false;
+      if (typeof entry !== 'object' || entry === null || !entry.fins) return true;
+      const until = parseAccessTime(entry.fins);
+      return until === null || now < until;
+    });
   }
 
   function activePracticeExceptions(p) {
