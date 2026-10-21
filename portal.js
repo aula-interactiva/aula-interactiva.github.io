@@ -915,6 +915,16 @@
     }
   });
 
+  $('practice-access-close').addEventListener('click', () => {
+    $('practice-access-modal').classList.add('hidden');
+  });
+  $('practice-access-modal').addEventListener('click', event => {
+    if (event.target === $('practice-access-modal')) $('practice-access-modal').classList.add('hidden');
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') $('practice-access-modal').classList.add('hidden');
+  });
+
   $('logout-button').addEventListener('click', () => {
     tracker.logout();
     location.href = 'index.html';
