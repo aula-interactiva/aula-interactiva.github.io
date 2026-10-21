@@ -153,80 +153,77 @@
     renderMessages(messagesData);
   }
 
-  function sendTeacherMessage() {
-    if (session.role !== 'teacher') return;
+  function showSendDetails(items, states) {
+    const names = new Map((messagesData?.recipients || []).map(r => [String(r.id), String(r.name || r.id)]));
+    const details = $('messages-send-details');
+    details.hidden = false;
+    details.innerHTML = '<strong>Resultat per destinatari</strong><ul>' + items.map((item, i) => {
+      const label = item.recipient === 'TOTS' ? 'Tots els alumnes' : (names.get(String(item.recipient)) || item.recipient);
+      const state = states[i];
+      const text = state === 'confirmed' ? 'Confirmat' : state === 'sending' ? 'Enviant…' : 'No confirmat (pot haver-se enviat)';
+      return '<li><span>' + esc(label) + '</span> — <strong>' + esc(text) + '</strong></li>';
+    }).join('') + '</ul>';
+  }
 
+  async function sendTeacherMessage() {
+    if (session.role !== 'teacher') return;
     let recipients = selectedRecipients();
     const message = $('messages-text').value.trim();
     const button = $('messages-send');
     const status = $('messages-send-status');
-
-    if (!recipients.length) {
-      status.textContent = 'Selecciona almenys un destinatari.';
+    if (!recipients.length || !message) {
+      status.textContent = !recipients.length ? 'Selecciona almenys un destinatari.' : 'Escriu un missatge.';
       status.className = 'messages-send-status bad';
       return;
     }
     if (recipients.includes('TOTS')) recipients = ['TOTS'];
-    if (!message) {
-      status.textContent = 'Escriu un missatge.';
-      status.className = 'messages-send-status bad';
-      return;
-    }
-
-    const sentMessages = recipients.map(recipient => ({
-      messageId: tracker.makeSubmissionId('message', session.id),
-      recipient,
-      message
+    const items = recipients.map(recipient => ({
+      messageId:tracker.makeSubmissionId('message', session.id), recipient, message
     }));
-
-    addOptimisticMessages(sentMessages);
-    $('messages-text').value = '';
+    const states = items.map(() => 'sending');
     button.disabled = true;
-    status.textContent = 'Enviant…';
+    showSendDetails(items, states);
+    status.textContent = 'Enviant i comprovant cada destinatari…';
     status.className = 'messages-send-status';
 
-    (async () => {
+    try {
+      const posts = await Promise.allSettled(items.map(item => tracker.apiPost({
+        status:'MissatgeEnviar', messageId:item.messageId, recipient:item.recipient, message:item.message
+      })));
+      const confirmations = await Promise.all(items.map(async item => {
+        try { return await tracker.confirmOperation('message', item.messageId, {attempts:4, delayMs:300}); }
+        catch (_) { return {ok:false}; }
+      }));
+      // Una resposta POST sense confirmació no demostra que el missatge no s'hagi enviat.
+      confirmations.forEach((result, i) => { states[i] = result?.ok ? 'confirmed' : 'unconfirmed'; });
+      // Comprovació addicional contra la llista real del servidor, sense considerar
+      // com a confirmats els registres optimistes.
       try {
-        const posts = await Promise.allSettled(sentMessages.map(item =>
-          tracker.apiPost({
-            status:'MissatgeEnviar',
-            messageId:item.messageId,
-            recipient:item.recipient,
-            message:item.message
-          })
-        ));
-
-        if (posts.every(r => r.status === 'rejected')) {
-          status.textContent = 'No s’ha pogut enviar el missatge.';
-          status.className = 'messages-send-status bad';
-          await refreshMessages().catch(() => {});
-          return;
+        const result = await tracker.apiGet('messages');
+        if (result?.ok) {
+          const ids = new Set((result.messages || []).map(m => String(m.id || '')));
+          items.forEach((item, i) => { if (ids.has(String(item.messageId))) states[i] = 'confirmed'; });
+          messagesData = result;
+          renderMessages(result);
         }
-
-        const confirmations = await Promise.all(sentMessages.map(item =>
-          tracker.confirmOperation('message', item.messageId, {attempts:4, delayMs:300})
-        ));
-        const confirmed = confirmations.filter(r => r?.ok).length;
-
-        if (confirmed === sentMessages.length) {
-          status.textContent = recipients[0] === 'TOTS'
-            ? 'Enviat a tots els alumnes.'
-            : recipients.length === 1 ? 'Enviat.' : 'Enviats.';
-          status.className = 'messages-send-status ok';
-        } else {
-          status.textContent = confirmed
-            ? 'Alguns enviaments no s’han pogut confirmar.'
-            : 'No s’ha pogut confirmar l’enviament.';
-          status.className = 'messages-send-status bad';
-        }
-        await refreshMessages().catch(() => {});
-      } catch (_) {
-        status.textContent = 'No s’ha pogut confirmar l’enviament.';
-        status.className = 'messages-send-status bad';
-      } finally {
-        button.disabled = false;
-      }
-    })();
+      } catch (_) {}
+      showSendDetails(items, states);
+      const confirmed = states.filter(x => x === 'confirmed').length;
+      const unconfirmed = items.length - confirmed;
+      status.textContent = unconfirmed
+        ? confirmed + ' de ' + items.length + ' confirmats. ' + unconfirmed + ' sense confirmar; no els reenviïs sense comprovar-ho.'
+        : (items.length === 1 ? 'Enviament confirmat.' : items.length + ' enviaments confirmats.');
+      status.className = 'messages-send-status ' + (unconfirmed ? 'bad' : 'ok');
+      if (!unconfirmed) $('messages-text').value = '';
+      // Si n'hi ha de pendents, conservar el text, però no reenviar automàticament.
+    } catch (_) {
+      states.fill('unconfirmed');
+      showSendDetails(items, states);
+      status.textContent = 'No s’han pogut verificar els enviaments. No els reenviïs sense comprovar-ho.';
+      status.className = 'messages-send-status bad';
+    } finally {
+      button.disabled = false;
+    }
   }
 
   $('messages-send').addEventListener('click', sendTeacherMessage);
