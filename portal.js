@@ -560,18 +560,36 @@
 
   // Estat general de l'activitat: independent de la sessió del professor,
   // de les recuperacions i de les excepcions individuals.
+  function practiceAllowedStudents(p) {
+    const result = new Map();
+    const add = (entry, source) => {
+      const raw = typeof entry === 'object' && entry !== null ? entry.id : entry;
+      const id = tracker.normalizeId(raw);
+      if (!/^\d{6}$/.test(id) || id === '142858' || id === '142859') return;
+      const until = typeof entry === 'object' && entry !== null ? parseAccessTime(entry.fins) : null;
+      if (until !== null && currentAccessTime() >= until) return;
+      const previous = result.get(id);
+      if (!previous || (previous.until !== null && until === null)) result.set(id, {id, until, source});
+    };
+    (p.alumnesRecuperacio || []).forEach(x => add(x, 'Recuperació'));
+    (p.excepcionsAcces || []).forEach(x => add(x, 'Excepció'));
+    (p.alumnesAcces || []).forEach(x => add(x, 'Accés individual'));
+    return [...result.values()];
+  }
+
   function generalPracticeState(p) {
     const now = currentAccessTime();
     const opensAt = parseAccessTime(p.obertura);
     const closesAt = parseAccessTime(p.tancament);
-    if (opensAt !== null && now < opensAt) return 'upcoming';
-    if (p.disponible !== true || (closesAt !== null && now >= closesAt)) {
-      return p.obertaAbans === true ? 'closed' : 'unpublished';
+    const special = practiceAllowedStudents(p).length > 0;
+    if (opensAt !== null && now < opensAt) return special ? 'restricted' : 'upcoming';
+    const withinDates = closesAt === null || now < closesAt;
+    if (p.disponible === true && withinDates) {
+      const allowlist = Array.isArray(p.alumnesAcces) && p.alumnesAcces.some(id => /^\d{6}$/.test(tracker.normalizeId(id)));
+      return allowlist ? 'restricted' : 'open';
     }
-    const allowed = Array.isArray(p.alumnesAcces)
-      ? p.alumnesAcces.map(tracker.normalizeId).filter(id => /^\d{6}$/.test(id))
-      : [];
-    return allowed.length ? 'restricted' : 'open';
+    if (special) return 'restricted';
+    return p.obertaAbans === true ? 'closed' : 'unpublished';
   }
 
   function practiceCardTone(p, availability, teacher, isApunts) {
@@ -668,6 +686,30 @@
       else submittedPracticeKeys.delete(key);
     });
     render();
+  }
+
+  async function showPracticeAccess(practice) {
+    const modal = $('practice-access-modal');
+    const title = $('practice-access-title');
+    const body = $('practice-access-list');
+    const students = practiceAllowedStudents(practice);
+    title.textContent = practice.titol || 'Alumnes amb accés';
+    body.textContent = 'Carregant noms…';
+    modal.classList.remove('hidden');
+    let names = new Map();
+    try {
+      const response = messagesData?.role === 'teacher' ? messagesData : await tracker.apiGet('messages');
+      if (response?.role === 'teacher' && Array.isArray(response.recipients)) {
+        names = new Map(response.recipients.map(x => [tracker.normalizeId(x.id), x.name]));
+      }
+    } catch (_) {}
+    if (modal.classList.contains('hidden') || title.textContent !== (practice.titol || 'Alumnes amb accés')) return;
+    body.innerHTML = students.length
+      ? students.map(item => '<div class="practice-access-person"><strong>' +
+          esc(names.get(item.id) || 'Alumne ' + item.id) + '</strong><span>' +
+          esc(item.source) + (item.until !== null ? ' · Fins al ' + esc(formatAccessDate(item.until)) : '') +
+          '</span></div>').join('')
+      : '<p>No hi ha permisos individuals actius.</p>';
   }
 
   function render() {
@@ -770,13 +812,16 @@
               ? `<a class="pdf-btn portal-link material-link" data-title="${esc(p.titol)} · PDF" data-area="${esc(a.nom)}" href="${esc(p.pdf)}" target="_blank" rel="noopener">Veure PDF</a>`
               : '<button class="pdf-btn" disabled>Veure PDF</button>')
           : '';
-        const solutionBtn = teacher && p.solucionari
+          const accessBtn = teacher && cardTone === 'orange'
+          ? `<button class="pdf-btn access-list-button" type="button" data-practice-id="${esc(p.id)}">Veure alumnes amb accés</button>`
+          : '';
+      const solutionBtn = teacher && p.solucionari
           ? `<a class="pdf-btn portal-link" href="${esc(p.solucionari)}" target="_blank" rel="noopener">${esc(p.solucionariTitol || 'Solucionari')}</a>`
           : '';
         const openBtn = canOpen
           ? `<a class="open-btn portal-link" href="${esc(p.fitxer)}">Obrir pràctica</a>`
           : '<button class="open-btn" disabled>Obrir pràctica</button>';
-        buttons = pdfBtn + solutionBtn + openBtn;
+        buttons = pdfBtn + solutionBtn + accessBtn + openBtn;
       }
 
       return `<article class="practice-card ${canOpen ? 'active' : 'disabled'} ${cardTone === 'red' ? 'closed-visual' : ''} ${cardTone === 'orange' ? 'teacher-exception closed-visual' : ''} ${cardTone === 'green' ? 'teacher-open' : ''} ${preview ? 'teacher-preview' : ''}">
@@ -822,6 +867,14 @@
       grid.classList.remove('topic-layout');
       grid.innerHTML = list.map(cardHtml).join('');
     }
+
+    grid.querySelectorAll('.access-list-button').forEach(button => {
+      button.addEventListener('click', () => {
+        if (tracker.getSession()?.role !== 'teacher') return;
+        const practice = list.find(p => String(p.id) === button.dataset.practiceId);
+        if (practice && generalPracticeState(practice) === 'restricted') showPracticeAccess(practice);
+      });
+    });
 
     grid.querySelectorAll('.material-link').forEach(link => {
       link.addEventListener('click', () => {
