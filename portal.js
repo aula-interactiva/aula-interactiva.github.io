@@ -579,7 +579,8 @@
     if (teacher) {
       const state = generalPracticeState(p);
       if (state === 'open') return 'green';
-      if (state === 'closed' || state === 'restricted') return 'red';
+      if (state === 'restricted') return 'orange';
+      if (state === 'closed') return 'red';
       return '';
     }
     if (availability?.state === 'upcoming') return '';
