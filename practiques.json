@@ -313,7 +313,9 @@
           "tema": 2,
           "temaTitol": "Tema 2 · Estadística descriptiva bidimensional",
           "excepcionsAcces": [],
-          "alumnesRecuperacio": [],
+          "alumnesRecuperacio": [
+            "142858"
+          ],
           "alumnesAcces": []
         },
         {
