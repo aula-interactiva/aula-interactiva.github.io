@@ -259,6 +259,11 @@
         params: {code: session.id, submissionId: operationId},
         exists: result => result?.submitted === true
       },
+      file: {
+        action: 'pdf-status',
+        params: {code: session.id, submissionId: operationId},
+        exists: result => result?.uploaded === true
+      },
       pdf: {
         action: 'pdf-status',
         params: {code: session.id, submissionId: operationId},
@@ -287,7 +292,7 @@
 
         // Fallback temporal: manté la web compatible amb el desplegament anterior
         // fins que el nou Code.gs estigui publicat.
-        if (last?.error === 'unknown-action' && legacy[kind]) {
+        if (legacy[kind] && (last?.error === 'unknown-action' || (kind === 'file' && last?.ok && last?.exists !== true))) {
           const oldResult = await jsonp({
             action: legacy[kind].action,
             ...legacy[kind].params
