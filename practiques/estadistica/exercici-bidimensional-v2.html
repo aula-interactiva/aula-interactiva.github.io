@@ -55,7 +55,7 @@
     setStatus('Enviant l’Excel…');
 
     try {
-      const uploaded = await tracker.uploadFile(file, {practice: PRACTICE, area: AREA});
+      const uploaded = await tracker.uploadFile(file, {practice: PRACTICE, area: AREA, submissionId: tracker.stablePracticeSubmissionId(location.pathname, tracker.getSession()?.id || '') + '#file1'});
       if (!uploaded?.ok) {
         setStatus('No s’ha pogut enviar l’Excel. Torna-ho a provar.', 'bad');
         button.disabled = false;
