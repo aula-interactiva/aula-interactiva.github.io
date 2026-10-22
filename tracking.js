@@ -756,7 +756,10 @@
   async function uploadPdf(file, {practice = 'Pràctica', area = 'Sistema', submissionId = ''} = {}) {
     const session = getSession();
     if (!session || session.role !== 'student') return {ok: false, error: 'no-student-session'};
-    if (!file || file.type !== 'application/pdf') return {ok: false, error: 'pdf-only'};
+    if (!file) return {ok: false, error: 'missing-file'};
+    const ext = String(file.name || '').toLowerCase().split('.').pop();
+    const mimeType = ext === 'xlsx' ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' : ext === 'xlsm' ? 'application/vnd.ms-excel.sheet.macroEnabled.12' : 'application/pdf';
+    if (!['pdf', 'xlsx', 'xlsm'].includes(ext)) return {ok: false, error: 'unsupported-file-type'};
     if (file.size > 10 * 1024 * 1024) return {ok: false, error: 'file-too-large'};
 
     const buffer = await file.arrayBuffer();
@@ -773,7 +776,7 @@
       practice,
       area,
       status: 'Fitxer',
-      mimeType: 'application/pdf',
+      mimeType,
       fileName: file.name || 'resolucions.pdf',
       size: file.size,
       fileBase64: btoa(binary)
