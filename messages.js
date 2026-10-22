@@ -154,15 +154,26 @@
   }
 
   function showSendDetails(items, states) {
-    const names = new Map((messagesData?.recipients || []).map(r => [String(r.id), String(r.name || r.id)]));
     const details = $('messages-send-details');
+    const pending = items.filter((_, i) => states[i] === 'unconfirmed');
+    if (!pending.length) {
+      details.hidden = true;
+      details.replaceChildren();
+      return;
+    }
+    const names = new Map((messagesData?.recipients || []).map(r => [String(r.id), String(r.name || '')]));
     details.hidden = false;
-    details.innerHTML = '<strong>Resultat per destinatari</strong><ul>' + items.map((item, i) => {
-      const label = item.recipient === 'TOTS' ? 'Tots els alumnes' : (names.get(String(item.recipient)) || item.recipient);
-      const state = states[i];
-      const text = state === 'confirmed' ? 'Confirmat' : state === 'sending' ? 'Enviant…' : 'No confirmat (pot haver-se enviat)';
-      return '<li><span>' + esc(label) + '</span> — <strong>' + esc(text) + '</strong></li>';
-    }).join('') + '</ul>';
+    const heading = document.createElement('strong');
+    heading.textContent = 'Destinataris sense confirmació (pot ser que el missatge s’hagi enviat):';
+    const list = document.createElement('ul');
+    pending.forEach(item => {
+      const li = document.createElement('li');
+      li.textContent = item.recipient === 'TOTS'
+        ? 'Enviament general (no es pot identificar individualment des d’aquesta confirmació)'
+        : (names.get(String(item.recipient)) || 'Alumne sense nom disponible');
+      list.appendChild(li);
+    });
+    details.replaceChildren(heading, list);
   }
 
   async function sendTeacherMessage() {
@@ -182,7 +193,8 @@
     }));
     const states = items.map(() => 'sending');
     button.disabled = true;
-    showSendDetails(items, states);
+    $('messages-send-details').hidden = true;
+    $('messages-send-details').replaceChildren();
     status.textContent = 'Enviant i comprovant cada destinatari…';
     status.className = 'messages-send-status';
 
