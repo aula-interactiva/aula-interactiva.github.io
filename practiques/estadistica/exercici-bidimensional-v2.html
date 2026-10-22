@@ -40,7 +40,7 @@
     if (file.size > 10 * 1024 * 1024) {
       input.value = '';
       button.disabled = true;
-      setStatus('El Excel supera els 10 MB.', 'bad');
+      setStatus('L’Excel supera els 10 MB.', 'bad');
       return;
     }
     button.disabled = false;
@@ -52,12 +52,12 @@
 
     button.disabled = true;
     input.disabled = true;
-    setStatus('Enviant el Excel…');
+    setStatus('Enviant l’Excel…');
 
     try {
       const uploaded = await tracker.uploadFile(file, {practice: PRACTICE, area: AREA});
       if (!uploaded?.ok) {
-        setStatus('No s’ha pogut enviar el Excel. Torna-ho a provar.', 'bad');
+        setStatus('No s’ha pogut enviar l’Excel. Torna-ho a provar.', 'bad');
         button.disabled = false;
         input.disabled = false;
         return;
@@ -78,7 +78,7 @@
       });
 
       if (!submitted?.ok) {
-        setStatus('El Excel s’ha pujat, però no s’ha pogut confirmar l’entrega. Torna-ho a provar.', 'bad');
+        setStatus('L’Excel s’ha pujat, però no s’ha pogut confirmar l’entrega. Torna-ho a provar.', 'bad');
         button.disabled = false;
         input.disabled = false;
         return;
