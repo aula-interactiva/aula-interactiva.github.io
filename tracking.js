@@ -802,7 +802,7 @@
 
     const practiceKey = normalizeRepoPath(location.pathname);
     payload.practiceKey = practiceKey;
-    payload.submissionId = stablePracticeSubmissionId(practiceKey, session.id);
+    payload.submissionId = payload.submissionId || stablePracticeSubmissionId(practiceKey, session.id);
     payload.detail = {...(payload.detail || {}), _practiceKey: practiceKey};
 
     const hasAttachments = Array.isArray(payload.attachments) && payload.attachments.length > 0;
