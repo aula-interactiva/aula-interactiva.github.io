@@ -301,8 +301,8 @@
         {
           "id": "exercici-bidimensional",
           "ordre": 4.5,
-          "visible": false,
-          "disponible": false,
+          "visible": true,
+          "disponible": true,
           "codi": "Exercici bidimensional",
           "titol": "Exercici bidimensional",
           "descripcio": "Prova individual de verificació de l'estadística bidimensional, amb Excel, regressió i interpretació.",
