@@ -100,8 +100,8 @@
         {
           "id": "equilibri-exercicis",
           "ordre": 5,
-          "visible": true,
-          "disponible": true,
+          "visible": false,
+          "disponible": false,
           "codi": "Pràctica 2e",
           "titol": "Exercicis d’equilibri de mercat",
           "descripcio": "Cinc exercicis d’oferta, demanda i equilibri de mercat. Els enunciats es treballen en PDF i l’entrega es fa amb l’escaneig del document resolt.",
@@ -114,9 +114,7 @@
           "obertura": null,
           "tancament": null,
           "obertaAbans": true,
-          "alumnesRecuperacio": [
-            "619527"
-          ]
+          "alumnesRecuperacio": []
         },
         {
           "id": "exercici-equilibri-mercat",
