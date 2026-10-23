@@ -301,8 +301,8 @@
         {
           "id": "exercici-bidimensional",
           "ordre": 4.5,
-          "visible": true,
-          "disponible": true,
+          "visible": false,
+          "disponible": false,
           "codi": "Exercici bidimensional",
           "titol": "Exercici bidimensional",
           "descripcio": "Prova individual de verificació de l'estadística bidimensional, amb Excel, regressió i interpretació.",
@@ -311,10 +311,9 @@
           "tema": 2,
           "temaTitol": "Tema 2 · Estadística descriptiva bidimensional",
           "excepcionsAcces": [],
-          "alumnesRecuperacio": [
-            "142858"
-          ],
-          "alumnesAcces": []
+          "alumnesRecuperacio": [],
+          "alumnesAcces": [],
+          "obertaAbans": true
         },
         {
           "id": "descriptiva-2d-examen",
