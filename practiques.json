@@ -1,5 +1,5 @@
 {
-  "versio": 64,
+  "versio": 65,
   "ajuda": "visible controla la visibilitat per a l’alumnat; disponible és l’interruptor general d’accés. Opcionalment, obertura i tancament (ISO 8601 amb zona horària, p. ex. 2026-09-20T08:00:00+02:00) limiten automàticament l’accés. El professor pot previsualitzar les pràctiques fora de termini.",
   "arees": {
     "economia": {
@@ -207,7 +207,8 @@
           "alumnesAcces": [],
           "obertaAbans": true,
           "alumnesRecuperacio": [
-            "619527"
+            "619527",
+            "562795"
           ]
         },
         {
@@ -231,7 +232,8 @@
             {
               "id": "662020",
               "fins": "2026-10-21T16:00:00+02:00"
-            }
+            },
+            "562795"
           ]
         },
         {
@@ -252,10 +254,7 @@
           "tancament": "2026-10-10T12:00:00+02:00",
           "alumnesRecuperacio": [
             "619527",
-            {
-              "id": "562795",
-              "fins": "2026-10-21T16:00:00+02:00"
-            }
+            "562795"
           ]
         },
         {
@@ -273,7 +272,8 @@
           "excepcionsAcces": [],
           "obertaAbans": true,
           "alumnesRecuperacio": [
-            "619527"
+            "619527",
+            "562795"
           ],
           "alumnesAcces": []
         },
