@@ -1,5 +1,5 @@
 {
-  "versio": 16,
+  "versio": 17,
   "ajuda": "Els apunts publicats poden ser PDF o pàgines HTML. visible controla si la targeta es mostra a l’alumnat; el professor pot previsualitzar també apunts ocults. disponible controla si l’alumnat els pot obrir.",
   "arees": {
     "economia": {
@@ -40,8 +40,8 @@
         {
           "id": "tema-3-elasticitat",
           "ordre": 3,
-          "visible": false,
-          "disponible": false,
+          "visible": true,
+          "disponible": true,
           "codi": "Tema 3",
           "titol": "L’elasticitat i la seva aplicació",
           "descripcio": "Elasticitat preu de la demanda, altres elasticitats, elasticitat de l’oferta i aplicacions.",
