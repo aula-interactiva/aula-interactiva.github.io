@@ -1,5 +1,5 @@
 {
-  "versio": 65,
+  "versio": 66,
   "ajuda": "visible controla la visibilitat per a l’alumnat; disponible és l’interruptor general d’accés. Opcionalment, obertura i tancament (ISO 8601 amb zona horària, p. ex. 2026-09-20T08:00:00+02:00) limiten automàticament l’accés. El professor pot previsualitzar les pràctiques fora de termini.",
   "arees": {
     "economia": {
@@ -336,8 +336,8 @@
         {
           "id": "series-temporals-3a",
           "ordre": 6,
-          "visible": false,
-          "disponible": false,
+          "visible": true,
+          "disponible": true,
           "codi": "Pràctica 3a",
           "titol": "Sèries temporals · guiada",
           "descripcio": "Variacions absolutes i percentuals, punts percentuals, nombres índex, tendència, estacionalitat, comparacions temporals i mitjanes mòbils amb guia pas a pas.",
@@ -347,13 +347,14 @@
           "temaTitol": "Tema 3 · Evolució temporal, nombres índex i sèries temporals",
           "excepcionsAcces": [],
           "alumnesRecuperacio": [],
-          "alumnesAcces": []
+          "alumnesAcces": [],
+          "obertaAbans": true
         },
         {
           "id": "series-temporals-3b",
           "ordre": 7,
-          "visible": false,
-          "disponible": false,
+          "visible": true,
+          "disponible": true,
           "codi": "Pràctica 3b",
           "titol": "Sèries temporals · aplicada amb Excel",
           "descripcio": "Cas laboral amb 24 mesos de dades, índexs base 100, comparacions interanuals, mitjanes mòbils, gràfics i interpretació final.",
@@ -363,7 +364,8 @@
           "temaTitol": "Tema 3 · Evolució temporal, nombres índex i sèries temporals",
           "excepcionsAcces": [],
           "alumnesRecuperacio": [],
-          "alumnesAcces": []
+          "alumnesAcces": [],
+          "obertaAbans": true
         },
         {
           "id": "series-temporals-3c",
