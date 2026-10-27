@@ -749,7 +749,7 @@
     const source = isApunts ? (a.apunts || []) : (a.practiques || []);
     const list = source
       .filter(p => {
-        if (teacher || p.visible !== false) return true;
+        if (teacher || p.visible !== false || (!isApunts && p.obertaAbans === true)) return true;
         return !isApunts && session.role === 'student' && (
           isTechnicalPracticeTester(session) ||
           !!studentAccessException(p, session.id) ||
