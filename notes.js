@@ -91,18 +91,23 @@
     return Number(value).toLocaleString('ca-ES',{minimumFractionDigits:2,maximumFractionDigits:2});
   }
 
+  // Publicacio de notes: divendres 30 d'octubre de 2026, 08:00 a Catalunya (CET).
+  // Instant UTC equivalent: 2026-10-30 07:00:00Z.
+  const STUDENT_NOTES_RELEASE_AT = Date.parse('2026-10-30T07:00:00Z');
+
   function studentView(notes) {
-    // Bloqueig global temporal: cap qualificacio ni comentari visible per a alumnes.
     state.practiceId = '';
+    if (Date.now() >= STUDENT_NOTES_RELEASE_AT) {
+      studentViewWhenEnabled(notes);
+      return;
+    }
     $('notes-practices').classList.add('hidden');
     $('notes-area-mark').classList.add('hidden');
     $('notes-title').textContent = 'Les meves notes';
     $('notes-content').innerHTML = '<div class="notes-empty">Les qualificacions no estan disponibles temporalment.</div>';
-    return;
   }
 
-  // Vista preparada, pero NO accessible: studentView() continua bloquejant les notes.
-  // No activar aquesta funcio sense autoritzacio expressa del professor.
+  // Vista preparada per a la publicacio automatica en la data autoritzada.
   const studentTopics = {
     Economia: [
       {id:'eco1', title:'Tema 1 · FPP', ids:['fpp'], weights:[1]},
