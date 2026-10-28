@@ -1,5 +1,5 @@
 {
-  "versio": 18,
+  "versio": 19,
   "ajuda": "Els apunts publicats poden ser PDF o pàgines HTML. visible controla si la targeta es mostra a l’alumnat; el professor pot previsualitzar també apunts ocults. disponible controla si l’alumnat els pot obrir.",
   "arees": {
     "economia": {
@@ -45,7 +45,15 @@
           "codi": "Tema 3",
           "titol": "L’elasticitat i la seva aplicació",
           "descripcio": "Elasticitat preu de la demanda, altres elasticitats, elasticitat de l’oferta i aplicacions.",
-          "fitxer": "apunts/economia/tema-3-elasticitat.pdf"
+          "fitxer": "apunts/economia/tema-3-elasticitat.pdf",
+          "recursos": [
+            {
+              "titol": "Exercici · Elasticitat del bacallà",
+              "fitxer": "apunts/economia/exercici-elasticitat-bacalla.html",
+              "visible": false,
+              "disponible": false
+            }
+          ]
         },
         {
           "id": "tema-4-produccio-costos",
