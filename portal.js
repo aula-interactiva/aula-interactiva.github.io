@@ -820,7 +820,7 @@
           const accessBtn = teacher && cardTone === 'orange'
           ? `<button class="pdf-btn access-list-button" type="button" data-practice-id="${esc(p.id)}">Veure alumnes amb accés</button>`
           : '';
-      const solutionBtn = teacher && p.solucionari
+      const solutionBtn = (teacher || p.solucionariVisibleAlumnes === true) && p.solucionari
           ? `<a class="pdf-btn portal-link" href="${esc(p.solucionari)}" target="_blank" rel="noopener">${esc(p.solucionariTitol || 'Solucionari')}</a>`
           : '';
         const openBtn = canOpen
