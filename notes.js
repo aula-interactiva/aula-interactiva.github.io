@@ -91,6 +91,16 @@
   }
 
   function studentView(notes) {
+    // Bloqueig global temporal: cap qualificacio ni comentari visible per a alumnes.
+    state.practiceId = '';
+    $('notes-practices').classList.add('hidden');
+    $('notes-area-mark').classList.add('hidden');
+    $('notes-title').textContent = 'Les meves notes';
+    $('notes-content').innerHTML = '<div class="notes-empty">Les qualificacions no estan disponibles temporalment.</div>';
+    return;
+  }
+
+  function studentViewPrevious(notes) {
     const mark = $('notes-area-mark');
     state.practiceId = '';
     $('notes-practices').classList.add('hidden');
