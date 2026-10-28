@@ -100,61 +100,83 @@
     return;
   }
 
-  function studentViewPrevious(notes) {
+  // Vista preparada, pero NO accessible: studentView() continua bloquejant les notes.
+  // No activar aquesta funcio sense autoritzacio expressa del professor.
+  const studentTopics = {
+    Economia: [
+      {id:'eco1', title:'Tema 1 · FPP', ids:['fpp'], weights:[1]},
+      {id:'eco2', title:'Tema 2 · Oferta i demanda',
+       ids:['oferta','demanda','oferta-demanda-repas','equilibri','equilibri-exercicis','exercici-equilibri-mercat-v2'],
+       weights:[.15,.15,.15,.15,.10,.30]},
+      {id:'eco3', title:'Tema 3 · Elasticitat', ids:['elasticitat'], weights:[1]}
+    ],
+    Estadística: [
+      {id:'est1', title:'Tema 1 · Estadística descriptiva unidimensional',
+       ids:['excel-zero','freq-var','descriptiva-1d','descriptiva-1d-examen'],
+       weights:[.10,.15,.25,.50]},
+      {id:'est2', title:'Tema 2 · Estadística descriptiva bidimensional',
+       ids:['descriptiva-2d','descriptiva-2d-aplicada','descriptiva-2d-examen'],
+       weights:[1,1,1]},
+      {id:'est3', title:'Tema 3 · Sèries temporals',
+       ids:['series-temporals-3a','series-temporals-3b','series-temporals-3c'],
+       weights:[1,1,1]}
+    ]
+  };
+  let studentExpandedTopic = '';
+
+  function topicGrade(topic, byId) {
+    // Una nota pendent no es zero. No es calcula cap global provisional.
+    const grades = topic.ids.map(id => byId.has(id) ? parseGrade(byId.get(id).grade) : null);
+    if (grades.some(g => g === null)) return null;
+    const weightSum = topic.weights.reduce((a,b) => a+b, 0);
+    return grades.reduce((sum,g,i) => sum+g*topic.weights[i],0)/weightSum;
+  }
+
+  function studentViewWhenEnabled(notes) {
     const mark = $('notes-area-mark');
-    state.practiceId = '';
+    const area = state.area;
+    const byId = new Map(notes.filter(n => n.area === area).map(n => [String(n.practiceId),n]));
+    const topics = studentTopics[area] || [];
     $('notes-practices').classList.add('hidden');
     mark.classList.remove('hidden');
-    $('notes-title').textContent = 'Les meves notes';
-    mark.textContent = state.area === 'Economia' ? 'E' : 'Σ';
-    const other = state.area === 'Economia' ? 'Estadística' : 'Economia';
+    mark.textContent = area === 'Economia' ? 'E' : 'Σ';
+    const other = area === 'Economia' ? 'Estadística' : 'Economia';
     mark.title = 'Canvia a ' + other;
-    mark.setAttribute('aria-label', 'Canvia a ' + other);
+    mark.setAttribute('aria-label','Canvia a ' + other);
+    $('notes-title').textContent = 'Les meves notes';
 
-    const areaNotes = notes
-      .filter(n => n.area === state.area)
-      .map(n => ({...n, parsedGrade: parseGrade(n.grade)}))
-      .filter(n => n.parsedGrade !== null);
-
-    if (!areaNotes.length) {
-      $('notes-content').innerHTML = '<div class="notes-empty">Encara no hi ha notes publicades en aquesta assignatura.</div>';
-      return;
-    }
-
-    const topicByPractice = new Map();
-    (studentStructure[state.area] || []).forEach(topic => {
-      topic.practices.forEach(p => topicByPractice.set(p.id, topic.title));
-    });
-
-    const grouped = new Map();
-    areaNotes.forEach(note => {
-      const title = topicByPractice.get(String(note.practiceId)) || 'Altres';
-      if (!grouped.has(title)) grouped.set(title, []);
-      grouped.get(title).push(note);
-    });
-
-    $('notes-content').innerHTML = '<div class="student-notes-subject">' +
-      '<div class="student-notes-subject-head">' +
-        '<div><div class="student-notes-label">Assignatura</div><div class="student-notes-subject-title">' + esc(state.area) + '</div></div>' +
-      '</div>' +
-      [...grouped.entries()].map(([title, rows]) => {
+    $('notes-content').innerHTML =
+      '<div class="student-notes-subject"><div class="student-notes-subject-head">' +
+        '<div><div class="student-notes-label">Assignatura</div>' +
+        '<div class="student-notes-subject-title">' + esc(area) + '</div></div></div>' +
+      topics.map(topic => {
+        const grade = topicGrade(topic,byId);
+        const expanded = studentExpandedTopic === topic.id;
+        const entries = topic.ids.map(id => ({id, note:byId.get(id)}))
+          .filter(x => x.note && parseGrade(x.note.grade) !== null);
         return '<section class="student-notes-topic">' +
-          '<div class="student-notes-topic-head">' +
-            '<div class="student-notes-topic-title">' + esc(title) + '</div>' +
-          '</div>' +
-          '<div class="student-notes-topic-body">' +
-            rows.map(r =>
-              '<div class="student-notes-row">' +
-                '<div class="student-notes-practice-wrap"><div class="student-notes-practice">' + esc(r.practice || r.practiceId) + '</div>' +
-                  (r.comment ? '<div class="student-notes-comment">' + esc(r.comment) + '</div>' : '') +
-                '</div>' +
-                '<div class="student-notes-grade">' + formatGrade(r.parsedGrade) + '</div>' +
-              '</div>'
-            ).join('') +
-          '</div>' +
-        '</section>';
-      }).join('') +
-    '</div>';
+          '<button type="button" class="student-notes-topic-toggle" data-topic="' + esc(topic.id) +
+            '" aria-expanded="' + expanded + '">' +
+            '<span class="student-notes-topic-chevron">' + (expanded ? '▾' : '▸') + '</span>' +
+            '<span class="student-notes-topic-title">' + esc(topic.title) + '</span>' +
+            '<span class="student-notes-topic-grade">' + (grade === null ? 'Pendent' : formatGrade(grade)) + '</span>' +
+          '</button>' +
+          (expanded ? '<div class="student-notes-topic-body">' +
+            (entries.length ? entries.map(({note}) =>
+              '<div class="student-notes-row"><div class="student-notes-practice-wrap">' +
+              '<div class="student-notes-practice">' + esc(note.practice || note.practiceId) + '</div>' +
+              (note.comment ? '<div class="student-notes-comment">' + esc(note.comment) + '</div>' : '') +
+              '</div><div class="student-notes-grade">' + formatGrade(parseGrade(note.grade)) + '</div></div>'
+            ).join('') : '<div class="notes-empty">Encara no hi ha qualificacions publicades.</div>') +
+            '</div>' : '') + '</section>';
+      }).join('') + '</div>';
+
+    $('notes-content').querySelectorAll('[data-topic]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        studentExpandedTopic = studentExpandedTopic === btn.dataset.topic ? '' : btn.dataset.topic;
+        studentViewWhenEnabled(state.notes);
+      });
+    });
   }
 
   function teacherPracticeButtons(notes) {
