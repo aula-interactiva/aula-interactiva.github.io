@@ -82,7 +82,8 @@
   };
 
   function parseGrade(value) {
-    const n = Number(String(value ?? '').trim().replace(',','.'));
+    if (value === null || value === undefined || String(value).trim() === '') return null;
+    const n = Number(String(value).trim().replace(',','.'));
     return Number.isFinite(n) ? n : null;
   }
 
