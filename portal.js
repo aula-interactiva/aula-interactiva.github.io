@@ -789,7 +789,7 @@
           : neverOpened ? 'No oberta' : 'Tancada';
       const statusClass = status === 'Disponible' ? 'available'
         : status === 'Tancada' || status === 'Restringida' ? 'closed' : '';
-      const openingTime = !isApunts && availability.state === 'upcoming' && availability.opensAt
+      const openingTime = !isApunts && parseAccessTime(p.obertura) !== null && currentAccessTime() < parseAccessTime(p.obertura)
         ? `<span class="practice-opening">OBRE · ${esc(formatAccessDate(availability.opensAt)).toUpperCase()}</span>`
         : '';
       const closingTime = !isApunts && availability.closesAt && p.disponible === true
