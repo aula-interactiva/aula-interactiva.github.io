@@ -58,8 +58,8 @@
         {
           "id": "tema-4-produccio-costos",
           "ordre": 4,
-          "visible": false,
-          "disponible": false,
+          "visible": true,
+          "disponible": true,
           "codi": "Tema 4",
           "titol": "Producció i costos",
           "descripcio": "Rendiments decreixents, funció de producció, producte marginal i mitjà, mesures del cost i costos a curt i llarg termini.",
