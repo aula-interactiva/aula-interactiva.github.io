@@ -766,8 +766,10 @@
     }
 
     function cardHtml(p) {
+      const materialOpensAt = isApunts ? parseAccessTime(p.obertura) : null;
+      const materialUpcoming = isApunts && materialOpensAt !== null && currentAccessTime() < materialOpensAt;
       const availability = isApunts
-        ? {open: p.disponible === true, state: p.disponible === true ? 'open' : 'upcoming', opensAt:null, closesAt:null}
+        ? {open: p.disponible === true && !materialUpcoming, state: materialUpcoming ? 'upcoming' : p.disponible === true ? 'open' : 'unavailable', opensAt:materialOpensAt, closesAt:null}
         : practiceAvailability(p);
       const published = availability.open;
       const individuallySubmitted = !teacher && !isApunts &&
@@ -789,7 +791,7 @@
           : neverOpened ? 'No oberta' : 'Tancada';
       const statusClass = status === 'Disponible' ? 'available'
         : status === 'Tancada' || status === 'Restringida' ? 'closed' : '';
-      const openingTime = !isApunts && parseAccessTime(p.obertura) !== null && currentAccessTime() < parseAccessTime(p.obertura)
+      const openingTime = availability.state === 'upcoming' && availability.opensAt
         ? `<span class="practice-opening">OBRE · ${esc(formatAccessDate(availability.opensAt)).toUpperCase()}</span>`
         : '';
       const closingTime = !isApunts && availability.closesAt && p.disponible === true
@@ -803,7 +805,7 @@
         const resources = (Array.isArray(p.recursos) ? p.recursos : [])
           .filter(r => teacher || r.visible !== false);
         const resourceButtons = resources.map(r => {
-          const resourceOpen = teacher || r.disponible !== false;
+          const resourceOpen = teacher || (published && r.disponible !== false);
           return resourceOpen
             ? `<a class="pdf-btn portal-link" href="${esc(r.fitxer)}" target="_blank" rel="noopener">${esc(r.titol || 'Recurs')}</a>`
             : `<button class="pdf-btn" disabled>${esc(r.titol || 'Recurs')}</button>`;
@@ -963,7 +965,7 @@
     })
     .catch(() => render());
 
-  loadJsonConfig('apunts.json', 'apunts')
+  loadJsonConfig('apunts.json?v=20', 'apunts')
     .then(render)
     .catch(() => render());
 
