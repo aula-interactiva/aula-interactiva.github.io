@@ -966,7 +966,16 @@
     .catch(() => render());
 
   loadJsonConfig('apunts.json?v=20', 'apunts')
-    .then(render)
+    .then(() => {
+      render();
+      // Refresh open pages once when the scheduled statistics notes become available.
+      const topic = configs.apunts?.arees?.estadistica?.apunts?.find(p => p.id === 'tema-4-probabilitat-distribucions');
+      const opening = parseAccessTime(topic?.obertura);
+      const ms = opening === null ? 0 : opening - currentAccessTime();
+      if (ms > 0 && ms < 2147483000) {
+        setTimeout(() => { if (mode === 'apunts') render(); }, ms + 400);
+      }
+    })
     .catch(() => render());
 
   const session = tracker.getSession();
