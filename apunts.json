@@ -107,12 +107,21 @@
         {
           "id": "tema-4-probabilitat-distribucions",
           "ordre": 4,
-          "visible": false,
-          "disponible": false,
+          "visible": true,
+          "disponible": true,
           "codi": "Tema 4",
           "titol": "Probabilitat i distribucions",
-          "descripcio": "Probabilitat, regles bàsiques, probabilitat condicionada, independència, distribució binomial i distribució normal.",
-          "fitxer": "apunts/estadistica/tema-4-probabilitat-i-distribucions.pdf"
+          "descripcio": "Introducció breu a la probabilitat i la distribució binomial. Estudi de la distribució normal, tipificació, taules Z i exercicis resolts.",
+          "fitxer": "apunts/estadistica/tema-4-probabilitat-i-distribucions-v2.pdf",
+          "obertura": "2026-11-09T17:30:00+01:00",
+          "recursos": [
+            {
+              "titol": "Exercicis",
+              "fitxer": "apunts/estadistica/distribucio-normal-exercicis.docx",
+              "visible": true,
+              "disponible": true
+            }
+          ]
         },
         {
           "id": "tema-5-mostreig-estimacio",
